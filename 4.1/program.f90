@@ -36,7 +36,7 @@ contains
       H = -0.5d0*H/(12d0*dr*dr)
       do i = 1, n
          r = dr * i
-         H(i, i) = H(i, i) + ALPHA*V_prime(r, l, j, isNeutron, N_, A_, Z_) + (0.5d0*l*(l+1))/(r*r)
+         H(i, i) = H(i, i) + ALPHA*V_prime(r, l, j, isNeutron, N_, A_, Z_, dr) + (0.5d0*l*(l+1))/(r*r)
       end do
    end subroutine
 
@@ -76,7 +76,7 @@ contains
          do k = 1, count
             rho(i) = rho(i) + (2d0*j(k)+1d0)*u(i, k)*u(i, k)
          end do
-         rho(i) = rho(i) / (4d0*pi*r**r)
+         rho(i) = rho(i) / (4d0*PI*r*r)
       end do
    end subroutine
 
@@ -116,14 +116,16 @@ contains
 
       lowest_energy = -100d0
       do i = 1, count
-         position = minloc(energies, energies > lowest_energy)
+         ! minloc() returns position of minimum value satisfying MASK
+         ! note: minloc() ignores lowest bound of array, always regards arrays to start at 1
+         position = minloc(energies, energies > lowest_energy) ! 1st:k, 2nd:indexOfJ
          position(2) = position(2) - 1
          lowest_energy = minval(energies, energies > lowest_energy)
          k(i) = position(1)
          l(i) = position(2)/2
          j(i) = position(2)-position(2)/2-0.5d0
          energies_sorted(i) = lowest_energy
-         phi_sorted(:, i) = phi(position(1), position(2)+1, :)
+         phi_sorted(:, i) = phi(k(i), position(2), :)
       end do
    end subroutine
 
@@ -192,8 +194,8 @@ contains
       end do
    end subroutine normalize
 
-   double precision function V_prime(r, l, j, isNeutron, N_, A_, Z)
-      double precision,intent(in) :: r, j
+   double precision function V_prime(r, l, j, isNeutron, N_, A_, Z, dr)
+      double precision,intent(in) :: r, j, dr
       integer,intent(in) :: N_, A_, Z, l
       logical,intent(in) :: isNeutron
       double precision ls, V, W, R_, beta
@@ -207,7 +209,7 @@ contains
       R_ = r_zero * A_**(1d0/3d0)
       beta = (r-R_)/a
     
-      V = -(51d0+sign_*33d0*dble(N_-Z)/A_)/(1d0+exp((r-R_)/a))
+      V = -(51d0+sign_*33d0*dble(N_-Z)/A_)*f(r, R_)
       if (.not. isNeutron) then
           if (r < R_) then
              V = V + 0.5d0*((Z-1)*charge*charge*(3d0-(r/R_)**2d0))/R_
@@ -215,18 +217,22 @@ contains
              V = V + 0.5d0*((Z-1)*charge*charge)/r
          end if
       end if
-      W = (22d0+sign_*14d0*dble(N_-Z)/A_)*r_zero*r_zero
-      W = -W*exp(beta)/(r*a*(1d0+exp(beta))**2d0)
-
+      W = (22d0+sign_*14d0*dble(N_-Z)/A_)*r_zero*r_zero/r
+      !W = -W*exp(beta)/(r*a*(1d0+exp(beta))**2d0)
+      W = W * (f(r+0.5d0*dr, R_)-f(r-0.5d0*dr,R_))/dr
       V_prime = V + ls*W
    end function V_prime
+   double precision function f(r, R_)
+      double precision,intent(in) :: r, R_
+      f = 1d0/((1+exp((r-R_)/a)))
+   end function
 end module extension
 
 program main
    use extension
    implicit none
    integer,parameter :: n = 500, l_max = 10
-   double precision,parameter :: R = 20d0
+   double precision,parameter :: R = 15d0
    double precision :: energies(1:4, 0:l_max*2)! Row:N, Column:(l-0.5, l+0.5)*l_max
    double precision dr, j, values(1:n), u(1:4, 0:l_max*2, 1:n), H(1:n, 1:n)
    integer A_, Z_, l, k, spin, count, i
@@ -241,7 +247,6 @@ program main
    read (*, *) Z_
    write (*, *)
    write (*, '(a, f10.5)') "Radius of the nucleus [fm]:", r_zero*A_**(1d0/3d0) 
-
    ! Angular orbital momentum qunatum number l=[0,l_max(user-defined)]
    do l = 0, l_max
       ! s = spin * 0.5d0 = -0.5d0 or 0.5d0
@@ -267,7 +272,6 @@ program main
          end do
       end do
    end do
-
    ! debug ------------------------------------------------------
    !do i_ = 0, 4
    !   do j_ = 0, l_max*2
@@ -278,6 +282,7 @@ program main
    ! ------------------------------------------------------------
 
    allocate(k_sorted(1:count), l_sorted(1:count), j_sorted(1:count), energies_sorted(1:count), u_sorted(1:n, 1:count), rho(1:n))
+  
    call sort_data(u, u_sorted, n, energies, energies_sorted, count, k_sorted, l_sorted, j_sorted)
    do i = 1, count
       write (*, '(2(a,i1),a,f4.1,a,f8.3)') "N=",k_sorted(i)," L=",l_sorted(i)," J=",j_sorted(i)," : ",energies_sorted(i)
