@@ -5,40 +5,15 @@ module extension
    double precision,parameter :: ALPHA = 939d0/197.323d0**2d0 ! mc^2/(hbar*c)^2
    double precision,parameter :: a = 0.67
    double precision,parameter :: r_zero = 1.27
-   double precision,parameter :: charge = 1.6021766d-19 ! a unit of charge
+   double precision,parameter :: COULOMB_CONSTANT = 197.326/137 ! e^2 in Gaussian unit
    double precision,parameter :: PI = acos(-1d0)
 contains
-   ! Construct Hamiltonian   
-   subroutine construct_hamiltonian(H, n, dr, l, j, isNeutron, N_, A_, Z_)
-      integer,intent(in) :: n, N_, A_, Z_, l
-      logical,intent(in) :: isNeutron
-      double precision,intent(in) :: dr, j
-      double precision,intent(out) :: H(1:n, 1:n)
-      integer i
-      double precision r
-    
-      H = 0d0
-      do i = 1, n
-         H(i, i) = -30d0
-         if (1 < i) then
-            H(i, i-1) = 16d0
-         end if
-         if (2 < i) then
-            H(i, i-2) = -1d0
-         end if
-         if (i < n) then
-            H(i, i+1) = 16d0
-         end if
-         if (i < n-1) then
-            H(i, i+2) = -1d0
-         end if
-      end do
-      H = -0.5d0*H/(12d0*dr*dr)
-      do i = 1, n
-         r = dr * i
-         H(i, i) = H(i, i) + ALPHA*V_prime(r, l, j, isNeutron, N_, A_, Z_, dr) + (0.5d0*l*(l+1))/(r*r)
-      end do
-   end subroutine
+   double precision function get_pos(i, dr)
+      integer,intent(in) :: i
+      double precision,intent(in) :: dr
+      get_pos = dr*i - 0.5d0*dr
+      !get_pos = dr*i
+   end function
 
    ! solve schroedinger equation
    subroutine solve_schrodinger(n, dr, isNeutron, A_, N_, Z_, l, j, values, H)
@@ -64,159 +39,81 @@ contains
       end if
    end subroutine solve_schrodinger
 
-   ! solve density of nucleon
-   subroutine solve_density(u, dr, n, count, j, rho, num_nucleon)
-      double precision,intent(in) :: u(1:n, 1:count), j(1:), dr
-      double precision,intent(out) :: rho(1:)
-      integer,intent(in) :: count, n, num_nucleon
-      integer i, k, num
-      double precision r
-      double precision sum
-      
-      num = num_nucleon
-      rho = 0d0
-
-      do k = 1, count
-         if (num - int(2d0*j(k)+1d0) > 0) then
-            num = num - int(2d0*j(k)+1d0)
-            do i = 1, n
-               r = dr * i
-               rho(i) = rho(i) + (2d0*j(k)+1d0)*u(i, k)*u(i, k)
-            end do
-         else if (num > 0) then
-            do i = 1, n
-               r = dr * i
-               rho(i) = rho(i) + num*u(i, k)*u(i, k)
-            end do
-            exit
-         end if
-      end do
-      do i = 1, n
-         r = dr * i
-         rho(i) = rho(i) / (4d0*PI*r*r)
-      end do
-
-      ! check number of nucleon
-      sum = 0d0
-      do i = 1, n
-         r = dr * i
-         if (i == 1 .or. i == n) then
-            sum = sum + 0.5d0*rho(i)*(4d0*PI*r*r)*dr
-         else
-            sum = sum + rho(i)*(4d0*PI*r*r)*dr
-         end if
-      end do
-      if (abs(sum - num_nucleon) > 0.005d0) then
-         write (*, *) "Calculated number of nucleon does not match the input data. Result may not be correct"
-         write (*, '(a, f10.5)') "# of nuclei : ", sum
-         write (*, '(a, I1)')    "   Expected : ", num_nucleon
-      end if
-    end subroutine solve_density
-
-    ! output wave function to a file
-    subroutine output_wavefunc_to_file(H, n, dr, k_max)
-      integer,intent(in) :: n, k_max
-      double precision,intent(in) :: H(1:, 1:), dr
-      integer k, i
-      open(10, file="wave.txt")
-      do k = 1, k_max
-         do i = 1, n
-            write (10, *) dr*i, H(i,k)
-         end do
-         write (10, *)
-      end do
-      close(10)
-      write (*, *)
-      write (*, '(2a)') "Wave function data -> ", "wave.txt"
-      write (*, *) "{FORMAT} ", "Position[fm]  Amplitude"
-   end subroutine
-
-   ! output density to a file
-   subroutine output_density_to_file(rho, n, dr)
-      integer,intent(in) :: n
-      double precision,intent(in) :: rho(1:), dr
+   ! Construct Hamiltonian   
+   subroutine construct_hamiltonian(H, n, dr, l, j, isNeutron, N_, A_, Z_)
+      integer,intent(in) :: n, N_, A_, Z_, l
+      logical,intent(in) :: isNeutron
+      double precision,intent(in) :: dr, j
+      double precision,intent(out) :: H(1:n, 1:n)
       integer i
-      open(10, file="density.txt")
+      double precision r
+    
+      H = 0d0
       do i = 1, n
-         write (10, *) dr*i, rho(i)
-      end do
-      close(10)
-      write (*, *)
-      write (*, '(2a)') "Nucleon density data -> ", "density.txt"
-      write (*, *) "{FORMAT} ", "Position[fm]  Density[fm^-3]"
-   end subroutine
-
-   ! sort eigenvalues in ascending order
-   subroutine sort_data(phi, phi_sorted, n, energies, energies_sorted, count, k, l, j)
-      integer,intent(in) :: count, n
-      double precision,intent(in) :: phi(1:, 0:, 1:), energies(1:, 0:)! Row:N, Column:(l-0.5, l+0.5)*l_max
-      double precision,intent(out) :: j(1:count), energies_sorted(1:count)
-      double precision,intent(inout) :: phi_sorted(1:n, 1:count)
-      integer,intent(out) :: k(1:count), l(1:count)
-      double precision lowest_energy
-      integer i, position(1:2)
-
-      lowest_energy = -100d0
-      do i = 1, count
-         ! minloc() returns position of minimum value satisfying MASK
-         ! note: minloc() ignores lowest bound of array, always regards arrays to start at 1
-         position = minloc(energies, energies > lowest_energy) ! 1st:k, 2nd:indexOfJ
-         position(2) = position(2) - 1
-         lowest_energy = minval(energies, energies > lowest_energy)
-         k(i) = position(1)
-         l(i) = position(2)/2
-         j(i) = position(2)-position(2)/2-0.5d0
-         energies_sorted(i) = lowest_energy
-         phi_sorted(:, i) = phi(k(i), position(2), :)
-      end do
-   end subroutine
-
-   ! make plt file for plotting magic numbers
-   subroutine output_to_plt(energies, k, l, j, count)
-      integer,intent(in) :: count, k(1:), l(1:)
-      double precision,intent(in) :: j(1:), energies(1:count)! Row:N, Column:(l-0.5, l+0.5)*l_max
-      integer,parameter :: magic_numbers(1:7) = (/2, 8, 20, 28, 50, 82, 126/)
-      integer i, total
-      character(len=2) l_name
-      total = 0
-      open(11, file="plot.plt")
-
-      write (11, *) "y = 0"
-      write (11, *) "plot y"
-      write (11, *) "unset arrow"
-      write (11, *) "unset label"
-      write (11, *) "set yrange[-40:1]"
-      write (11, *) "set xrange[-1000:7000]"
-      
-      do i = 1, count
-         total = total + int(2d0*j(i)+1d0)
-         write (11, *) "set arrow ", i, " from 0,", energies(i), " to 5000,", energies(i), " nohead"
-         if (any(total == magic_numbers)) then
-            write (11, *) "set arrow ", i+count, " from 6000,", energies(i), " to 5150,", energies(i)
-            write (11, *) "set label ", i, '"', total,'"', "at 6150,", energies(i), " center"
+         H(i, i) = -30d0
+         if (1 < i) then
+            H(i, i-1) = 16d0
          end if
-         if (l(i) == 0) then
-            l_name = "s"
-         else if (l(i) == 1) then
-            l_name = "p"
-         else if (l(i) == 2) then
-            l_name = "d"
-         else if (l(i) == 3) then
-            l_name = "f"
-         else if (l(i) == 4) then
-            l_name = "g"
+         if (2 < i) then
+            H(i, i-2) = -1d0
          end if
-         write (11, '(a, i3, a, i1, a, i1)', advance="no") "set label ", i+count, '"', k(i), l_name, int(2d0*j(i))
-         write (11, '(3a, f15.8, a)') "/2", '"', "at -80,", energies(i), " right"
+         if (i < n) then
+            H(i, i+1) = 16d0
+         end if
+         if (i < n-1) then
+            H(i, i+2) = -1d0
+         end if
       end do
-      write (11, *) "replot"
-      close(11)
-      
-      write (*, *)
-      write (*, '(2a)') "Magic number data -> ", "plot.plt"
-      write (*, *) "This is for gnuplot use. Type load ", '"plot.plt"', " in gnuplot and hit enter."
+      H(1, 1) = -46d0
+      H(1, 2) =  17d0
+      H(2, 1) =  17d0
+      H = -0.5d0*H/(12d0*dr*dr)
+      do i = 1, n
+         r = get_pos(i, dr)
+         H(i, i) = H(i, i) + ALPHA*V_prime(r, l, j, isNeutron, N_, A_, Z_, dr) + (0.5d0*l*(l+1))/(r*r)
+      end do
    end subroutine
-
+   
+   ! calculate potential
+   double precision function V_prime(r, l, j, isNeutron, N_, A_, Z, dr)
+      double precision,intent(in) :: r, j, dr
+      integer,intent(in) :: N_, A_, Z, l
+      logical,intent(in) :: isNeutron
+      double precision ls, V, W, R_, beta
+      integer sign_
+      if (isNeutron) then
+         sign_ = -1
+      else
+         sign_ = 1
+      end if
+      ls = 0.5d0*(j*(j+1d0)-l*(l+1)-0.75d0)
+      R_ = r_zero*A_**(1d0/3d0)
+      beta = (r-R_)/a
+    
+      ! Woods-Saxon Potential
+      V = -(51d0+sign_*33d0*dble(N_-Z)/A_)*f(r, R_)
+      
+      ! Coulomb Potential
+      if (.not. isNeutron) then
+          if (r < R_) then
+             V = V + 0.5d0*((Z-1)*COULOMB_CONSTANT*(3d0-(r/R_)**2d0))/R_
+         else
+             V = V + 0.5d0*((Z-1)*COULOMB_CONSTANT)/r
+         end if
+      end if
+      
+      ! Spin-Orbital Interaction Potential
+      W = (22d0+sign_*14d0*dble(N_-Z)/A_)*r_zero*r_zero/r
+      W = W * (f(r+0.5d0*dr, R_)-f(r-0.5d0*dr,R_))/dr
+      V_prime = V + ls*W
+    end function V_prime
+    ! woods-saxon potential
+    double precision function f(r, R_)
+      double precision,intent(in) :: r, R_
+      f = (1d0/(1d0+exp((r-R_)/a)))*(1d0/(1d0+exp((-r-R_)/a)))
+      !f = (1d0/(1d0+exp((r-R_)/a)))
+    end function f
+   
    ! solve eigen equation of schroedinger equation
    subroutine solve_eigen(H, n, values)
       integer,intent(in) :: n
@@ -256,47 +153,185 @@ contains
       end do
    end subroutine normalize
 
-   ! calculate potential
-   double precision function V_prime(r, l, j, isNeutron, N_, A_, Z, dr)
-      double precision,intent(in) :: r, j, dr
-      integer,intent(in) :: N_, A_, Z, l
-      logical,intent(in) :: isNeutron
-      double precision ls, V, W, R_, beta
-      integer sign_
-      if (isNeutron) then
-         sign_ = -1
-      else
-         sign_ = 1
-      end if
-      ls = 0.5d0*(j*(j+1d0)-l*(l+1)-0.75d0)
-      R_ = r_zero * A_**(1d0/3d0)
-      beta = (r-R_)/a
-    
-      V = -(51d0+sign_*33d0*dble(N_-Z)/A_)*f(r, R_)
-      if (.not. isNeutron) then
-          if (r < R_) then
-             V = V + 0.5d0*((Z-1)*charge*charge*(3d0-(r/R_)**2d0))/R_
-         else
-             V = V + 0.5d0*((Z-1)*charge*charge)/r
+   ! solve density of nucleon
+   subroutine solve_density(u, dr, n, count, j, rho, num_nucleon)
+      double precision,intent(in) :: u(1:n, 1:count), j(1:), dr
+      double precision,intent(out) :: rho(1:)
+      integer,intent(in) :: count, n, num_nucleon
+      integer i, k, num
+      double precision r
+      double precision sum
+      
+      num = num_nucleon
+      rho = 0d0
+
+      do k = 1, count
+         if (num - int(2d0*j(k)+1d0) > 0) then
+            num = num - int(2d0*j(k)+1d0)
+            do i = 1, n
+               r = get_pos(i, dr)
+               rho(i) = rho(i) + (2d0*j(k)+1d0)*u(i, k)*u(i, k)
+            end do
+         else if (num > 0) then
+            do i = 1, n
+               r = get_pos(i, dr)
+               rho(i) = rho(i) + num*u(i, k)*u(i, k)
+            end do
+            exit
          end if
+      end do
+      do i = 1, n
+         r = get_pos(i, dr)
+         rho(i) = rho(i) / (4d0*PI*r*r)
+      end do
+
+      ! check number of nucleon
+      sum = 0d0
+      do i = 1, n
+         r = get_pos(i, dr)
+         if (i == 1 .or. i == n) then
+            sum = sum + 0.5d0*rho(i)*(4d0*PI*r*r)*dr
+         else
+            sum = sum + rho(i)*(4d0*PI*r*r)*dr
+         end if
+      end do
+      if (abs(sum - num_nucleon) > 0.005d0) then
+         write (*, *) "[WARNING] Calculated number of nucleon does not match the input data. Result may not be correct"
       end if
-      W = (22d0+sign_*14d0*dble(N_-Z)/A_)*r_zero*r_zero/r
-      !W = -W*exp(beta)/(r*a*(1d0+exp(beta))**2d0)
-      W = W * (f(r+0.5d0*dr, R_)-f(r-0.5d0*dr,R_))/dr
-      V_prime = V + ls*W
-    end function V_prime
-    ! woods-saxon potential
-    double precision function f(r, R_)
-      double precision,intent(in) :: r, R_
-      f = 1d0/((1+exp((r-R_)/a)))
-    end function f
+      write (*, '(a, f10.5)') "# of nuclei : ", sum
+      write (*, '(a, I3)')    "   Expected : ", num_nucleon
+    end subroutine solve_density
+
+    ! output wave function to a file
+    subroutine output_wavefunc_to_file(H, n, dr, k_max)
+      integer,intent(in) :: n, k_max
+      double precision,intent(in) :: H(1:, 1:), dr
+      integer k, i
+      open(10, file="wave.txt")
+      do k = 1, k_max
+         do i = 1, n
+            write (10, *) get_pos(i, dr), H(i,k)
+         end do
+         write (10, *)
+      end do
+      close(10)
+      write (*, *)
+      write (*, '(2a)') "Wave function data -> ", "wave.txt"
+      write (*, *) "{FORMAT} ", "Position[fm]  Amplitude"
+   end subroutine
+
+   ! output density to a file
+   subroutine output_density_to_file(rho, n, dr)
+      integer,intent(in) :: n
+      double precision,intent(in) :: rho(1:), dr
+      integer i
+      open(10, file="density.txt")
+      do i = 1, n
+         write (10, *) get_pos(i, dr), rho(i)
+      end do
+      close(10)
+      write (*, *)
+      write (*, '(2a)') "Nucleon density data -> ", "density.txt"
+      write (*, *) "{FORMAT} ", "Position[fm]  Density[fm^-3]"
+   end subroutine
+
+   ! sort eigenvalues in ascending order
+   subroutine sort_data(phi, phi_sorted, n, energies, energies_sorted, count, k, l, j)
+      integer,intent(in) :: count, n
+      double precision,intent(in) :: phi(1:, 0:, 1:), energies(1:, 0:)! Row:N, Column:(l-0.5, l+0.5)*l_max
+      double precision,intent(out) :: j(1:count), energies_sorted(1:count)
+      double precision,intent(inout) :: phi_sorted(1:n, 1:count)
+      integer,intent(out) :: k(1:count), l(1:count)
+      double precision lowest_energy
+      integer i, position(1:2)
+
+      lowest_energy = -100d0
+      do i = 1, count
+         ! minloc() returns position of minimum value satisfying MASK
+         ! note: minloc() ignores lowest bound of array, always regards arrays to start at 1
+         position = minloc(energies, energies > lowest_energy) ! 1st:k, 2nd:indexOfJ
+         position(2) = position(2) - 1
+         lowest_energy = minval(energies, energies > lowest_energy)
+         k(i) = position(1)
+         l(i) = position(2)/2
+         j(i) = position(2)-position(2)/2-0.5d0
+         energies_sorted(i) = lowest_energy
+         phi_sorted(:, i) = phi(k(i), position(2), :)
+      end do
+   end subroutine
+
+   ! make plt file for plotting magic numbers
+   subroutine output_to_plt(energies, k, l, j, count)
+      integer,intent(in) :: count, k(1:), l(1:)
+      double precision,intent(in) :: j(1:), energies(1:count)! Row:N, Column:(l-0.5, l+0.5)*l_max
+      integer,parameter :: magic_numbers(1:7) = (/2, 8, 20, 28, 50, 82, 126/)
+      integer i, total
+      character(len=2) l_name
+      integer,parameter :: BAR_WIDTH = 750, ARROW_WIDTH = 170, SPACE = 100
+      integer :: WIDTH_SUM = BAR_WIDTH + ARROW_WIDTH
+      total = 0
+      open(11, file="plot.plt")
+
+      write (11, *) "set ylabel 'E [MeV]"
+      write (11, *) "unset xtics"
+      write (11, *) "unset key"
+      write (11, *) "y = 0"
+      write (11, *) "plot y"
+      write (11, *) "unset arrow"
+      write (11, *) "unset label"
+      write (11, *) "set yrange[-41:1]"
+      write (11, *) "set xrange[-350:", WIDTH_SUM+SPACE+350, "]"
+      
+      do i = 1, count
+         total = total + int(2d0*j(i)+1d0)
+         ! energy levels drawing
+         write (11, *) "set arrow ", i, " from 0,", energies(i), " to ", BAR_WIDTH, ",", energies(i), " nohead"
+          ! magic numbers drawing
+         if (any(total == magic_numbers)) then
+            write (11, *) "set arrow ",i+count," from ", WIDTH_SUM+SPACE, ",", energies(i), " to ", BAR_WIDTH+SPACE,",", energies(i)
+            write (11, *) "set label ", i, '"', total,'"', "at ", WIDTH_SUM+SPACE, ",", energies(i), " center"
+         end if
+         ! N:L:J drawing
+         if (l(i) == 0) then
+            l_name = "s"
+         else if (l(i) == 1) then
+            l_name = "p"
+         else if (l(i) == 2) then
+            l_name = "d"
+         else if (l(i) == 3) then
+            l_name = "f"
+         else if (l(i) == 4) then
+            l_name = "g"
+         else if (l(i) == 5) then
+            l_name = "h"
+         else if (l(i) == 6) then
+            l_name = "i"
+         else if (l(i) == 7) then
+            l_name = "j"
+         else if (l(i) == 8) then
+            l_name = "k"
+         else if (l(i) == 9) then
+            l_name = "l"
+         else if (l(i) == 10) then
+            l_name = "m"
+         end if
+         write (11, '(a, i3, a, i1, a, i2)', advance="no") "set label ", i+count, '"', k(i), l_name, int(2d0*j(i))
+         write (11, '(3a, f15.8, a)') "/2", '"', "at -80,", energies(i), " right"
+      end do
+      write (11, *) "replot"
+      close(11)
+      
+      write (*, *)
+      write (*, '(2a)') "Magic number data -> ", "plot.plt"
+      write (*, *) "This is for gnuplot use. Type load ", '"plot.plt"', " in gnuplot and hit enter."
+   end subroutine
 end module extension
 
 program main
    use extension
    implicit none
    integer,parameter :: n = 500, l_max = 10
-   double precision,parameter :: R = 15d0
+   double precision,parameter :: R = 20d0
    double precision :: energies(1:4, 0:l_max*2)! Row:N, Column:(l-0.5, l+0.5)*l_max
    double precision dr, j, values(1:n), u(1:4, 0:l_max*2, 1:n), H(1:n, 1:n)
    integer A_, Z_, l, k, spin, count, i
@@ -311,10 +346,10 @@ program main
    read (*, *) A_
    write (*, '(a)', advance="no") "Input Z:"
    read (*, *) Z_
-   write (*, '(a)', advance="no") "Calculate nueutron?(n->proton) [y/n]:"
+   write (*, '(a)', advance="no") "Calculate neutron?(n->proton) [y/n]:"
    read (*, *) yesorno
    write (*, *)
-   isNeutron = yesorno == "y"
+   isNeutron = yesorno == "y" .or. yesorno == "yes"
 
    write (*, '(a, f10.5)') "Radius of the nucleus [fm]:", r_zero*A_**(1d0/3d0) 
    ! Angular orbital momentum qunatum number l=[0,l_max(user-defined)]
@@ -331,7 +366,7 @@ program main
          call solve_schrodinger(n, dr, isNeutron, A_, A_-Z_, Z_, l, j, values, H)
 
          ! find states where neucleon is trapped inside the potential
-         do k = 1, n
+         do k = 1, 4
             ! end this loop when there is no more bound states
             if (values(k) > 0) then
                exit
