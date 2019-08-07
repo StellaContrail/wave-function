@@ -3,8 +3,8 @@ This repository contains various programs used for calculating Schroedinger Equa
 * Electron_Energies_Wavefunctions  
 It is well known that electrons inside any atoms are orbiting around its nucleus with Coulomb potential. They have own energy levels so that they can obey the Pauli's principle.  
 This program calculates the energy levels by solving the proper Schroedinger Equation.  
-There are severial ways to solve differential equation with some boundary conditions such as FDM(Finite-Difference Method), and Rungekutta + Bisection Method.  
-The picture below shows the wave functions of electrons orbiting around a hydrogen nucleus with orbital quatum number l=1.  
+There are several ways to solve differential equation with some boundary conditions such as FDM(Finite-Difference Method), and Rungekutta + Bisection Method.  
+The picture below shows the wave functions of an electron orbiting around a hydrogen nucleus with orbital quantum number l=1.  
 ![Electron Wave function](Electron_Energies_Wavefunctions/FDM_5Points/p_orbit.png)
 
 * Harmonic_Energies_Wavefunctions
