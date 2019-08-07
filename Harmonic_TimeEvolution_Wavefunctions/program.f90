@@ -152,19 +152,19 @@ module extensions
          do i = 0, n
             x = xl + dh * i
             if (i /= 0 .or. i /= n) then
-               sum = sum + abs(phi(i, j))**2d0 * x * x * dh
+               sum = sum + abs(phi(i, j))**2d0 * x * dh
             else
-               sum = sum + 0.5d0 * abs(phi(i, j))**2d0 * x * x * dh
+               sum = sum + 0.5d0 * abs(phi(i, j))**2d0 * x * dh
             end if
          end do
          avg_x(j) = sum
       end do
     end subroutine average_x
 
-    subroutine average_p(phi, dh, dt, n, m, xl, avg_p)
+    subroutine average_p(phi, dh, n, m, xl, avg_p)
       double complex, intent(in) :: phi(0:, 0:)
       double complex sum
-      double precision, intent(in) :: dh, dt, xl
+      double precision, intent(in) :: dh, xl
       double complex, intent(out) :: avg_p(0:)
       double precision x
       integer, intent(in) :: n, m
@@ -174,13 +174,15 @@ module extensions
          sum = dcmplx(0d0, 0d0)
          do i = 0, n
             x = xl + dh * i
-            if (i /= 0 .or. i /= n) then
-                sum = sum + conjg(phi(i, j))*H(phi(i-1,j), phi(i,j),phi(i+1,j),x,dh) * dh / dt
+            if (i == 0) then
+               sum = sum - 0.5d0*ix( conjg(phi(0, j))*(phi(1,j)-phi(0,j)) )
+            else if (i == n) then
+               sum = sum - 0.5d0*ix( conjg(phi(n, j))*(phi(n,j)-phi(n-1,j)) )
             else
-               sum = sum + 0.5d0 * conjg(phi(i, j))*H(phi(i-1,j), phi(i,j), phi(i+1,j), x, dh) * dh/dt
+               sum = sum - ix( conjg(phi(i, j))*(phi(i+1,j)-phi(i,j)) )
             end if
          end do
-         avg_p(j) = -ix(sum)
+         avg_p(j) = sum
       end do
     end subroutine average_p
     
@@ -229,27 +231,38 @@ end module
 program main
     use extensions
     implicit none
-    integer,parameter :: n = 250, m = 4000
+    integer,parameter :: n = 100, m = 2500
     double precision :: xl = -10d0, x0 = 0d0, a = 1d0
     double precision :: avg_x(0:m)
     double complex :: phi(0:n, 0:m) = (0d0, 0d0), avg_p(0:m) = (0d0, 0d0)
-    double precision,parameter :: dh = 0.08d0, dt = 0.0016d0
+    double precision,parameter :: dh = 0.2d0, dt = 0.005d0
 
     call initialize(phi, n, xl, x0, a, dh)
     call solve_schroedinger(phi, n, m, xl, dh, dt)
     call normalize(phi, dh, n)
     call output(phi, "A", 0, 0, xl, n, m, dh, dt)
     write (*, *)
-    write (*, *) "Summation of Wave function"
-    write (*, *) summation(phi, dh, n, 0)
-    write (*, *) summation(phi, dh, n, 100)
-    write (*, *) summation(phi, dh, n, 1000)
+    write (*, *) "Probability"
+    write (*, '(x, a, 2x, f10.7)') "j=0    : ", sqrt(summation(phi, dh, n, 0))
+    write (*, '(x, a, 2x, f10.7)') "j=100  : ", sqrt(summation(phi, dh, n, 100))
+    write (*, '(x, a, 2x, f10.7)') "j=1000 : ", sqrt(summation(phi, dh, n, 1000))
+    write (*, '(x, a, 2x, f10.7)') "j=2000 : ", sqrt(summation(phi, dh, n, 2000))
+    write (*, *)
+
     call average_x(phi, dh, n, m, xl, avg_x)
-    call average_p(phi, dh, dt, n, m, xl, avg_p)
     write (*, *) "Expected values of x"
-    write (*, *) "j=0   :", avg_x(0)
-    write (*, *) "j=100 :", avg_x(100)
-    write (*, *) "j=1000:", avg_x(1000)
-    write (*, *) "Expected value of p   real imag"
-    write (*, *) "j=0   :", dble(avg_p(0)), imag(avg_p(0))
+    write (*, '(x, a, 2x, f10.7)') "j=0    : ", avg_x(0)
+    write (*, '(x, a, 2x, f10.7)') "j=100  : ", avg_x(100)
+    write (*, '(x, a, 2x, f10.7)') "j=1000 : ", avg_x(1000)
+    write (*, '(x, a, 2x, f10.7)') "j=2000 : ", avg_x(2000)
+    write (*, *)
+
+    call average_p(phi, dh, n, m, xl, avg_p)
+    write (*, *) "Expected value of p"
+    write (*, *) "REAL IMAG"
+    write (*, '(x, a, 2x, f10.7,2x,f12.7)') "j=0    : ", dble(avg_p(0)), imag(avg_p(0))
+    write (*, '(x, a, 2x, f10.7,2x,f12.7)') "j=100  : ", dble(avg_p(0)), imag(avg_p(0))
+    write (*, '(x, a, 2x, f10.7,2x,f12.7)') "j=1000 : ", dble(avg_p(0)), imag(avg_p(0))
+    write (*, '(x, a, 2x, f10.7,2x,f12.7)') "j=2000 : ", dble(avg_p(0)), imag(avg_p(0))
+    write (*, *)
 end program
