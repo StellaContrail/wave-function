@@ -15,9 +15,9 @@ module extensions
     ! x0 : expected value (arbitrary)
     ! a : inverse of standard deviation
     ! dh : step of x
-    subroutine initialize(phi, n, xl, xu, x0, a, dh)
+    subroutine initialize(phi, n, xl, x0, a, dh)
       double complex, intent(out) :: phi(0:, 0:)
-      double precision, intent(in) :: xl, xu, x0, a, dh
+      double precision, intent(in) :: xl, x0, a, dh
       integer, intent(in) :: n
       integer i
       double precision x
@@ -42,9 +42,9 @@ module extensions
     ! xl, xu : lower and upper bound of range x
     ! dh : step of space
     ! dt : step of time
-    subroutine solve_schroedinger(phi, n, m, xl, xu, dh, dt)
+    subroutine solve_schroedinger(phi, n, m, xl, dh, dt)
       double complex, intent(inout) :: phi(0:, 0:)
-        double precision, intent(in) :: xl, xu, dh, dt
+        double precision, intent(in) :: xl, dh, dt
         integer, intent(in) :: n, m
         double complex k1(0:n), k2(0:n), k3(0:n), k4(0:n)
         double precision x
@@ -190,9 +190,9 @@ module extensions
     ! xl, xu : lower and upper bound of range x
     ! n, m : dimensions of space and time respectively
     ! dh, dt : step of space and time respectively
-    subroutine output(phi, mode, i, j, xl, xu, n, m, dh, dt)
+    subroutine output(phi, mode, i, j, xl, n, m, dh, dt)
         double complex,intent(in) :: phi(0:, 0:)
-        double precision,intent(in) :: xl, xu, dt, dh
+        double precision,intent(in) :: xl, dt, dh
         character, intent(in) :: mode
         integer,intent(in) :: i, j, n, m
         integer k, l
@@ -230,15 +230,15 @@ program main
     use extensions
     implicit none
     integer,parameter :: n = 250, m = 4000
-    double precision :: xl = -10d0, xu = 20d0, x0 = 0d0, a = 1d0, prob(0:m)
+    double precision :: xl = -10d0, x0 = 0d0, a = 1d0
     double precision :: avg_x(0:m)
     double complex :: phi(0:n, 0:m) = (0d0, 0d0), avg_p(0:m) = (0d0, 0d0)
     double precision,parameter :: dh = 0.08d0, dt = 0.0016d0
 
-    call initialize(phi, n, xl, xu, x0, a, dh)
-    call solve_schroedinger(phi, n, m, xl, xu, dh, dt)
+    call initialize(phi, n, xl, x0, a, dh)
+    call solve_schroedinger(phi, n, m, xl, dh, dt)
     call normalize(phi, dh, n)
-    call output(phi, "A", 0, 0, xl, xu, n, m, dh, dt)
+    call output(phi, "A", 0, 0, xl, n, m, dh, dt)
     write (*, *)
     write (*, *) "Summation of Wave function"
     write (*, *) summation(phi, dh, n, 0)
