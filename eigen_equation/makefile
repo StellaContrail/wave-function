@@ -1,1 +1,0 @@
-program: gfortran program.f90 -I/usr/local/include -llapack95 -llapack -lblas
