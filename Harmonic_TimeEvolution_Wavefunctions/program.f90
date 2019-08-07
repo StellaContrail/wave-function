@@ -8,15 +8,35 @@ contains
         integer i
         double precision x
         x = 0d0
-
+        ! Initialize wave functions with zero
         phi = (0d0, 0d0)
+        ! Initialize at t=0 wave function as Gaussian Wave packet
         do i = 0, n
             x = xl + dh * i
             phi(i, 0) = dcmplx(exp(-0.5d0*a*a*(x-x0)**2d0), 0d0)
         end do
+        call normalize(phi(:, 0), n, dh)
+        ! Set Boundary Condition
         phi(0, :) = (0d0, 0d0)
         phi(n, :) = (0d0, 0d0)
     end subroutine
+
+    subroutine normalize(phi, n, dh)
+        integer,intent(in) :: n
+        double complex,intent(inout) :: phi(:)
+        double precision,intent(in) :: dh
+        double precision sum
+        integer i
+        sum = 0d0
+        do i = 0, n
+            if (i /= 0 .or. i /= n) then
+                sum = sum + norm_2(phi(i))*dh
+            else
+                sum = sum + 0.5d0 * norm_2(phi(i))*dh
+            end if
+        end do
+        phi(:) = phi(:) / sqrt(sum)
+    end subroutine  
 
     subroutine solve_schroedinger(phi, n, m, xl, xu, dh, dt)
         double complex, intent(inout) :: phi(0:, 0:)
@@ -26,23 +46,35 @@ contains
         double precision x
         integer i, j
 
+        ! j : Time
         do j = 0, m-1
+            ! i : Coordinates
             do i = 1, n-1
                 x = xl + i * dh
                 k1(i) = -conjg(H(phi(i-1, j), phi(i, j), phi(i+1,j), x, dh))*dt
             end do
+            k1(0) = (0d0, 0d0)
+            k1(n) = (0d0, 0d0)
+
             do i = 1, n-1
                 x = xl + i * dh
                 k2(i) = -conjg(H(phi(i-1, j)+0.5d0*k1(i-1)*dt, phi(i, j)+0.5d0*k1(i)*dt, phi(i+1,j)+0.5d0*k1(i+1)*dt, x, dh))*dt
             end do
+            k2(0) = (0d0, 0d0)
+            k2(n) = (0d0, 0d0)
+
             do i = 1, n-1
                 x = xl + i * dh
                 k3(i) = -conjg(H(phi(i-1, j)+0.5d0*k2(i-1)*dt, phi(i, j)+0.5d0*k2(i)*dt, phi(i+1,j)+0.5d0*k2(i+1)*dt, x, dh))*dt
             end do
+            k3(0) = (0d0, 0d0)
+            k3(n) = (0d0, 0d0)
+            
             do i = 1, n-1
                 x = xl + i * dh
                 k4(i) = -conjg(H(phi(i-1, j)+k3(i-1)*dt, phi(i, j)+k3(i)*dt, phi(i+1,j)+k3(i+1)*dt, x, dh))*dt
             end do
+
             do i = 1, n-1
                 phi(i, j+1) = phi(i, j) + (k1(i) + 2d0*k2(i) + 2d0*k3(i) + k4(i)) / 6d0
             end do
@@ -71,9 +103,9 @@ contains
             sum = 0d0
             do i = 0, n
                 if (i /= 0 .or. i /= n) then
-                    sum = sum + norm_2(phi(i, j))**2d0 * dh
+                    sum = sum + norm_2(phi(i, j)) * dh
                 else
-                    sum = sum + 0.5d0 * norm_2(phi(i, j))**2d0 * dh
+                    sum = sum + 0.5d0 * norm_2(phi(i, j)) * dh
                 end if
             end do
             prob(j) = sum
@@ -124,10 +156,10 @@ end module
 program main
     use extensions
     implicit none
-    integer,parameter :: n = 500, m = 2000
-    double precision :: xl = -10d0, xu = 20d0, x0 = 0d0, a = 0.5d0, prob(0:m)
+    integer,parameter          :: n  = 200, m  = 2000
+    double precision,parameter :: dh = 0.2d0, dt = 0.01d0
+    double precision :: xl = -20d0, xu = 20d0, x0 = 0d0, a = 0.5d0, prob(0:m)
     double complex :: phi(0:n, 0:m) = (0d0, 0d0)
-    double precision,parameter :: dh = 0.04d0, dt = 0.0008d0
 
     call initialize(phi, n, xl, xu, x0, a, dh)
     call solve_schroedinger(phi, n, m, xl, xu, dh, dt)
