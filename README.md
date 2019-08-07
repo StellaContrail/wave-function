@@ -8,17 +8,17 @@ The picture below shows the wave functions of an electron orbiting around a hydr
 ![Electron Wave function](Electron_Energies_Wavefunctions/FDM_5Points/p_orbit.png)
 
 * Harmonic_Energies_Wavefunctions
-![Harmonic Potential Wave function](\Harmonic_Energies_Wavefunctions\Rungekutta/wavefunction_n3.png)
+![Harmonic Potential Wave function](Harmonic_Energies_Wavefunctions/Rungekutta/wavefunction_n3.png)
 
 * Harmonic_TimeEvolution_Wavefunctions
-![Harmonic_TimeEvolution_Wavefunctions](Harmonic_TimeEvolution_Wavefunctions\data.gif)
+![Harmonic_TimeEvolution_Wavefunctions](Harmonic_TimeEvolution_Wavefunctions/data.gif)
 
 * InfiniteWall_Energies_Wavefunctions
-![InfiniteWall_Energies_Wavefunctions](InfiniteWall_Energies_Wavefunctions\wave_function.png)
+![InfiniteWall_Energies_Wavefunctions](InfiniteWall_Energies_Wavefunctions/wave_function.png)
 
 * Nuclei_Density_Energies_ShellModel
-![Nuclei_Density_Energies_ShellModel Wavefunction](Nuclei_Density_Energies_ShellModel\wave_function.png)
-![Nuclei_Density_Energies_ShellModel Wavefunction](Nuclei_Density_Energies_ShellModel\16O_density.svg)
-![Nuclei_Density_Energies_ShellModel Wavefunction](Nuclei_Density_Energies_ShellModel\40Ca_density.svg)
-![Nuclei_Density_Energies_ShellModel Wavefunction](Nuclei_Density_Energies_ShellModel\208Pb_density.svg)
-![Nuclei_Density_Energies_ShellModel Wavefunction](Nuclei_Density_Energies_ShellModel\magic_numbers.png)
+![Nuclei_Density_Energies_ShellModel Wavefunction](Nuclei_Density_Energies_ShellModel/wave_function.png)
+![Nuclei_Density_Energies_ShellModel Wavefunction](Nuclei_Density_Energies_ShellModel/16O_density.svg)
+![Nuclei_Density_Energies_ShellModel Wavefunction](Nuclei_Density_Energies_ShellModel/40Ca_density.svg)
+![Nuclei_Density_Energies_ShellModel Wavefunction](Nuclei_Density_Energies_ShellModel/208Pb_density.svg)
+![Nuclei_Density_Energies_ShellModel Wavefunction](Nuclei_Density_Energies_ShellModel/magic_numbers.png)
