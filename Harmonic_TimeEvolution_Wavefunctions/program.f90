@@ -184,11 +184,11 @@ module extensions
          do i = 0, n
             x = xl + dh * i
             if (i == 0) then
-               sum = sum - 0.5d0*ix( conjg(phi(0, j))*(phi(1,j)-phi(0,j)) )
+               sum = sum - 0.5d0*HBAR*ix( conjg(phi(0, j))*(phi(1,j)-phi(0,j)) )
             else if (i == n) then
-               sum = sum - 0.5d0*ix( conjg(phi(n, j))*(phi(n,j)-phi(n-1,j)) )
+               sum = sum - 0.5d0*HBAR*ix( conjg(phi(n, j))*(phi(n,j)-phi(n-1,j)) )
             else
-               sum = sum - ix( conjg(phi(i, j))*(phi(i+1,j)-phi(i,j)) )
+               sum = sum - HBAR*ix( conjg(phi(i, j))*(phi(i+1,j)-phi(i,j)) )
             end if
          end do
          avg_p(j) = sum
