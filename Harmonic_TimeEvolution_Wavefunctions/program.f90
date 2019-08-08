@@ -36,6 +36,8 @@ module extensions
       ! Apply boundary condition at x=xl, x=xu
       phi(0, :) = (0d0, 0d0)
       phi(n, :) = (0d0, 0d0)
+
+      call normalize(phi, dh, n)
     end subroutine initialize
 
     ! Solve Schroedinger equation
@@ -127,7 +129,7 @@ module extensions
       double precision,intent(in) :: dh
       integer,intent(in) :: n
 
-      phi(:, :) = phi(:, :) / sqrt(summation(phi, dh, n, 0))
+      phi(:, 0) = phi(:, 0) / sqrt(summation(phi, dh, n, 0))
     end subroutine normalize
 
     double precision function summation(phi, dh, n, j)
@@ -248,7 +250,6 @@ program main
 
     call initialize(phi, n, xl, x0, a, dh)
     call solve_schroedinger(phi, n, m, xl, dh, dt)
-    call normalize(phi, dh, n)
     call output(phi, "A", 0, 0, xl, n, m, dh, dt)
     write (*, *)
     write (*, *) "Probability"
