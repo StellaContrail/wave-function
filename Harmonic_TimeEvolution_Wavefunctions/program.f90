@@ -1,5 +1,7 @@
 module extensions
     implicit none
+    double precision,parameter :: HBAR = 1d0  ! Reduced Plank Constant
+    double precision,parameter :: ALPHA = 1d0 ! (HBAR*C)^2/MC^2
   contains
     ! Multiply imaginary unit to an arbitrary complex z
     ! i(a+ib) = -b + ia = -(imag) + i(real)
@@ -58,33 +60,33 @@ module extensions
            ! this causes a problem because when we solve for k(0), we need k(-1) and so on...
            do i = 1, n-1
               x = xl + i * dh
-              k1(i) = -ix(H(phi(i-1, j), phi(i, j), phi(i+1,j), x, dh))*dt
+              k1(i) = -ix(H(phi(i-1, j), phi(i, j), phi(i+1,j), x, dh)/HBAR)*dt
            end do
            
            do i = 1, n-1
               x = xl + i * dh
-              k2(1) = -ix(H(phi(0, j), phi(1, j)+0.5d0*k1(1), phi(2, j)+0.5d0*k1(2), x, dh))*dt
-              k2(n-1) = -ix(H(phi(n-2, j)+0.5d0*k1(n-2), phi(n-1, j)+0.5d0*k1(n-1), phi(n,j), x, dh))*dt
+              k2(1) = -ix(H(phi(0, j), phi(1, j)+0.5d0*k1(1), phi(2, j)+0.5d0*k1(2), x, dh)/HBAR)*dt
+              k2(n-1) = -ix(H(phi(n-2, j)+0.5d0*k1(n-2), phi(n-1, j)+0.5d0*k1(n-1), phi(n,j), x, dh)/HBAR)*dt
               if (1 < i .and. i < n-1) then
-                 k2(i) = -ix(H(phi(i-1, j)+0.5d0*k1(i-1), phi(i, j)+0.5d0*k1(i), phi(i+1,j)+0.5d0*k1(i+1), x, dh))*dt
+                 k2(i) = -ix(H(phi(i-1, j)+0.5d0*k1(i-1), phi(i, j)+0.5d0*k1(i), phi(i+1,j)+0.5d0*k1(i+1), x, dh)/HBAR)*dt
               end if
            end do
             
            do i = 1, n-1
               x = xl + i * dh
-              k3(1) = -ix(H(phi(0, j), phi(1, j)+0.5d0*k2(1), phi(2, j)+0.5d0*k2(2), x, dh))*dt
-              k3(n-1) = -ix(H(phi(n-2, j)+0.5d0*k2(n-2), phi(n-1, j)+0.5d0*k2(n-1), phi(n,j), x, dh))*dt
+              k3(1) = -ix(H(phi(0, j), phi(1, j)+0.5d0*k2(1), phi(2, j)+0.5d0*k2(2), x, dh)/HBAR)*dt
+              k3(n-1) = -ix(H(phi(n-2, j)+0.5d0*k2(n-2), phi(n-1, j)+0.5d0*k2(n-1), phi(n,j), x, dh)/HBAR)*dt
               if (1 < i .and. i < n-1) then
-                 k3(i) = -ix(H(phi(i-1, j)+0.5d0*k2(i-1), phi(i, j)+0.5d0*k2(i), phi(i+1,j)+0.5d0*k2(i+1), x, dh))*dt
+                 k3(i) = -ix(H(phi(i-1, j)+0.5d0*k2(i-1), phi(i, j)+0.5d0*k2(i), phi(i+1,j)+0.5d0*k2(i+1), x, dh)/HBAR)*dt
               end if
            end do
            
            do i = 1, n-1
               x = xl + i * dh
-              k4(1) = -ix(H(phi(0, j), phi(1, j)+k3(1), phi(2, j)+k3(2), x, dh))*dt
-              k4(n-1) = -ix(H(phi(n-2, j)+k3(n-2), phi(n-1, j)+k3(n-1), phi(n,j), x, dh))*dt
+              k4(1) = -ix(H(phi(0, j), phi(1, j)+k3(1), phi(2, j)+k3(2), x, dh)/HBAR)*dt
+              k4(n-1) = -ix(H(phi(n-2, j)+k3(n-2), phi(n-1, j)+k3(n-1), phi(n,j), x, dh)/HBAR)*dt
               if (1 < i .and. i < n-1) then
-                 k4(i) = -ix(H(phi(i-1, j)+k3(i-1), phi(i, j)+k3(i), phi(i+1,j)+k3(i+1), x, dh))*dt
+                 k4(i) = -ix(H(phi(i-1, j)+k3(i-1), phi(i, j)+k3(i), phi(i+1,j)+k3(i+1), x, dh)/HBAR)*dt
               end if             
             end do
            
@@ -99,15 +101,22 @@ module extensions
     ! phi_back, phi_center, phi_forward : wave function placed on different positions (back, center, forward)
     ! x : position of center wave function
     ! dh : step of space
-    double complex function H(phi_back, phi_center, phi_forward, x, dh)
-        double complex,intent(in) :: phi_back, phi_center, phi_forward
-        double precision,intent(in) :: dh, x
-        double precision re, im
+   double complex function H(phi_back, phi_center, phi_forward, x, dh)
+      double complex,intent(in) :: phi_back, phi_center, phi_forward
+      double precision,intent(in) :: dh, x
+      double precision re, im
 
-        re = -0.5d0*(dble(phi_forward)-2d0*dble(phi_center)+dble(phi_back))/(dh*dh) + 0.5d0*x*x*dble(phi_center)
-        im = -0.5d0*(imag(phi_forward)-2d0*imag(phi_center)+imag(phi_back))/(dh*dh) + 0.5d0*x*x*imag(phi_center)
-        H = dcmplx(re, im)
-    end function
+      re = -0.5d0 * ALPHA *( ((dble(phi_forward)-2d0*dble(phi_center)+dble(phi_back))/(dh*dh)) + dble(V(phi_center, x)) )
+      im = -0.5d0 * ALPHA *( ((imag(phi_forward)-2d0*imag(phi_center)+imag(phi_back))/(dh*dh)) + imag(V(phi_center, x)) )
+      H = dcmplx(re, im)
+   end function
+
+   double complex function V(phi, x)
+      double complex,intent(in) :: phi
+      double precision,intent(in) :: x
+      
+      V = 0.5d0*x*x*phi   
+   end function
 
     ! Normalization of wave function
     ! phi : wave function
