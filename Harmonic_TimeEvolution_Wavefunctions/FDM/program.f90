@@ -82,7 +82,7 @@ contains
 
         do i = 1, n
             x = xl + dh * i
-            phi(i) = complex(exp(-0.5d0*(x/2d0)**2d0), 0d0)
+            phi(i) = complex(exp(-0.5d0*x**2d0), 0d0)
         end do  
     end subroutine  
 
@@ -159,7 +159,7 @@ contains
         do j = 1, m
             do i = 1, n
                 x = xl + dh * i
-                write (10, *) x, dble(phi(i, j)), aimag(phi(i, j))
+                write (10, *) x, dble(phi(i, j)), aimag(phi(i, j)), abs(phi(i,j))**2d0
             end do
             write (10, *)
         end do
@@ -171,18 +171,24 @@ end module
 program main
     use extensions
     implicit none
-    integer,parameter :: n = 400, m = 2000
-    double precision,parameter :: dh = 0.1d0, dt = 0.0001d0, xl = -dh*(n/2)
+    integer,parameter :: n = 400, m = 1000+1
+    double precision,parameter :: dh = 0.1d0, dt = 0.0004d0, xl = -dh*(n/2)
+    double precision t1, t2
     double complex phi(1:n, 1:m)
+    integer j
     phi = complex(0d0, 0d0)
 
+    write (*, *) "Start Calculation..."
+    call cpu_time(t1)
     call solve_schroedinger(phi, n, m, dh, dt, xl)
+    call cpu_time(t2)
+    write (*, *) t2 - t1, " seconds"
 
+    write (*, *) "Start Plotting..."
     call plot(phi, n, m, dh, xl)
 
-    write (*, *) "j=1", calc_probability(phi(:,1), n, dh)
-    write (*, *) "j=10", calc_probability(phi(:,10), n, dh)
-    write (*, *) "j=100", calc_probability(phi(:,100), n, dh)
-    write (*, *) "j=200", calc_probability(phi(:,200), n, dh)
-    write (*, *) "j=500", calc_probability(phi(:,500), n, dh)
+    write (*, *) "Time dependance of probability"
+    do j = 1, m, 100
+    write (*, *) "j=", j, calc_probability(phi(:,j), n, dh)
+    end do
 end program 
