@@ -3,6 +3,8 @@ module extensions
     double precision,parameter :: ALPHA = 1d0 ! (HBAR*C)^2/(2*MC^2)
     double precision,parameter :: BETA = 1d0 ! (MASS*OMEGA)^2
     double precision,parameter :: HBAR = 1d0
+    double precision,parameter :: K = 0d0 ! wave number
+    double precision,parameter :: a = 1d0
 contains
     ! i*(a+ib)=-b+ia : (REAL=-b), (IMAG=a)
     function ix(A, n)
@@ -13,6 +15,11 @@ contains
         do i = 1, n
             ix(i) = complex(-aimag(A(i)), dble(A(i)))
         end do
+    end function
+    function ix_scaler(z)
+        double complex,intent(in) :: z
+        double complex ix_scaler
+        ix_scaler = complex(-aimag(z), dble(z))
     end function
 
     subroutine solve_schroedinger(phi, n, m, dh, dt, xl)
@@ -41,17 +48,7 @@ contains
         integer,intent(in) :: n
         double complex,intent(inout) :: phi(1:n)
         double precision,intent(in) :: dh
-        double precision sum
-        integer i
 
-        sum = 0d0
-        do i = 1, n
-            if (i == 1 .or. i == n) then
-                sum = sum + 0.5d0*abs(phi(i))**2d0*dh
-            else
-                sum = sum + abs(phi(i))**2d0*dh
-            end if
-        end do
         phi = phi / sqrt(calc_probability(phi, n, dh))
     end subroutine
 
@@ -82,7 +79,7 @@ contains
 
         do i = 1, n
             x = xl + dh * i
-            phi(i) = complex(exp(-0.5d0*x**2d0), 0d0)
+            phi(i) = complex(cos(K*x)*exp(-0.5d0*x**2d0/a), sin(K*x)*exp(-0.5d0*x**2d0/a))
         end do  
     end subroutine  
 
@@ -166,15 +163,59 @@ contains
 
         close(10)
     end subroutine
+    
+    function solve_x(phi, n, m, dh, xl)
+        integer,intent(in) :: n, m
+        double precision,intent(in) :: dh, xl
+        double complex,intent(in) :: phi(1:n, 1:m)
+        double precision solve_x(1:m)
+        double precision x
+        integer i, j
+        solve_x = 0d0
+
+        do j = 1, m
+            do i = 1, n
+                x = xl + dh * i
+                if (i == 1 .or. i == n) then
+                    solve_x(j) = solve_x(j) + 0.5d0*x*abs(phi(i, j))**2d0*dh
+                else
+                    solve_x(j) = solve_x(j) + x*abs(phi(i, j))**2d0*dh
+                end if
+            end do
+        end do
+
+    end function
+
+    function solve_p(phi, n, m)
+        integer,intent(in) :: n, m
+        double complex,intent(in) :: phi(1:n, 1:m)
+        double complex solve_p(1:m)
+        integer i, j
+        solve_p = complex(0d0, 0d0)
+
+        do j = 1, m
+            do i = 1, n
+                if (i == 1) then
+                    solve_p(j) = solve_p(j) - 0.5d0*HBAR*conjg(phi(1,j))*ix_scaler(phi(2,j)-phi(1,j))
+                else if (i == n) then
+                    solve_p(j) = solve_p(j) - 0.5d0*HBAR*conjg(phi(n,j))*ix_scaler(phi(n,j)-phi(n-1,j))
+                else
+                    solve_p(j) = solve_p(j) - HBAR*conjg(phi(i,j))*ix_scaler(phi(i+1,j)-phi(i,j))
+                end if
+            end do
+        end do
+
+    end function
 end module
 
 program main
     use extensions
     implicit none
-    integer,parameter :: n = 400, m = 1000+1
-    double precision,parameter :: dh = 0.1d0, dt = 0.0004d0, xl = -dh*(n/2)
+    integer,parameter :: n = 400, m = 4000+1
+    double precision,parameter :: dh = 0.1d0, dt = 0.00001d0, xl = -dh*(n/2)
     double precision t1, t2
-    double complex phi(1:n, 1:m)
+    double complex phi(1:n, 1:m), p(1:m)
+    double precision x(1:m)
     integer j
     phi = complex(0d0, 0d0)
 
@@ -188,7 +229,19 @@ program main
     call plot(phi, n, m, dh, xl)
 
     write (*, *) "Time dependance of probability"
-    do j = 1, m, 100
-    write (*, *) "j=", j, calc_probability(phi(:,j), n, dh)
+    do j = 1, m, 1000
+        write (*, *) "j=", j, calc_probability(phi(:,j), n, dh)
+    end do
+
+    write (*, *) "Time dependance of expected value of x"
+    x = solve_x(phi, n, m, dh, xl)
+    do j = 1, m, 1000
+        write (*, *) "j=", j, x(j)
+    end do
+
+    write (*, *) "Time dependance of expected value of p"
+    p = solve_p(phi, n, m)
+    do j = 1, m, 1000
+        write (*, *) "j=", j, p(j)
     end do
 end program 
