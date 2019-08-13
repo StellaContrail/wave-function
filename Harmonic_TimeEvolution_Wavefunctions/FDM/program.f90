@@ -3,7 +3,7 @@ module extensions
     double precision,parameter :: ALPHA = 1d0 ! (HBAR*C)^2/(2*MC^2)
     double precision,parameter :: BETA = 1d0 ! (MASS*OMEGA)^2
     double precision,parameter :: HBAR = 1d0
-    double precision,parameter :: K = 0d0 ! wave number
+    double precision,parameter :: K = -10d0 ! wave number
     double precision,parameter :: a = 1d0
 contains
     ! i*(a+ib)=-b+ia : (REAL=-b), (IMAG=a)
@@ -27,6 +27,7 @@ contains
         double complex,intent(inout) :: phi(1:n, 1:m)
         double precision,intent(in) :: dh, dt, xl
         double precision H(1:n, 1:n), x
+        double precision t1, t2, speed
         integer i
         H = 0d0
         do i = 1, n
@@ -39,8 +40,15 @@ contains
         call initialize(phi(:, 1), n, dh, xl)
         call normalize(phi(:, 1), n, dh)
 
+        call cpu_time(t1)
         do i = 1, m-1
             phi(:, i+1) = calc_future_wavefunction(phi(:,i), H, n, dt)
+            if (mod(i, 100) == 0) then
+                call cpu_time(t2)
+                speed = 100d0/(t2-t1)
+                write (*, *) (100d0*i)/m, " % ", speed, " items/sec", " ETA : ", (m-1-i)/speed, " sec"
+                call cpu_time(t1)
+            endif
         end do
     end subroutine
 
@@ -212,7 +220,7 @@ program main
     use extensions
     implicit none
     integer,parameter :: n = 1000, m = 4000+1
-    double precision,parameter :: dh = 0.01d0, dt = 0.00001d0, xl = -dh*(n/2)
+    double precision,parameter :: dh = 0.05d0, dt = 0.001d0, xl = -dh*(n/2)
     double precision t1, t2
     double complex phi(1:n, 1:m), p(1:m)
     double precision x(1:m)
