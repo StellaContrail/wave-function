@@ -211,8 +211,8 @@ end module
 program main
     use extensions
     implicit none
-    integer,parameter :: n = 400, m = 4000+1
-    double precision,parameter :: dh = 0.1d0, dt = 0.00001d0, xl = -dh*(n/2)
+    integer,parameter :: n = 1000, m = 4000+1
+    double precision,parameter :: dh = 0.01d0, dt = 0.00001d0, xl = -dh*(n/2)
     double precision t1, t2
     double complex phi(1:n, 1:m), p(1:m)
     double precision x(1:m)
