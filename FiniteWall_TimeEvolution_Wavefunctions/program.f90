@@ -16,13 +16,13 @@ contains
         double complex ix(1:n)
         integer i
         do i = 1, n
-            ix(i) = cmplx(-aimag(A(i)), dble(A(i)))
+            ix(i) = dcmplx(-aimag(A(i)), dble(A(i)))
         end do
     end function
     function ix_scaler(z)
         double complex,intent(in) :: z
         double complex ix_scaler
-        ix_scaler = cmplx(-aimag(z), dble(z))
+        ix_scaler = dcmplx(-aimag(z), dble(z))
     end function
 
     subroutine solve_schroedinger(phi, n, m, dh, dt, xl)
@@ -35,7 +35,7 @@ contains
         H = 0d0
         call construct_hamiltonian(H, n, xl, dh)
         
-        phi = cmplx(0d0, 0d0)
+        phi = dcmplx(0d0, 0d0)
         call initialize(phi(:, 1), n, dh, xl)
         call normalize(phi(:, 1), n, dh)
 
@@ -45,7 +45,8 @@ contains
             if (mod(i, 100) == 0) then
                 call cpu_time(t2)
                 speed = 100d0/(t2-t1)
-                write (*, '(F6.2, A, F15.7, 2A, F10.5, A)', advance='no') (100d0*i)/m, " % ", speed, " items/sec", " ETA : ", (m-1-i)/speed, " sec"
+                write (*, 100, advance='no') (100d0*i)/m, " % ", speed, " items/sec", " ETA : ", (m-1-i)/speed, " sec"
+                100 format(F6.2, A, F15.7, 2A, F10.5, A)
                 write (*, *)
                 call cpu_time(t1)
             endif
@@ -87,7 +88,7 @@ contains
 
         do i = 1, n
             x = xl + dh * i
-            phi(i) = cmplx(cos(K*x)*exp(-0.5d0*(x-x_offset)**2d0/a), sin(K*x)*exp(-0.5d0*(x-x_offset)**2d0/a))
+            phi(i) = dcmplx(cos(K*x)*exp(-0.5d0*(x-x_offset)**2d0/a), sin(K*x)*exp(-0.5d0*(x-x_offset)**2d0/a))
         end do  
     end subroutine  
 
@@ -99,7 +100,7 @@ contains
         double complex :: phi_next(1:n), phi_temp(1:n)
         integer i
 
-        phi_next = cmplx(0d0, 0d0)
+        phi_next = dcmplx(0d0, 0d0)
 
         ! n = 0
         phi_temp = phi
@@ -206,7 +207,7 @@ contains
         double complex,intent(in) :: phi(1:n, 1:m)
         double complex solve_p(1:m)
         integer i, j
-        solve_p = cmplx(0d0, 0d0)
+        solve_p = dcmplx(0d0, 0d0)
 
         do j = 1, m
             do i = 1, n
@@ -232,7 +233,7 @@ program main
     double complex phi(1:n, 1:m), p(1:m)
     double precision x(1:m)
     integer j
-    phi = cmplx(0d0, 0d0)
+    phi = dcmplx(0d0, 0d0)
 
     write (*, *) "Start Calculation..."
     call cpu_time(t1)
