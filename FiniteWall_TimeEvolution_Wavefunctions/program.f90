@@ -5,7 +5,7 @@ module extensions
     double precision,parameter :: HBAR = 1d0
     double precision,parameter :: K = -10d0 ! wave number
     double precision,parameter :: a = 1d0
-    double precision,parameter :: b = 1d0
+    double precision,parameter :: b = 0.01d0
     double precision,parameter :: HEIGHT = 20d0 ! height of potential wall
     double precision,parameter :: x_offset = -30d0 ! x offset where gaussian wavepacket's center firstly located
 contains
@@ -227,8 +227,8 @@ end module
 program main
     use extensions
     implicit none
-    integer,parameter :: n = 400, m = 1050+1
-    double precision,parameter :: dh = 0.2d0, dt = 0.01d0, xl = -dh*(n/2)
+    integer,parameter :: n = 800, m = 4000+1 ! dt*m_T = 10
+    double precision,parameter :: dh = 0.1d0, dt = 0.005d0, xl = -dh*(n/2)
     double precision t1, t2
     double complex phi(1:n, 1:m), p(1:m)
     double precision x(1:m)
