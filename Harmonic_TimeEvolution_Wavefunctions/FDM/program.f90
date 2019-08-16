@@ -1,9 +1,9 @@
 module extensions
     implicit none
     double precision,parameter :: ALPHA = 1d0 ! (HBAR*C)^2/(2*MC^2)
-    double precision,parameter :: BETA = 1d0 ! (MASS*OMEGA)^2
+    double precision,parameter :: BETA = 0.005d0 ! MASS*OMEGA^2
     double precision,parameter :: HBAR = 1d0
-    double precision,parameter :: K = 0d0 ! wave number
+    double precision,parameter :: K = -10d0 ! wave number
     double precision,parameter :: a = 1d0
 contains
     ! i*(a+ib)=-b+ia : (REAL=-b), (IMAG=a)
@@ -13,13 +13,13 @@ contains
         double complex ix(1:n)
         integer i
         do i = 1, n
-            ix(i) = dcmplx(-aimag(A(i)), dble(A(i)))
+            ix(i) = cmplx(-aimag(A(i)), dble(A(i)))
         end do
     end function
     function ix_scaler(z)
         double complex,intent(in) :: z
         double complex ix_scaler
-        ix_scaler = dcmplx(-aimag(z), dble(z))
+        ix_scaler = cmplx(-aimag(z), dble(z))
     end function
 
     subroutine solve_schroedinger(phi, n, m, dh, dt, xl)
@@ -30,12 +30,9 @@ contains
         double precision t1, t2, speed
         integer i
         H = 0d0
-        do i = 1, n
-            x = xl + dh * i
-            call construct_hamiltonian(H, x, n, dh)
-        end do
+        call construct_hamiltonian(H, n, xl, dh)
         
-        phi = dcmplx(0d0, 0d0)
+        phi = cmplx(0d0, 0d0)
         call initialize(phi(:, 1), n, dh, xl)
         call normalize(phi(:, 1), n, dh)
 
@@ -45,8 +42,7 @@ contains
             if (mod(i, 100) == 0) then
                 call cpu_time(t2)
                 speed = 100d0/(t2-t1)
-                write (*, 100, advance='no') (100d0*i)/m, " % ", speed, " items/sec", " ETA : ", (m-1-i)/speed, " sec"
-                100 format(F6.1, A, F9.2, 2A, F15.2, A)
+                write (*, '(F6.2, A, F15.7, 2A, F10.5, A)', advance='no') (100d0*i)/m, " % ", speed, " items/sec", " ETA : ", (m-1-i)/speed, " sec"
                 write (*, *)
                 call cpu_time(t1)
             endif
@@ -88,7 +84,7 @@ contains
 
         do i = 1, n
             x = xl + dh * i
-            phi(i) = dcmplx(cos(K*x)*exp(-0.5d0*x**2d0/a), sin(K*x)*exp(-0.5d0*x**2d0/a))
+            phi(i) = cmplx(cos(K*x)*exp(-0.5d0*x**2d0/a), sin(K*x)*exp(-0.5d0*x**2d0/a))
         end do  
     end subroutine  
 
@@ -100,7 +96,7 @@ contains
         double complex :: phi_next(1:n), phi_temp(1:n)
         integer i
 
-        phi_next = dcmplx(0d0, 0d0)
+        phi_next = cmplx(0d0, 0d0)
 
         ! n = 0
         phi_temp = phi
@@ -120,11 +116,12 @@ contains
         calc_future_wavefunction = phi_next
     end function
 
-    subroutine construct_hamiltonian(H, x, n, dh)
+    subroutine construct_hamiltonian(H, n, xl, dh)
         integer,intent(in) :: n
         double precision,intent(out) :: H(1:n, 1:n)
-        double precision,intent(in)  :: x, dh
+        double precision,intent(in)  :: xl, dh
         integer i
+        double precision x
 
         H = 0d0
         do i = 1, n
@@ -144,6 +141,7 @@ contains
         end do
 
         do i = 1, n
+            x = xl + dh * i
             H(i, i) = H(i, i) / (12d0*dh*dh)
             H(i, i) = - ALPHA * H(i, i)
             H(i, i) = H(i, i) + V(x)
@@ -165,7 +163,7 @@ contains
         do j = 1, m
             do i = 1, n
                 x = xl + dh * i
-                write (10, '(4(F15.5, X))', advance='no') x, dble(phi(i, j)), aimag(phi(i, j)), abs(phi(i,j))**2d0
+                write (10, '(4(F15.10, X))', advance='no') x, dble(phi(i, j)), aimag(phi(i, j)), abs(phi(i,j))**2d0
                 write (10, *)
             end do
             write (10, *)
@@ -201,7 +199,7 @@ contains
         double complex,intent(in) :: phi(1:n, 1:m)
         double complex solve_p(1:m)
         integer i, j
-        solve_p = dcmplx(0d0, 0d0)
+        solve_p = cmplx(0d0, 0d0)
 
         do j = 1, m
             do i = 1, n
@@ -221,13 +219,13 @@ end module
 program main
     use extensions
     implicit none
-    integer,parameter :: n = 800, m = 4000+1
-    double precision,parameter :: dh = 0.05d0, dt = 0.001d0, xl = -dh*(n/2)
+    integer,parameter :: n = 400, m = 20000+1
+    double precision,parameter :: dh = 0.2d0, dt = 0.01d0, xl = -dh*(n/2)
     double precision t1, t2
     double complex phi(1:n, 1:m), p(1:m)
     double precision x(1:m)
     integer j
-    phi = dcmplx(0d0, 0d0)
+    phi = cmplx(0d0, 0d0)
 
     write (*, *) "Start Calculation..."
     call cpu_time(t1)
@@ -237,22 +235,21 @@ program main
 
     write (*, *) "Start Plotting..."
     call plot(phi, n, m, dh, xl)
-    
-    write (*, *) "Calculating other preferences..."
+
     write (*, *) "Time dependance of probability"
     do j = 1, m, 1000
-        write (*, '(A, I7, 2X, F6.3)') "j=", j, calc_probability(phi(:,j), n, dh)
+        write (*, *) "j=", j, calc_probability(phi(:,j), n, dh)
     end do
 
     write (*, *) "Time dependance of expected value of x"
     x = solve_x(phi, n, m, dh, xl)
     do j = 1, m, 1000
-        write (*, '(A, I7, 2X, F15.5)') "j=", j, x(j)
+        write (*, '(A, I10, A, F15.10)') "j=", j, " X=", x(j)
     end do
 
     write (*, *) "Time dependance of expected value of p"
     p = solve_p(phi, n, m)
     do j = 1, m, 1000
-        write (*, '(A, I7, 2X, 2(A, F15.5, X))') "j=", j, "REAL=", dble(p(j)), "IMAG=", aimag(p(j))
+        write (*, '(A, I10, 2(A, F15.10))') "j=", j, " REAL=", dble(p(j)), " IMAG=", aimag(p(j))
     end do
 end program 
