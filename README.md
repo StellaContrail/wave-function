@@ -11,7 +11,7 @@ The picture below shows the wave functions of an electron orbiting around a hydr
 ![Harmonic Potential Wave function](Harmonic_Energies_Wavefunctions/Rungekutta/wavefunction_n3.png)
 
 * Harmonic_TimeEvolution_Wavefunctions
-![Harmonic_TimeEvolution_Wavefunctions](Harmonic_TimeEvolution_Wavefunctions/data.gif)
+![Harmonic_TimeEvolution_Wavefunctions](Harmonic_TimeEvolution_Wavefunctions/FDM/k_0.0.gif)
 
 * InfiniteWall_Energies_Wavefunctions
 ![InfiniteWall_Energies_Wavefunctions](InfiniteWall_Energies_Wavefunctions/wave_function.png)
