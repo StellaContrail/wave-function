@@ -1,13 +1,12 @@
 module extensions
     implicit none
     double precision,parameter :: ALPHA = 1d0 ! (HBAR*C)^2/(2*MC^2)
-    double precision,parameter :: BETA = 0.005d0 ! MASS*OMEGA^2
     double precision,parameter :: HBAR = 1d0
-    double precision,parameter :: K = -10d0 ! wave number
-    double precision,parameter :: a = 1d0
-    double precision,parameter :: b = 0.01d0
-    double precision,parameter :: HEIGHT = 20d0 ! height of potential wall
-    double precision,parameter :: x_offset = -30d0 ! x offset where gaussian wavepacket's center firstly located
+    double precision,parameter :: K = 2d0 ! wave number
+    double precision,parameter :: a = 1.3d0
+    double precision,parameter :: b = 1d0
+    double precision,parameter :: HEIGHT = 3d0 ! height of potential wall
+    double precision,parameter :: x_offset = -5d0 ! x offset where gaussian wavepacket's center firstly located
 contains
     ! i*(a+ib)=-b+ia : (REAL=-b), (IMAG=a)
     function ix(A, n)
@@ -143,11 +142,11 @@ contains
                 H(i, i+2) = -1d0
             end if
         end do
+        H = H / (12d0*dh*dh)
+        H = - ALPHA * H
 
         do i = 1, n
             x = xl + dh * i
-            H(i, i) = H(i, i) / (12d0*dh*dh)
-            H(i, i) = - ALPHA * H(i, i)
             H(i, i) = H(i, i) + V(x)
         end do
     end subroutine
@@ -227,8 +226,8 @@ end module
 program main
     use extensions
     implicit none
-    integer,parameter :: n = 800, m = 4000+1 ! dt*m_T = 10
-    double precision,parameter :: dh = 0.1d0, dt = 0.005d0, xl = -dh*(n/2)
+    integer,parameter :: n = 400, m = 1000+1 ! dt*m_T = 10
+    double precision,parameter :: dh = 0.5d0, dt = 0.01d0, xl = -dh*(n/2)
     double precision t1, t2
     double complex phi(1:n, 1:m), p(1:m)
     double precision x(1:m)
