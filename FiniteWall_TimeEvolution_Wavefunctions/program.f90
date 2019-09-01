@@ -4,8 +4,8 @@ module extensions
     double precision,parameter :: HBAR = 1d0
     double precision,parameter :: K = 2d0 ! wave number
     double precision,parameter :: a = 1.3d0
-    double precision,parameter :: b = 1d0
-    double precision,parameter :: HEIGHT = 3d0 ! height of potential wall
+    double precision,parameter :: b = 0.5d0
+    double precision,parameter :: HEIGHT = 5d0 ! height of potential wall
     double precision,parameter :: x_offset = -5d0 ! x offset where gaussian wavepacket's center firstly located
 contains
     ! i*(a+ib)=-b+ia : (REAL=-b), (IMAG=a)
