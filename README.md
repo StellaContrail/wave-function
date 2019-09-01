@@ -35,7 +35,7 @@ A particle which is acted on a finite wall potential, partialy goes through the 
 People may wonder why this happends and doubt it nmakes sense.  
 However, please remind that in quantum mechanics, there's fundamental law called "Uncertainty principle of energy" which indicates that energy can be infinitesimal or infinite.  
 According to this law, if the potential wall has finite height, the wave function can go through the wall and finite existance probability of the particle can be found in the other side of the finite wall.  
-This phenomenon ("Quantum Tunneling Effect") is discovered by a Japanese Physist, Leo Esaki.  
+This phenomenon ("Quantum Tunneling Effect") was discovered by a Japanese Physist, Leo Esaki.  
 ![FiniteWall_TimeEvolution_Wavefunctions](FiniteWall_TimeEvolution_Wavefunctions/data.gif)  
 
 * Nuclei_Density_Energies_ShellModel  
