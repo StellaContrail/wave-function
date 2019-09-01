@@ -41,13 +41,13 @@ These nucleons form nucleus, then nuclei form molecules, and molecules form the 
 The key to solve this interesting, but mysterious structure of nucleus, is to solve Schroedinger equation with appropriate potential.  
 Woods-Saxon potential which well satisfies the experimental data phenomenologically is a good example to implement by early learners of Nuclear Physics.    
 The picture below shows all possible wave functions of 208Pb(Lead).  
-![Nuclei_Density_Energies_ShellModel Wavefunction](Nuclei_Density_Energies_ShellModel/wave_function.png)
+![Nuclei_Density_Energies_ShellModel Wavefunction](Nuclei_Density_Energies_ShellModel/wave_function.png)  
 This picture shows the density of nucleons of 16 Oxygen.  
-![Nuclei_Density_Energies_ShellModel Wavefunction](Nuclei_Density_Energies_ShellModel/16O_density.svg)
+![Nuclei_Density_Energies_ShellModel Wavefunction](Nuclei_Density_Energies_ShellModel/16O_density.svg)  
 This picture shows the density of nucleons of 40 Calcium.  
-![Nuclei_Density_Energies_ShellModel Wavefunction](Nuclei_Density_Energies_ShellModel/40Ca_density.svg)
+![Nuclei_Density_Energies_ShellModel Wavefunction](Nuclei_Density_Energies_ShellModel/40Ca_density.svg)  
 This picture shows the density of nucleons of 208 Pb(Lead).  
-![Nuclei_Density_Energies_ShellModel Wavefunction](Nuclei_Density_Energies_ShellModel/208Pb_density.svg)
+![Nuclei_Density_Energies_ShellModel Wavefunction](Nuclei_Density_Energies_ShellModel/208Pb_density.svg)  
 There is a fancy word in Nuclear Physics called "Magic Numbers" which indicates the number of nucleons, 2, 8, 20, 28, 50, 82, 126.  
 Nucleons whose number matches one of these are mostly stable because there's huge energy gap between an energy level which corresponds to each of these nucleon numbers and the next energy level.  
 By applying Woods-Saxon potential into the Schroedinger equation and calculation gives expected, but interesting result.  
