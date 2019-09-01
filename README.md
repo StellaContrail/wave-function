@@ -9,7 +9,7 @@ The picture below shows the wave functions of an electron orbiting around a hydr
 
 * Harmonic_Energies_Wavefunctions  
 The harmonic oscillator is a system that has many practical uses in quantum and classical mechanics.  
-Its force is proportional to its displacement from its equilibrium position, F=-kx, where k is a constant chosen to satify this formulation.  
+Its force is proportional to its displacement from its equilibrium position, F=-kx, where k is a constant chosen to satisfy this formulation.  
 This formula in general, is called Hooke's law.  
 In quantum mechanics, Schroedinger equation under this kind of potential gives specified wave function corresponding to its energy levels.  
 The sample image shows the case of the 3rd excited state.
@@ -18,7 +18,7 @@ The sample image shows the case of the 3rd excited state.
 * Harmonic_TimeEvolution_Wavefunctions  
 The other program which solves harmonic oscillator schroedinger is not dependent on time.  
 Therefore, we couldn't see how the system evolves and behaves.  
-This program, howver, calculates and predicts how the system evolves under the static harmonic oscillator potential.  
+This program, however, calculates and predicts how the system evolves under the static harmonic oscillator potential.  
 The picture below is how Gaussian wave packet evolves with time.  
 You can see that the form of Gaussian wave packet (which resembles to a classical particle) changes according to time, but after one period of time, the shape actually recovers and repeats its periodic movement.
 ![Harmonic_TimeEvolution_Wavefunctions](Harmonic_TimeEvolution_Wavefunctions/FDM/k_0.0.gif)
@@ -31,11 +31,11 @@ The ball (wave of a particle) bounces the finite wall, partially bounces back an
 ![InfiniteWall_Energies_Wavefunctions](InfiniteWall_Energies_Wavefunctions/wave_function.png)
 
 * FiniteWall_TimeEvolution_Wavefunctions  
-A particle which is acted on a finite wall potential, partialy goes through the wall in quantum mechanics.  
-People may wonder why this happends and doubt it nmakes sense.  
+A particle which is acted on a finite wall potential, partially goes through the wall in quantum mechanics.  
+People may wonder why this happens and doubt if it makes sense.  
 However, please remind that in quantum mechanics, there's fundamental law called "Uncertainty principle of energy" which indicates that energy can be infinitesimal or infinite.  
-According to this law, if the potential wall has finite height, the wave function can go through the wall and finite existance probability of the particle can be found in the other side of the finite wall.  
-This phenomenon ("Quantum Tunneling Effect") was discovered by a Japanese Physist, Leo Esaki.  
+According to this law, if the potential wall has finite height, the wave function can go through the wall and finite existence probability of the particle can be found in the other side of the finite wall.  
+This phenomenon ("Quantum Tunneling Effect") was discovered by a Japanese Physicist, Leo Esaki.  
 ![FiniteWall_TimeEvolution_Wavefunctions](FiniteWall_TimeEvolution_Wavefunctions/data.gif)  
 
 * Nuclei_Density_Energies_ShellModel  
