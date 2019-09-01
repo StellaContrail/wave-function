@@ -30,7 +30,7 @@ You have probably heard about Tunneling Effect in quantum mechanics, if we set t
 The ball (wave of a particle) bounces the finite wall, partially bounces back and other part of the wave actually goes through the finite wall, as if there were no wall in front of them.
 ![InfiniteWall_Energies_Wavefunctions](InfiniteWall_Energies_Wavefunctions/wave_function.png)
 
-* FiniteWall_TimeEvolution_Wavefunctions
+* FiniteWall_TimeEvolution_Wavefunctions  
 A particle which is acted on a finite wall potential, partialy goes through the wall in quantum mechanics.  
 People may wonder why this happends and doubt it nmakes sense.  
 However, please remind that in quantum mechanics, there's fundamental law called "Uncertainty principle of energy" which indicates that energy can be infinitesimal or infinite.  
