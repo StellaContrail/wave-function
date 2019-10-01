@@ -25,6 +25,19 @@ contains
             ix(i) = dcmplx(-aimag(A_matrix(i)), dble(A_matrix(i)))
         end do
     end function
+    function ix_3d(A_matrix, n)
+      integer,intent(in) :: n
+      double complex,intent(in) :: A_matrix(1:n, 1:n, 1:n)
+      double complex ix(1:n, 1:n, 1:n)
+      integer i, j, k
+      do k = 1, n
+         do j = 1, n
+            do i = 1, n
+               ix(i,j,k) = dcmplx(-aimag(A_matrix(i,j,k)), dble(A_matrix(i,j,k)))
+            end do
+         end do
+      end do
+    end function ix_3d
     function ix_scaler(z)
         double complex,intent(in) :: z
         double complex ix_scaler
@@ -32,63 +45,91 @@ contains
     end function
 
     ! Solve all space and time steps of harmonic oscillator
-    subroutine solve(n, m, dh, dt, xl, H)
+    subroutine solve(n, m, dh, dt, xl)
         integer,intent(in) :: n, m
         double precision,intent(in) :: dh, dt, xl
-        double precision,intent(out) ::  H(1:n, 1:n)
         double complex :: phi_next(1:n, 1:n, 1:n), phi_old(1:n, 1:n, 1:n)
         double precision t1, t2, speed, x, y, z
-        integer i, j, k, l
-        H = 0d0
+        integer i, j, k, waste_loop_var, time_loop_var
         phi_old = dcmplx(0d0, 0d0)
         open(10, file="data.txt")
 
-        call construct_hamiltonian(H, n, xl, dh)
+        ! Construction of Hamiltonian
+        ! Temporary disabled: I dunno the proper Hamiltonian for this case...
+        !call construct_hamiltonian(H, n, xl, dh)
+
+        ! Initialize the wave function
         call initialize(phi_old, n, dh, xl)
+        ! Normalize the initial wave function
         call normalize(phi_old, n, dh)
-
-        do l = 1, 10
-            phi_next = (0d0, 0d0)
-            do k = 1, n
-                do j = 1, n
-                    phi_next(:,j,k) = phi_next(:,j,k) + calc_next(phi_old(:,j,k), H, n, dt)
-                end do
-            end do
-
-            do k = 1, n
-                do i = 1, n
-                    phi_next(i,:,k) = phi_next(:,j,k) + calc_next(phi_old(i,:,k), H, n, dt)
-                end do
-            end do
-
-            do j = 1, n
-                do i = 1, n
-                    phi_next(i,j,:) = phi_next(i,j,:) + calc_next(phi_old(i,j,:), H, n, dt)
-                end do
-            end do
-
-            do j = 1, n
-                z = xl + dh*j
-                do k = 1, n
-                    y = xl + dh*k
-                    do i = 1, n
-                        x = xl + dh*i
-                        write (10, '(4F15.10)', advance='no') x, y, z, abs(phi_next(i,j,k))
-                        write (10, *)
-                    end do
-                end do
-            end do
-            write (10, *)
-
-            phi_old = phi_next
-            write (*, *) l, " end"
-            write (*, *) "Prob = ", calc_probability(phi_old, n, dh)
-        end do
         
+        ! Calculate future wave function of all time steps
+        do time_loop_var = 1, m/10
+           ! Plot data in every 10 calculations
+           do waste_loop_var = 1, 10
+              phi_next = (0d0, 0d0)
+              ! Calculate the future wave function of next time step
+              phi_next = calc_next(phi_old, n, dt, dh)
+           end do
+           
+           ! Plot data into a text file
+           do k = 1, n
+              z = xl + dh*k
+              do j = 1, n
+                 y = xl + dh*j
+                 do i = 1, n
+                    x = xl + dh*i
+                    write (10, '(4F15.10)', advance='no') x, y, z, abs(phi_next(i,j,k))
+                    write (10, *)
+                 end do
+              end do
+           end do
+           write (*, *)
+        end do
+    
         close(10)
     end subroutine
 
-    ! Construct the Hamiltonian matrix with 11-points stencil
+    function apply_H(phi_old, n, dh) result(phi_next)
+      integer,intent(in) :: n
+      double precision,intent(in) :: dh
+      double complex,intent(in) :: phi_old(1:n, 1:n, 1:n)
+      double complex phi_next(1:n, 1:n, 1:n)
+      integer i, j, k
+      
+      do k = 1, n
+         do j = 1, n
+            do i = 1, n
+               phi_next(i,j,k) = -6d0*phi_old(i,j,k)
+               if (i /= 1) then
+                  phi_next(i,j,k) = phi_next(i,j,k) + phi_old(i-1,j,k)
+               end if
+               if (i /= n) then
+                  phi_next(i,j,k) = phi_next(i,j,k) + phi_old(i+1,j,k)
+               end if
+               if (j /= 1) then
+                  phi_next(i,j,k) = phi_next(i,j,k) + phi_old(i,j-1,k)
+               end if
+               if (j /= n) then
+                  phi_next(i,j,k) = phi_next(i,j,k) + phi_old(i,j+1,k)
+               end if
+               if (k /= 1) then
+                  phi_next(i,j,k) = phi_next(i,j,k) + phi_old(i,j,k-1)
+               end if
+               if (k /= n) then
+                  phi_next(i,j,k) = phi_next(i,j,k) + phi_old(i,j,k+1)
+               end if
+               phi_next(i,j,k) = phi_next(i,j,k) / (dh*dh)
+
+               phi_next(i,j,k) = -(HBAR*HBAR/(2d0*MASS))*phi_next(i,j,k)
+               ! I dunno if this is correct, maybe potential can only affect the diagonal elements of the wave function
+               phi_next(i,j,k) = phi_next(i,j,k) + V(dh*i,dh*j,dh*k)*phi_next(i,j,k)
+            end do
+         end do
+      end do
+    end function apply_H
+
+    ! Construct the Hamiltonian matrix with 5-point stencil
     subroutine construct_hamiltonian(H, n, xl, dh)
         double precision,parameter :: ALPHA = 0.5d0*HBAR*HBAR/MASS ! Coefficient of Kinetic Energy
         integer,intent(in) :: n
@@ -143,10 +184,12 @@ contains
     end subroutine
 
     ! Potential
-    double precision function V(x)
+    double precision function V(x,y,z)
         double precision,parameter :: BETA = MASS * OMEGA * OMEGA
-        double precision,optional,intent(in) :: x
-        V = 0.5d0*x*x*BETA
+        double precision,optional,intent(in) :: x,y,z
+        double precision r2
+        r2 = x*x+y*y+z*z
+        V = 0.5d0*r2*BETA
     end function
 
     ! Initialize wave function with given function f(r)
@@ -212,11 +255,11 @@ contains
     end subroutine
 
     
-    function calc_next(phi, H, n, dt) result(phi_next)
+    function calc_next(phi, n, dh, dt) result(phi_next)
         integer,intent(in) :: n
-        double complex,intent(in) :: phi(1:n)
-        double precision,intent(in) :: dt, H(1:n, 1:n)
-        double complex :: phi_next(1:n), phi_temp(1:n)
+        double complex,intent(in) :: phi(1:n, 1:n, 1:n)
+        double precision,intent(in) :: dt, dh
+        double complex :: phi_next(1:n, 1:n, 1:n), phi_temp(1:n, 1:n, 1:n)
         integer i
         phi_next = dcmplx(0d0, 0d0)
 
@@ -226,7 +269,7 @@ contains
 
         ! We expect the series converges well enough at 4th order
         do i = 1, 4
-            phi_temp = -ix(symmatmul(H, phi_temp, n), n)*dt / (HBAR*dble(i))
+            phi_temp = -ix_3d(apply_H(phi_temp,n,dh),n)*dt / (HBAR*dble(i)))
             phi_next = phi_next + phi_temp
         end do
     end function
@@ -300,7 +343,7 @@ program main
 
     write (*, *) "Start Calculation..."
     call cpu_time(t1)
-    call solve(n, m, dh, dt, xl, H)
+    call solve(n, m, dh, dt, xl)
     call cpu_time(t2)
     write (*, '(A, F15.10, A)') "Calculation Time : ", t2 - t1, " seconds"
 end program
