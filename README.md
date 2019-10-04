@@ -21,7 +21,7 @@ Therefore, we couldn't see how the system evolves and behaves.
 This program, however, calculates and predicts how the system evolves under the static harmonic oscillator potential.  
 The picture below is how Gaussian wave packet evolves with time.  
 You can see that the form of Gaussian wave packet (which resembles to a classical particle) changes according to time, but after one period of time, the shape actually recovers and repeats its periodic movement.
-![Harmonic_TimeEvolution_Wavefunctions](Harmonic_TimeEvolution_Wavefunctions/FDM/k_0.0.gif)
+![Harmonic_TimeEvolution_Wavefunctions](Harmonic_TimeEvolution_Wavefunctions/one_dimension/data.gif)
 
 * InfiniteWall_Energies_Wavefunctions  
 The most fundamental model in quantum mechanics is probably this.  
