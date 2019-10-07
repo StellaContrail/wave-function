@@ -4,201 +4,43 @@ module extension
     double precision,parameter :: HBAR = 1d0    ! Plank constant
     double precision,parameter :: MASS = 0.5d0  ! mass of the harmonic oscillator
     double precision,parameter :: OMEGA = 1d0   ! angular frequency of the potential
-    ! wave number which wave function initially has
-    double precision,parameter :: wavenum_x = 0d0
-    double precision,parameter :: wavenum_y = 0d0
-    double precision,parameter :: wavenum_z = 0d0
-    ! initial center point of Gaussian wave packet
-    double precision,parameter :: x0 = 0d0
-    double precision,parameter :: y0 = 0d0
-    double precision,parameter :: z0 = 0d0
     ! squared covariance of initial Gaussian wavepacket
     double precision,parameter :: a = HBAR / (MASS * OMEGA)
 contains
-    ! i*(a+ib)=-b+ia : (REAL=-b), (IMAG=a)
-    function ix(A_matrix, n)
-        integer,intent(in) :: n
-        double complex,intent(in) :: A_matrix(1:n)
-        double complex ix(1:n)
-        integer i
-        do i = 1, n
-            ix(i) = dcmplx(-aimag(A_matrix(i)), dble(A_matrix(i)))
-        end do
-    end function
-    function ix_3d(A_matrix, n)
-      integer,intent(in) :: n
-      double complex,intent(in) :: A_matrix(1:n, 1:n, 1:n)
-      double complex ix(1:n, 1:n, 1:n)
-      integer i, j, k
-      do k = 1, n
-         do j = 1, n
-            do i = 1, n
-               ix(i,j,k) = dcmplx(-aimag(A_matrix(i,j,k)), dble(A_matrix(i,j,k)))
-            end do
-         end do
-      end do
-    end function ix_3d
-    function ix_scaler(z)
-        double complex,intent(in) :: z
-        double complex ix_scaler
-        ix_scaler = dcmplx(-aimag(z), dble(z))
-    end function
-
-    ! Solve all space and time steps of harmonic oscillator
     subroutine solve(n, m, dh, dt, xl)
         integer,intent(in) :: n, m
         double precision,intent(in) :: dh, dt, xl
-        double complex :: phi_next(1:n, 1:n, 1:n), phi_old(1:n, 1:n, 1:n)
-        double precision t1, t2, speed, x, y, z
-        integer i, j, k, waste_loop_var, time_loop_var
-        phi_old = dcmplx(0d0, 0d0)
+        double complex phi(1:n, 1:n, 1:n)
+        integer i
+        call initialize(phi, n, dh, xl)
+        !call normalize(phi, n, dh)
         open(10, file="data.txt")
+        call plot(phi, n, dh, xl, 10)
+        write (*, '(A, I3)') "i=", 0
+        write (*, '(A, F15.10)') "P=", probability(phi, n, dh)
+        write (*, '(A, 2F15.10)') "E=", energy(phi, n, dh)
+        write (*, '(A, 2F15.10)') "x=", expect_x(phi, n, dh, xl)
+        write (*, *)
 
-        ! Construction of Hamiltonian
-        ! Temporary disabled: I dunno the proper Hamiltonian for this case...
-        !call construct_hamiltonian(H, n, xl, dh)
-
-        ! Initialize the wave function
-        call initialize(phi_old, n, dh, xl)
-        ! Normalize the initial wave function
-        call normalize(phi_old, n, dh)
-        
-        ! Calculate future wave function of all time steps
-        do time_loop_var = 1, m/10
-           ! Plot data in every 10 calculations
-           do waste_loop_var = 1, 10
-              phi_next = (0d0, 0d0)
-              ! Calculate the future wave function of next time step
-              phi_next = calc_next(phi_old, n, dt, dh)
-           end do
-           
-           ! Plot data into a text file
-           do k = 1, n
-              z = xl + dh*k
-              do j = 1, n
-                 y = xl + dh*j
-                 do i = 1, n
-                    x = xl + dh*i
-                    write (10, '(4F15.10)', advance='no') x, y, z, abs(phi_next(i,j,k))
-                    write (10, *)
-                 end do
-              end do
-           end do
-           write (*, *)
+        do i = 1, m
+            phi = evolve(phi, n, dh, dt)
+            if (mod(i, 1) == 0d0) then
+                call plot(phi, n, dh, xl, 10)
+                write (*, '(A, I3)') "i=", i
+                write (*, '(A, F15.10)') "P=", probability(phi, n, dh)
+                write (*, '(A, 2F15.10)') "E=", energy(phi, n, dh)
+                write (*, '(A, 2F15.10)') "x=", expect_x(phi, n, dh, xl)
+                write (*, *)
+            end if
         end do
-    
         close(10)
     end subroutine
-
-    function apply_H(phi_old, n, dh) result(phi_next)
-      integer,intent(in) :: n
-      double precision,intent(in) :: dh
-      double complex,intent(in) :: phi_old(1:n, 1:n, 1:n)
-      double complex phi_next(1:n, 1:n, 1:n)
-      integer i, j, k
-      
-      do k = 1, n
-         do j = 1, n
-            do i = 1, n
-               phi_next(i,j,k) = -6d0*phi_old(i,j,k)
-               if (i /= 1) then
-                  phi_next(i,j,k) = phi_next(i,j,k) + phi_old(i-1,j,k)
-               end if
-               if (i /= n) then
-                  phi_next(i,j,k) = phi_next(i,j,k) + phi_old(i+1,j,k)
-               end if
-               if (j /= 1) then
-                  phi_next(i,j,k) = phi_next(i,j,k) + phi_old(i,j-1,k)
-               end if
-               if (j /= n) then
-                  phi_next(i,j,k) = phi_next(i,j,k) + phi_old(i,j+1,k)
-               end if
-               if (k /= 1) then
-                  phi_next(i,j,k) = phi_next(i,j,k) + phi_old(i,j,k-1)
-               end if
-               if (k /= n) then
-                  phi_next(i,j,k) = phi_next(i,j,k) + phi_old(i,j,k+1)
-               end if
-               phi_next(i,j,k) = phi_next(i,j,k) / (dh*dh)
-
-               phi_next(i,j,k) = -(HBAR*HBAR/(2d0*MASS))*phi_next(i,j,k)
-               ! I dunno if this is correct, maybe potential can only affect the diagonal elements of the wave function
-               phi_next(i,j,k) = phi_next(i,j,k) + V(dh*i,dh*j,dh*k)*phi_next(i,j,k)
-            end do
-         end do
-      end do
-    end function apply_H
-
-    ! Construct the Hamiltonian matrix with 5-point stencil
-    subroutine construct_hamiltonian(H, n, xl, dh)
-        double precision,parameter :: ALPHA = 0.5d0*HBAR*HBAR/MASS ! Coefficient of Kinetic Energy
-        integer,intent(in) :: n
-        double precision,intent(out) :: H(1:n, 1:n)
-        double precision,intent(in)  :: xl, dh
-        integer i
-        double precision x
-
-        H = 0d0
-        do i = 1, n
-            H(i, i) = -73766d0
-            if (i > 1) then
-                H(i, i-1) = 42000d0
-            end if
-            if (i > 2) then
-                H(i, i-2) = -6000d0
-            end if
-            if (i > 3) then
-                H(i, i-3) = 1000d0
-            end if
-            if (i > 4) then
-                H(i, i-4) = -125d0
-            end if
-            if (i > 5) then
-                H(i, i-5) = 8d0
-            end if
-
-            if (i < n-1) then
-                H(i, i+1) = 42000d0
-            end if
-            if (i < n-2) then
-                H(i, i+2) = -6000d0
-            end if
-            if (i < n-3) then
-                H(i, i+3) = 1000d0
-            end if
-            if (i < n-4) then
-                H(i, i+4) = -125d0
-            end if
-            if (i < n-5) then
-                H(i, i+5) = 8d0
-            end if
-
-        end do
-        H = H / (25200d0*dh*dh)
-        H = - ALPHA * H
-
-        do i = 1, n
-            x = xl + dh * i
-            H(i, i) = H(i, i) + V(x)
-        end do
-    end subroutine
-
-    ! Potential
-    double precision function V(x,y,z)
-        double precision,parameter :: BETA = MASS * OMEGA * OMEGA
-        double precision,optional,intent(in) :: x,y,z
-        double precision r2
-        r2 = x*x+y*y+z*z
-        V = 0.5d0*r2*BETA
-    end function
-
-    ! Initialize wave function with given function f(r)
     subroutine initialize(phi, n, dh, xl)
         integer,intent(in) :: n
         double complex,intent(out) :: phi(1:n, 1:n, 1:n)
         double precision,intent(in) :: dh, xl
         integer i, j, k
-        double precision x, y, z, k_r
+        double precision x, y, z
 
         do k = 1, n
             z = xl + dh * k
@@ -206,140 +48,239 @@ contains
                 y = xl + dh * j
                 do i = 1, n
                     x = xl + dh * i
-                    k_r = wavenum_x*x+wavenum_y*y+wavenum_z*z
-                    phi(i, j, k) = dcmplx(cos(k_r)*f(x,y,z), sin(k_r)*f(x,y,z))
+                    x = x - 1.5d0
+                    phi(i, j, k) = (a*acos(-1d0))**(-0.75d0)*exp(-0.5d0*(x*x+y*y+z*z)/a)
                 end do
             end do
-        end do  
+        end do
     end subroutine
-    double precision function f(x, y, z)
-        double precision,intent(in) :: x, y, z
-        double precision r_r0_2
-        r_r0_2 = (x-x0)**2d0+(y-y0)**2d0+(z-z0)**2d0
-        f = exp(-0.5d0*r_r0_2/a)
-    end function
-
-    ! Calculate total probability of the system
-    ! TODO: Try summation version
-    double complex function calc_probability(phi, n, dh)
+    function probability(phi, n, dh) result(prob)
         integer,intent(in) :: n
-        double complex,intent(in) :: phi(1:n, 1:n, 1:n)
         double precision,intent(in) :: dh
+        double complex,intent(inout) :: phi(1:n, 1:n, 1:n)
+        double precision temp_1(1:n, 1:n), temp_2(1:n), sum, prob
         integer i, j, k
-        calc_probability = (0d0, 0d0)
-
+        sum = 0d0
+        temp_1 = 0d0
+        temp_2 = 0d0
         do k = 1, n
             do j = 1, n
                 do i = 1, n
-                    if (i == 1 .or. i == n .or. j == 1 .or. j == n .or. k == 1 .or. k == n) then
-                        calc_probability = calc_probability + 0.5d0*abs(phi(i,j,k))**2d0*dh
+                    if (i == 1 .or. i == n) then
+                        temp_1(j, k) = temp_1(j, k) + 0.5d0*abs(phi(i, j, k))**2d0
                     else
-                        calc_probability = calc_probability + abs(phi(i,j,k))**2d0*dh
+                        temp_1(j, k) = temp_1(j, k) + abs(phi(i, j, k))**2d0
                     end if
                 end do
             end do
         end do
+        temp_1 = temp_1 * dh
+        do k = 1, n
+            do j = 1, n
+                if (j == 1 .or. j == n) then
+                    temp_2(k) = temp_2(k) + 0.5d0*temp_1(j, k)
+                else
+                    temp_2(k) = temp_2(k) + temp_1(j, k)
+                end if
+            end do
+        end do
+        temp_2 = temp_2 * dh
+        do k = 1, n
+            if (k == 1 .or. k == n) then
+                sum = sum + 0.5d0*temp_2(k)
+            else
+                sum = sum + temp_2(k)
+            end if
+        end do
+        prob  = sum * dh
     end function
-
-    ! Normalization
-    subroutine normalize(phi, n, dh)
-        integer,intent(in) :: n
-        double complex,intent(inout) :: phi(1:n, 1:n, 1:n)
-        double precision,intent(in) :: dh
-        double complex prob
-        prob = calc_probability(phi, n, dh)
-        if (aimag(prob) > 1d-15) then
-            stop "Probability calculation failed"
-        end if
-        phi = phi / sqrt(prob)
+    subroutine plot(phi, n, dh, xl, unit)
+        integer,intent(in) :: n, unit
+        double precision,intent(in) :: dh, xl
+        double complex,intent(in) :: phi(1:n, 1:n, 1:n)
+        integer i, j, k
+        double precision x, y, z
+            do i = 1, n
+                x = xl + dh * i
+                write (unit,'(4F15.10)',advance="no") x,dble(phi(i,n/2,n/2)), abs(phi(i, n/2 , n/2))
+                write (unit, *)
+            end do
+        write (unit, *)
     end subroutine
-
-    
-    function calc_next(phi, n, dh, dt) result(phi_next)
+    function evolve(phi, n, dh, dt) result(phi_new)
         integer,intent(in) :: n
         double complex,intent(in) :: phi(1:n, 1:n, 1:n)
-        double precision,intent(in) :: dt, dh
-        double complex :: phi_next(1:n, 1:n, 1:n), phi_temp(1:n, 1:n, 1:n)
+        double precision,intent(in) :: dh, dt
+        double complex phi_new(1:n, 1:n, 1:n), phi_temp(1:n, 1:n, 1:n)
         integer i
-        phi_next = dcmplx(0d0, 0d0)
 
         ! n = 0
         phi_temp = phi
-        phi_next = phi_next + phi_temp
+        phi_new = phi_temp
 
-        ! We expect the series converges well enough at 4th order
-        do i = 1, 4
-            phi_temp = -ix_3d(apply_H(phi_temp,n,dh),n)*dt / (HBAR*dble(i)))
-            phi_next = phi_next + phi_temp
+        ! n = 1 ~ 4
+        do i = 1, 40
+            phi_temp = H(phi_temp, n, dh)*dt/(HBAR*i)
+            phi_temp = -ix(phi_temp, n)
+            phi_new = phi_new + phi_temp
         end do
     end function
-
-    ! Multiplication of a Symmetric matix and a vector
-    ! C = HB
-    ! H : Double precision matrix
-    ! B : Double complex vector
-    ! C : Double complex matrix
-    function symmatmul(H, B, n) result(C)
+    function H(phi, n, dh) result(HPhi)
         integer,intent(in) :: n
-        double precision,intent(in) :: H(1:n, 1:n)
-        double complex,intent(in) :: B(1:n)
-        double complex C(1:n)
-        integer i
-        C = (0d0, 0d0)
-        
-        do i = 1, n
-            C(i) = H(i,i)*B(i)
-            if (i > 1) then
-                C(i) = C(i) + H(i,i-1)*B(i-1)
-            end if
-            if (i > 2) then
-                C(i) = C(i) + H(i,i-2)*B(i-2)
-            end if
-            if (i > 3) then
-                C(i) = C(i) + H(i,i-3)*B(i-3)
-            end if
-            if (i > 4) then
-                C(i) = C(i) + H(i,i-4)*B(i-4)
-            end if
-            if (i > 5) then
-                C(i) = C(i) + H(i,i-5)*B(i-5)
-            end if
-            if (i < n-1) then
-                C(i) = C(i) + H(i, i+1)*B(i+1)
-            end if
-            if (i < n-2) then
-                C(i) = C(i) + H(i, i+2)*B(i+2)
-            end if
-            if (i < n-3) then
-                C(i) = C(i) + H(i, i+3)*B(i+3)
-            end if
-            if (i < n-4) then
-                C(i) = C(i) + H(i, i+4)*B(i+4)
-            end if
-            if (i < n-5) then
-                C(i) = C(i) + H(i, i+5)*B(i+5)
+        double complex,intent(in) :: phi(1:n, 1:n, 1:n)
+        double precision,intent(in) :: dh
+        double complex HPhi(1:n, 1:n, 1:n)
+        integer i, j, k
+        do k = 1, n
+            do j = 1, n
+                do i = 1, n
+                    HPhi(i, j, k) = -6d0*phi(i, j, k)
+                    if (i /= 1) then
+                        HPhi(i, j, k) = HPhi(i, j, k) + phi(i-1, j, k)
+                    end if
+                    if (i /= n) then
+                        HPhi(i, j, k) = HPhi(i, j, k) + phi(i+1, j, k)
+                    end if
+                    if (j /= 1) then
+                        HPhi(i, j, k) = HPhi(i, j, k) + phi(i, j-1, k)
+                    end if
+                    if (j /= n) then
+                        HPhi(i, j, k) = HPhi(i, j, k) + phi(i, j+1, k)
+                    end if
+                    if (k /= 1) then
+                        HPhi(i, j, k) = HPhi(i, j, k) + phi(i, j, k-1)
+                    end if
+                    if (k /= n) then
+                        HPhi(i, j, k) = HPhi(i, j, k) + phi(i, j, k+1)
+                    end if
+                end do
+            end do
+        end do
+        HPhi = -0.5d0*HBAR*HBAR*HPhi/MASS
+        do k = 1, n
+            do j = 1, n
+                do i = 1, n
+                    HPhi(i, j, k) = HPhi(i, j, k) + V(dh*i, dh*j, dh*k)*phi(i, j, k)
+                end do
+            end do
+        end do
+    end function
+    function V(x, y, z) result(potential)
+        double precision,intent(in) :: x, y, z
+        double precision potential
+        double precision,parameter :: BETA = MASS * OMEGA * OMEGA
+        double precision r2
+        r2 = x*x+y*y+z*z
+        potential = 0.5d0*r2*BETA
+    end function
+    function ix(matrix, n) result(output_matrix)
+        integer,intent(in) :: n
+        double complex,intent(in) :: matrix(1:n, 1:n, 1:n)
+        double complex output_matrix(1:n, 1:n, 1:n)
+        integer i, j, k
+
+        do k = 1, n
+            do j = 1, n
+                do i = 1, n
+                    output_matrix(i,j,k) = dcmplx(-aimag(matrix(i,j,k)), dble(matrix(i,j,k)))
+                end do
+            end do
+        end do
+    end function
+    function energy(phi, n, dh) result(E)
+        integer,intent(in) :: n
+        double precision,intent(in) :: dh
+        double complex,intent(in) :: phi(1:n, 1:n, 1:n)
+        double complex E, HPhi(1:n, 1:n, 1:n)
+        double complex temp_1(1:n, 1:n), temp_2(1:n), sum
+        integer i,j,k
+        sum = 0d0
+        temp_1 = 0d0
+        temp_2 = 0d0
+        HPhi = H(phi, n, dh)
+        do k = 1, n
+            do j = 1, n
+                do i = 1, n
+                    if (i == 1 .or. i == n) then
+                        temp_1(j,k) = temp_1(j,k) + 0.5d0*conjg(phi(i,j,k))*HPhi(i,j,k)
+                    else 
+                        temp_1(j,k) = temp_1(j,k) + conjg(phi(i,j,k))*HPhi(i,j,k)
+                    end if
+                end do
+            end do
+        end do
+        temp_1 = temp_1 * dh
+        do k = 1, n
+            do j = 1, n
+                if (j == 1 .or. j == n) then
+                    temp_2(k) = temp_2(k) + 0.5d0*temp_1(j, k)
+                else
+                    temp_2(k) = temp_2(k) + temp_1(j, k)
+                end if
+            end do
+        end do
+        temp_2 = temp_2 * dh
+        do k = 1, n
+            if (k == 1 .or. k == n) then
+                sum = sum + 0.5d0*temp_2(k)
+            else
+                sum = sum + temp_2(k)
             end if
         end do
+        E  = sum * dh
+    end function
+    function expect_x(phi, n, dh, xl) result(x_value)
+        integer,intent(in) :: n
+        double precision,intent(in) :: dh, xl
+        double complex,intent(in) :: phi(1:n, 1:n, 1:n)
+        double complex x_value
+        double complex temp_1(1:n, 1:n), temp_2(1:n), sum
+        integer i,j,k
+        double precision x
+        sum = 0d0
+        temp_1 = 0d0
+        temp_2 = 0d0
+        do k = 1, n
+            do j = 1, n
+                do i = 1, n
+                    x = xl + dh * i
+                    if (i == 1 .or. i == n) then
+                        temp_1(j,k) = temp_1(j,k) + 0.5d0*conjg(phi(i,j,k))*x*phi(i,j,k)
+                    else 
+                        temp_1(j,k) = temp_1(j,k) + conjg(phi(i,j,k))*x*phi(i,j,k)
+                    end if
+                end do
+            end do
+        end do
+        temp_1 = temp_1 * dh
+        do k = 1, n
+            do j = 1, n
+                if (j == 1 .or. j == n) then
+                    temp_2(k) = temp_2(k) + 0.5d0*temp_1(j, k)
+                else
+                    temp_2(k) = temp_2(k) + temp_1(j, k)
+                end if
+            end do
+        end do
+        temp_2 = temp_2 * dh
+        do k = 1, n
+            if (k == 1 .or. k == n) then
+                sum = sum + 0.5d0*temp_2(k)
+            else
+                sum = sum + temp_2(k)
+            end if
+        end do
+        x_value  = sum * dh
     end function
 end module
 
 program main
     use extension
     implicit none
-    ! Space size (Assuming regular cube), and Time size
     integer,parameter :: n = 40, m = 630
-    ! Step amount of space, and time respectively
     double precision,parameter :: dh = 0.8d0, dt = 0.02d0
-    ! Lowest bound of space (Represent each coordinates variables as x)
     double precision,parameter :: xl = -dh*(n/2)
-    ! Three dimensional wave function
-    ! Each index indicates x, y, z respectively
-    double complex phi(1:n, 1:n, 1:n)
-    ! Hamiltonian
-    double precision H(1:n, 1:n)
-    ! Other variables
     double precision t1, t2
-    phi = dcmplx(0d0, 0d0)
 
     write (*, *) "Start Calculation..."
     call cpu_time(t1)
