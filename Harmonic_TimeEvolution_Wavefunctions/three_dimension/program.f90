@@ -18,17 +18,17 @@ contains
         call plot(phi, n, dh, xl, 10)
         write (*, '(A, I3)') "i=", 0
         write (*, '(A, F15.10)') "P=", probability(phi, n, dh)
-        write (*, '(A, 2F15.10)') "E=", energy(phi, n, dh)
+        write (*, '(A, 2F15.10)') "E=", energy(phi, n, dh, xl)
         write (*, '(A, 2F15.10)') "x=", expect_x(phi, n, dh, xl)
         write (*, *)
 
         do i = 1, m
-            phi = evolve(phi, n, dh, dt)
-            if (mod(i, 1) == 0d0) then
+            phi = evolve(phi, n, dh, dt, xl)
+            if (mod(i, 25) == 0d0) then
                 call plot(phi, n, dh, xl, 10)
                 write (*, '(A, I3)') "i=", i
                 write (*, '(A, F15.10)') "P=", probability(phi, n, dh)
-                write (*, '(A, 2F15.10)') "E=", energy(phi, n, dh)
+                write (*, '(A, 2F15.10)') "E=", energy(phi, n, dh, xl)
                 write (*, '(A, 2F15.10)') "x=", expect_x(phi, n, dh, xl)
                 write (*, *)
             end if
@@ -44,8 +44,10 @@ contains
 
         do k = 1, n
             z = xl + dh * k
+            !z = z - 5d0
             do j = 1, n
                 y = xl + dh * j
+                y = y - 1.5d0
                 do i = 1, n
                     x = xl + dh * i
                     x = x - 1.5d0
@@ -100,17 +102,20 @@ contains
         double complex,intent(in) :: phi(1:n, 1:n, 1:n)
         integer i, j, k
         double precision x, y, z
+        do j = 1, n
+            y = xl + dh * j
             do i = 1, n
                 x = xl + dh * i
-                write (unit,'(4F15.10)',advance="no") x,dble(phi(i,n/2,n/2)), abs(phi(i, n/2 , n/2))
+                write (unit,'(6F15.10)',advance='no') x, y, dble(phi(i,j,n/2)), aimag(phi(i,j,n/2)), abs(phi(i,j,n/2))
                 write (unit, *)
             end do
-        write (unit, *)
+            write (unit, *)
+        end do
     end subroutine
-    function evolve(phi, n, dh, dt) result(phi_new)
+    function evolve(phi, n, dh, dt, xl) result(phi_new)
         integer,intent(in) :: n
         double complex,intent(in) :: phi(1:n, 1:n, 1:n)
-        double precision,intent(in) :: dh, dt
+        double precision,intent(in) :: dh, dt, xl
         double complex phi_new(1:n, 1:n, 1:n), phi_temp(1:n, 1:n, 1:n)
         integer i
 
@@ -119,48 +124,69 @@ contains
         phi_new = phi_temp
 
         ! n = 1 ~ 4
-        do i = 1, 40
-            phi_temp = H(phi_temp, n, dh)*dt/(HBAR*i)
+        do i = 1, 10
+            phi_temp = H(phi_temp, n, dh, xl)*dt/(HBAR*i)
             phi_temp = -ix(phi_temp, n)
             phi_new = phi_new + phi_temp
         end do
     end function
-    function H(phi, n, dh) result(HPhi)
+    function H(phi, n, dh, xl) result(HPhi)
         integer,intent(in) :: n
         double complex,intent(in) :: phi(1:n, 1:n, 1:n)
-        double precision,intent(in) :: dh
+        double precision,intent(in) :: dh, xl
         double complex HPhi(1:n, 1:n, 1:n)
         integer i, j, k
         do k = 1, n
             do j = 1, n
                 do i = 1, n
-                    HPhi(i, j, k) = -6d0*phi(i, j, k)
-                    if (i /= 1) then
-                        HPhi(i, j, k) = HPhi(i, j, k) + phi(i-1, j, k)
+                    HPhi(i, j, k) = -30d0*3d0*phi(i, j, k)
+                    if (i > 1) then
+                        HPhi(i, j, k) = HPhi(i, j, k) + 16d0*phi(i-1, j, k)
                     end if
-                    if (i /= n) then
-                        HPhi(i, j, k) = HPhi(i, j, k) + phi(i+1, j, k)
+                    if (i > 2) then
+                        HPhi(i, j, k) = HPhi(i, j, k) - phi(i-2, j, k)
                     end if
-                    if (j /= 1) then
-                        HPhi(i, j, k) = HPhi(i, j, k) + phi(i, j-1, k)
+                    if (i < n-1) then
+                        HPhi(i, j, k) = HPhi(i, j, k) - phi(i+2, j, k)
                     end if
-                    if (j /= n) then
-                        HPhi(i, j, k) = HPhi(i, j, k) + phi(i, j+1, k)
+                    if (i < n) then
+                        HPhi(i, j, k) = HPhi(i, j, k) + 16d0*phi(i+1, j, k)
                     end if
-                    if (k /= 1) then
-                        HPhi(i, j, k) = HPhi(i, j, k) + phi(i, j, k-1)
+
+                    if (j > 1) then
+                        HPhi(i, j, k) = HPhi(i, j, k) + 16d0*phi(i, j-1, k)
                     end if
-                    if (k /= n) then
-                        HPhi(i, j, k) = HPhi(i, j, k) + phi(i, j, k+1)
+                    if (j > 2) then
+                        HPhi(i, j, k) = HPhi(i, j, k) - phi(i, j-2, k)
+                    end if
+                    if (j < n-1) then
+                        HPhi(i, j, k) = HPhi(i, j, k) - phi(i, j+2, k)
+                    end if
+                    if (j < n) then
+                        HPhi(i, j, k) = HPhi(i, j, k) + 16d0*phi(i, j+1, k)
+                    end if
+
+                    if (k > 1) then
+                        HPhi(i, j, k) = HPhi(i, j, k) + 16d0*phi(i, j, k-1)
+                    end if
+                    if (k > 2) then
+                        HPhi(i, j, k) = HPhi(i, j, k) - phi(i, j, k-2)
+                    end if
+                    if (k < n-1) then
+                        HPhi(i, j, k) = HPhi(i, j, k) - phi(i, j, k+2)
+                    end if
+                    if (k < n) then
+                        HPhi(i, j, k) = HPhi(i, j, k) + 16d0*phi(i, j, k+1)
                     end if
                 end do
             end do
         end do
-        HPhi = -0.5d0*HBAR*HBAR*HPhi/MASS
+        HPhi = -0.5d0*HBAR*HBAR*HPhi/(12d0*MASS*dh*dh)
+
         do k = 1, n
             do j = 1, n
                 do i = 1, n
-                    HPhi(i, j, k) = HPhi(i, j, k) + V(dh*i, dh*j, dh*k)*phi(i, j, k)
+                    HPhi(i, j, k) = HPhi(i, j, k) + V(dh*i+xl, dh*j+xl, dh*k+xl)*phi(i, j, k)
                 end do
             end do
         end do
@@ -169,9 +195,11 @@ contains
         double precision,intent(in) :: x, y, z
         double precision potential
         double precision,parameter :: BETA = MASS * OMEGA * OMEGA
-        double precision r2
+        double precision r2, r
         r2 = x*x+y*y+z*z
-        potential = 0.5d0*r2*BETA
+        r = sqrt(r2)
+        !potential = 0.5d0*r2*BETA
+        potential = -exp(-r2/2d0)
     end function
     function ix(matrix, n) result(output_matrix)
         integer,intent(in) :: n
@@ -187,9 +215,9 @@ contains
             end do
         end do
     end function
-    function energy(phi, n, dh) result(E)
+    function energy(phi, n, dh, xl) result(E)
         integer,intent(in) :: n
-        double precision,intent(in) :: dh
+        double precision,intent(in) :: dh, xl
         double complex,intent(in) :: phi(1:n, 1:n, 1:n)
         double complex E, HPhi(1:n, 1:n, 1:n)
         double complex temp_1(1:n, 1:n), temp_2(1:n), sum
@@ -197,7 +225,7 @@ contains
         sum = 0d0
         temp_1 = 0d0
         temp_2 = 0d0
-        HPhi = H(phi, n, dh)
+        HPhi = H(phi, n, dh, xl)
         do k = 1, n
             do j = 1, n
                 do i = 1, n
@@ -277,7 +305,7 @@ end module
 program main
     use extension
     implicit none
-    integer,parameter :: n = 40, m = 630
+    integer,parameter :: n = 40, m = 600
     double precision,parameter :: dh = 0.8d0, dt = 0.02d0
     double precision,parameter :: xl = -dh*(n/2)
     double precision t1, t2
