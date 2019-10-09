@@ -16,7 +16,7 @@ contains
         !call normalize(phi, n, dh)
         open(10, file="data.txt")
         call plot(phi, n, dh, xl, 10)
-        write (*, '(A, I3)') "i=", 0
+        write (*, '(A, I5)') "i=", 0
         write (*, '(A, F15.10)') "P=", probability(phi, n, dh)
         write (*, '(A, 2F15.10)') "E=", energy(phi, n, dh, xl)
         write (*, '(A, 2F15.10)') "x=", expect_x(phi, n, dh, xl)
@@ -26,7 +26,7 @@ contains
             phi = evolve(phi, n, dh, dt, xl)
             if (mod(i, 25) == 0d0) then
                 call plot(phi, n, dh, xl, 10)
-                write (*, '(A, I3)') "i=", i
+                write (*, '(A, I5)') "i=", i
                 write (*, '(A, F15.10)') "P=", probability(phi, n, dh)
                 write (*, '(A, 2F15.10)') "E=", energy(phi, n, dh, xl)
                 write (*, '(A, 2F15.10)') "x=", expect_x(phi, n, dh, xl)
@@ -44,13 +44,13 @@ contains
 
         do k = 1, n
             z = xl + dh * k
-            !z = z - 5d0
+            z = z - 2.3d0
             do j = 1, n
                 y = xl + dh * j
-                y = y - 1.5d0
+                y = y - 2.3d0
                 do i = 1, n
                     x = xl + dh * i
-                    x = x - 1.5d0
+                    x = x - 2.3d0
                     phi(i, j, k) = (a*acos(-1d0))**(-0.75d0)*exp(-0.5d0*(x*x+y*y+z*z)/a)
                 end do
             end do
@@ -102,11 +102,25 @@ contains
         double complex,intent(in) :: phi(1:n, 1:n, 1:n)
         integer i, j, k
         double precision x, y, z
+        double complex density(1:n, 1:n)
+        do j = 1, n
+            do k = 1, n
+                do i = 1, n
+                    if (k == 1 .or. k == n) then
+                        density(i,j) = density(i,j) + 0.5d0*abs(phi(i,j,k))**2d0 
+                    else
+                        density(i,j) = density(i,j) + abs(phi(i,j,k))**2d0
+                    end if
+                end do
+            end do
+        end do
+        density = density * dh
+
         do j = 1, n
             y = xl + dh * j
             do i = 1, n
                 x = xl + dh * i
-                write (unit,'(6F15.10)',advance='no') x, y, dble(phi(i,j,n/2)), aimag(phi(i,j,n/2)), abs(phi(i,j,n/2))
+                write (unit,'(3F15.10)',advance='no') x, y, density(i,j)
                 write (unit, *)
             end do
             write (unit, *)
@@ -199,7 +213,18 @@ contains
         r2 = x*x+y*y+z*z
         r = sqrt(r2)
         !potential = 0.5d0*r2*BETA
-        potential = -exp(-r2/2d0)
+        !potential = -5d0*exp(-r2)
+        !if (abs(x) < 5d0 .and. abs(y) < 5d0 .and. abs(z) < 5d0) then
+        !    potential = -50d0
+        !else
+        !    potential = 0d0
+        !end if
+        if (2d0 < r .and. r < 6d0) then
+            potential = -50d0
+        else 
+            potential = 0d0
+        end if
+        !potential = 0d0
     end function
     function ix(matrix, n) result(output_matrix)
         integer,intent(in) :: n
@@ -305,8 +330,9 @@ end module
 program main
     use extension
     implicit none
-    integer,parameter :: n = 40, m = 600
+    integer,parameter :: n = 40, m = 1200
     double precision,parameter :: dh = 0.8d0, dt = 0.02d0
+    ! x = xl ~ xl+dh*n
     double precision,parameter :: xl = -dh*(n/2)
     double precision t1, t2
 
