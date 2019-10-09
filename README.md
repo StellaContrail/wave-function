@@ -15,13 +15,19 @@ In quantum mechanics, Schroedinger equation under this kind of potential gives s
 The sample image shows the case of the 3rd excited state.
 ![Harmonic Potential Wave function](Harmonic_Energies_Wavefunctions/Rungekutta/wavefunction_n3.png)
 
-* Harmonic_TimeEvolution_Wavefunctions  
+* Harmonic_TimeEvolution_Wavefunctions (One Dimension)  
 The other program which solves harmonic oscillator schroedinger is not dependent on time.  
 Therefore, we couldn't see how the system evolves and behaves.  
 This program, however, calculates and predicts how the system evolves under the static harmonic oscillator potential.  
 The picture below is how Gaussian wave packet evolves with time.  
 You can see that the form of Gaussian wave packet (which resembles to a classical particle) changes according to time, but after one period of time, the shape actually recovers and repeats its periodic movement.
 ![Harmonic_TimeEvolution_Wavefunctions](Harmonic_TimeEvolution_Wavefunctions/one_dimension/data.gif)
+
+* Harmonic_TimeEvolution_Wavefunctions (Three Dimensions)  
+Simulate how a wave packet behaves in any potential including harmonic oscillator in three dimensions.  
+In order to study how a microscopic particle behaves in real world, thinking in a three dimensional world is important.  
+The animation below is the projection of the wave packet trapped inside a harmonic oscillator potential, mapped onto the x-y plane.  
+![Harmonic_TimeEvolution_Wavefunctions](Harmonic_TimeEvolution_Wavefunctions/three_dimension/Density_Projection/harmonic_oscillator_x1.5_y1.5_z1.5.gif)
 
 * InfiniteWall_Energies_Wavefunctions  
 The most fundamental model in quantum mechanics is probably this.  
