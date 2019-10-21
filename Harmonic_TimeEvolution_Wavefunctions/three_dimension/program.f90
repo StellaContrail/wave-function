@@ -37,7 +37,7 @@ contains
     subroutine solve(n, m, dh, dt, xl)
         integer,intent(in) :: n, m
         double precision,intent(in) :: dh, dt, xl
-        double complex phi(1:n, 1:n, 1:n)
+        complex(kind(0d0)) phi(1:n, 1:n, 1:n)
         integer i
         write (*, *) "Initializing wave function"
         call initialize(phi, n, dh, xl)
@@ -69,7 +69,7 @@ contains
     end subroutine
     subroutine initialize(phi, n, dh, xl)
         integer,intent(in) :: n
-        double complex,intent(out) :: phi(1:n, 1:n, 1:n)
+        complex(kind(0d0)),intent(out) :: phi(1:n, 1:n, 1:n)
         double precision,intent(in) :: dh, xl
         integer i, j, k
         double precision x, y, z, phase
@@ -93,7 +93,7 @@ contains
     function probability(phi, n, dh) result(prob)
         integer,intent(in) :: n
         double precision,intent(in) :: dh
-        double complex,intent(inout) :: phi(1:n, 1:n, 1:n)
+        complex(kind(0d0)),intent(inout) :: phi(1:n, 1:n, 1:n)
         double precision temp_1(1:n, 1:n), temp_2(1:n), sum, prob
         integer i, j, k
         sum = 0d0
@@ -133,10 +133,10 @@ contains
     subroutine plot(phi, n, dh, xl, unit)
         integer,intent(in) :: n, unit
         double precision,intent(in) :: dh, xl
-        double complex,intent(in) :: phi(1:n, 1:n, 1:n)
+        complex(kind(0d0)),intent(in) :: phi(1:n, 1:n, 1:n)
         integer i, j, k
         double precision x, y
-        double complex density(1:n, 1:n)
+        complex(kind(0d0)) density(1:n, 1:n)
         do j = 1, n
             do k = 1, n
                 do i = 1, n
@@ -162,9 +162,9 @@ contains
     end subroutine
     function evolve(phi, n, dh, dt, xl) result(phi_new)
         integer,intent(in) :: n
-        double complex,intent(in) :: phi(1:n, 1:n, 1:n)
+        complex(kind(0d0)),intent(in) :: phi(1:n, 1:n, 1:n)
         double precision,intent(in) :: dh, dt, xl
-        double complex phi_new(1:n, 1:n, 1:n), phi_temp(1:n, 1:n, 1:n)
+        complex(kind(0d0)) phi_new(1:n, 1:n, 1:n), phi_temp(1:n, 1:n, 1:n)
         integer i
 
         ! n = 0
@@ -180,9 +180,9 @@ contains
     end function
     function H(phi, n, dh, xl) result(HPhi)
         integer,intent(in) :: n
-        double complex,intent(in) :: phi(1:n, 1:n, 1:n)
+        complex(kind(0d0)),intent(in) :: phi(1:n, 1:n, 1:n)
         double precision,intent(in) :: dh, xl
-        double complex HPhi(1:n, 1:n, 1:n)
+        complex(kind(0d0)) HPhi(1:n, 1:n, 1:n)
         integer i, j, k
         do k = 1, n
             do j = 1, n
@@ -241,8 +241,8 @@ contains
     end function
     function ix(matrix, n) result(output_matrix)
         integer,intent(in) :: n
-        double complex,intent(in) :: matrix(1:n, 1:n, 1:n)
-        double complex output_matrix(1:n, 1:n, 1:n)
+        complex(kind(0d0)),intent(in) :: matrix(1:n, 1:n, 1:n)
+        complex(kind(0d0)) output_matrix(1:n, 1:n, 1:n)
         integer i, j, k
 
         do k = 1, n
@@ -256,9 +256,9 @@ contains
     function energy(phi, n, dh, xl) result(E)
         integer,intent(in) :: n
         double precision,intent(in) :: dh, xl
-        double complex,intent(in) :: phi(1:n, 1:n, 1:n)
-        double complex E, HPhi(1:n, 1:n, 1:n)
-        double complex temp_1(1:n, 1:n), temp_2(1:n), sum
+        complex(kind(0d0)),intent(in) :: phi(1:n, 1:n, 1:n)
+        complex(kind(0d0)) E, HPhi(1:n, 1:n, 1:n)
+        complex(kind(0d0)) temp_1(1:n, 1:n), temp_2(1:n), sum
         integer i,j,k
         sum = 0d0
         temp_1 = 0d0
@@ -298,9 +298,9 @@ contains
     function expect_x(phi, n, dh, xl) result(x_value)
         integer,intent(in) :: n
         double precision,intent(in) :: dh, xl
-        double complex,intent(in) :: phi(1:n, 1:n, 1:n)
-        double complex x_value
-        double complex temp_1(1:n, 1:n), temp_2(1:n), sum
+        complex(kind(0d0)),intent(in) :: phi(1:n, 1:n, 1:n)
+        complex(kind(0d0)) x_value
+        complex(kind(0d0)) temp_1(1:n, 1:n), temp_2(1:n), sum
         integer i,j,k
         double precision x
         sum = 0d0
