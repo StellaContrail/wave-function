@@ -27,7 +27,7 @@ You can see that the form of Gaussian wave packet (which resembles to a classica
 Simulate how a wave packet behaves in any potential including harmonic oscillator in three dimensions.  
 In order to study how a microscopic particle behaves in real world, thinking in a three dimensional world is important.  
 The animation below is the projection of the wave packet trapped inside a harmonic oscillator potential, mapped onto the x-y plane.  
-![Harmonic_TimeEvolution_Wavefunctions](Harmonic_TimeEvolution_Wavefunctions/three_dimension/Density_Projection/harmonic_oscillator_x1.5_y1.5_z1.5.gif)
+![Harmonic_TimeEvolution_Wavefunctions](Harmonic_TimeEvolution_Wavefunctions/three_dimension/Density_Projection/moving/harmonic_x_1.5_1.5_1.5_k_-0.1_-0.1_-0.1.gif)
 
 * InfiniteWall_Energies_Wavefunctions  
 The most fundamental model in quantum mechanics is probably this.  
