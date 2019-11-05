@@ -1,6 +1,7 @@
 program main
-    use mathf
+    use io
     use setting
+    use mathf
     implicit none
     ! Mathematical constants
     double precision,parameter     :: pi   = acos(-1d0)       ! PI
@@ -9,9 +10,11 @@ program main
     double precision,parameter     :: hbar = 1.05d-34         ! Reduced Plank constant
     ! Physical values
     integer                        :: N                ! Dimension of Space
+    complex(kind(0d0)),allocatable :: Phi_temp(:, :)   ! Temporary wave function used by zhbev
     complex(kind(0d0)),allocatable :: Phi_next(:)      ! Wave function at next step
     complex(kind(0d0)),allocatable :: Phi_prev(:)      ! Wave function at previous step
     double precision,allocatable   :: Pot(:)           ! Potential
+    double precision,allocatable   :: H(:,:)
     double precision               :: dh               ! Step of distance in the x-direction
     double precision               :: xmax             ! largest x position (Boundary position)
     double precision               :: mass             ! mass of a boson
@@ -24,6 +27,8 @@ program main
     double precision               :: Xs               ! characteristic length of the condensate
     double precision               :: epsilon          ! squared ratio of Azero to Xs
     double precision               :: kappa            ! coeffient of the nonlinear term
+    double precision,allocatable   :: mus(:)           ! multiple chemical potentials returned by zhbev
+    integer                        :: i                ! Loop variable
     ! Definition of physical values (this could be replaced with I/O)
     ! These values are referenced from
     ! 'Numerical Solution of the Gross-Pitaevskii Equation for Bose-Einstein Condensation'
@@ -33,17 +38,83 @@ program main
     ParticleCount    = 1d2
     ScatteringLength = 5.1d-9
     N                = 128
-    allocate (Phi_next(0:N), Phi_prev(0:N), Pot(0:N))
-    call initialize(Phi_next, Phi_prev, Pot, N, dh, xmax)
+    allocate (Phi_next(0:N), Phi_prev(0:N), Pot(0:N), mus(0:N))
+    allocate (Phi_temp(0:N, 0:N), H(0:N,0:N))
     ! Calculation of coefficients and variables using defined physical values
+    xmax    = 10d0
     Azero   = sqrt(hbar/(omega*mass))
     Xs      = Azero   ! Usually chosen to be Azero for a weak/moderate interaction
     epsilon = (Azero/Xs)**2d0
     kappa   = (4d0*pi*ScatteringLength*ParticleCount/Azero)*(Azero/Xs)**5d0
     dh      = (2d0*xmax)/N
 
+    ! Show configuration of fundamental physical constants
+    print *, "Physical constants of the system----------------------------------"
+    print *, "<Fundamental Physical Constants>"
+    print *, "m  (Mass of the bose particle)     = ", mass
+    print *, "omega (Angular velocity of HO)     = ", omega
+    print *, "N (Particle Count)                 = ", ParticleCount
+    print *, "a (ScatteringLength)               = ", ScatteringLength
+    print *, "n (Dimension of the space)         = ", N
+    print *, "A0 (Length of the HO Ground State) = ", Azero
+    print *, "Xs (Characteristic Length)         = ", Xs
+    print *, "<Coefficients of NLSE terms>"
+    print *, "Epsilon (A0/Xs)^2                  = ", epsilon
+    print *, "Kappa (Coefficient of NL term)     = ", kappa
+    print *, "------------------------------------------------------------------"
+    write (*, *)
+    
+    print *, "Calculation Start-----------------------------------------"
+    ! Initialization of wave function and potential
+    call initialize(Phi_next, Phi_prev, Pot, N, dh, xmax)
+    write (*, *) "- Initialized the wave function and potential function"
+
     ! Normalization of wave function
     call normalize(Phi_prev, N, dh)
-
     
+    ! Output the initial wave function to file
+    open(10, file="data_initial.txt")
+    call output(10, Phi_prev, N, dh, xmax)
+    close(10)
+    write (*, *) "- Initial wave function has been saved into ", "data_initial.txt"
+    print *, ""
+
+    ! Start I/O Procedure
+    open(10, file="data.txt")
+    ! Solve the inconsistent equation until the wave function converges
+    do i = 1, 1
+        write (*, '(A, I4, A)') "#", i, " step calculation began --------------"
+        ! Construct the hamiltonian using present wave function data
+        call hamiltonian(H, Pot, N, dh, epsilon, kappa, Phi_prev)
+        print *, "- New hamiltonian has been reconstructed |"
+        ! Solve Nonlinear Schroedinger Equation Using the Assumed Wave function
+        call solve_eigen(H, Phi_temp, mus, N)
+        print *, "- NLSE has been successfully calculated  |"
+
+        Phi_next(0:) = Phi_temp(0:, 0)
+        print *, "- Wave function has been updated         |"
+
+        ! Apply Boundary Condition
+        Phi_next(0) = dcmplx(0d0, 0d0)
+        Phi_next(N) = dcmplx(0d0, 0d0)
+        print *, "- Boundary condition has been applied    |"
+
+        ! Substitute chemical potential
+        mu = mus(0)
+        print *, "- Chemical potential has been updated    |"
+
+        Phi_prev = Phi_next
+        print *, "- Finished                               |"
+    end do
+    print *, "------------------------------------------"
+    print *, ""
+    write (*, *) "- All calculation procedures have been finished"
+    call output(10, Phi_prev, N, dh, xmax)
+    close (10)
+    write (*, *) "- Calculation result has been saved into ", "data.txt"
+    print *, "----------------------------------------------------------"
+    write (*, *)
+    print *, "Result of the calculation ----------------------------------------"
+    print *, "Chemical Potential : ", mu
+    write (*, *)
 end program 

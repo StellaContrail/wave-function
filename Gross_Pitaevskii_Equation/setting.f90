@@ -1,4 +1,3 @@
-! Functions/Subroutines which set up configurations for a physical system
 module setting
     implicit none
 contains
@@ -9,24 +8,52 @@ contains
     ! N        : Dimension of space exclusing the first element
     ! dh       : Step distance of space
     ! xmax     : Max x position
-    subroutine initialize(Phi_next, Phi_prev, Pot, N, dh, xmax)
-        integer,intent(in)              :: N
-        complex(kind(0d0)),intent(out)  :: Phi_next(0:N), Phi_prev(0:N)
-        double precision,intent(out)    :: Pot(0:N)
-        double precision,intent(in)     :: dh, xmax
-        integer i
-        double precision x
-        Phi_next(:) = dcmplx(0d0, 0d0)
-        do i = 0, N
-            x = -xmax + dh*i
-            Pot(i) = 0.5d0*x*x
-            if (i == 0 .or. i == N) then
-                ! Boundary Condition (Fixed)
-                Phi_prev(i) = dcmplx(0d0, 0d0)
-            else
-                ! Suppose initial wave function is set to be harmonic oscillator
-                Phi_prev(i) = dcmplx(exp(-Pot(i)), 0d0)
-            end if
-        end do
-    end subroutine
+  subroutine initialize(Phi_next, Phi_prev, Pot, N, dh, xmax)
+    integer,intent(in)              :: N
+    complex(kind(0d0)),intent(out)  :: Phi_next(0:N), Phi_prev(0:N)
+    double precision,intent(out)    :: Pot(0:N)
+    double precision,intent(in)     :: dh, xmax
+    integer i
+    double precision x
+    Phi_next(:) = dcmplx(0d0, 0d0)
+    do i = 0, N
+        x = -xmax + dh*i
+        Pot(i) = 0.5d0*x*x
+        if (i == 0 .or. i == N) then
+            ! Boundary Condition (Fixed)
+            Phi_prev(i) = dcmplx(0d0, 0d0)
+        else
+           ! Assume the form of the initial wave function
+            Phi_prev(i) = exp(-0.5d0*x*x)
+        end if
+    end do
+  end subroutine initialize
+
+  ! Construct the hamiltonian
+  subroutine hamiltonian(H, Pot, N, dh, epsilon, kappa, Phi)
+    integer,intent(in)            :: N
+    double precision,intent(in)   :: dh, Pot(0:N), epsilon, kappa
+    double precision,intent(out)  :: H(0:N, 0:N)
+    complex(kind(0d0)),intent(in) :: Phi(0:N)
+    integer                       :: i
+    double precision              :: coe
+    coe = -0.5d0 * epsilon * epsilon / (dh * dh) ! Coefficient of the laplacian part
+    H(:, :) = 0d0
+
+    ! Laplacian part
+    do i = 0, N
+       H(i, i) = -2d0 * coe
+       if (i > 0) then
+          H(i, i-1) = 1d0 * coe
+       end if
+       if (i < N) then
+          H(i, i+1) = 1d0 * coe
+       end if
+    end do
+
+    ! Potential and Nonlinear part
+    do i = 0, N
+       H(i, i) = H(i, i) + Pot(i) !+ kappa*abs(Phi(i))**2d0
+    end do
+  end subroutine hamiltonian
 end module
