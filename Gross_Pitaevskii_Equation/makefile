@@ -1,11 +1,21 @@
-compile=gfortran -O3 -fcheck=all
-gpe: gpe.o
-	$(compile) -o gpe *.o
-setting.o: setting.f90
-	$(compile) -c setting.f90
-mathf.o: mathf.f90
-	$(compile) -c mathf.f90
-gpe.o: gpe.f90 mathf.o setting.o
-	$(compile) -c gpe.f90
+compiler=gfortran
+options=-O3 -fbounds-check -llapack95 -llapack -lblas
+all:mathf.mod io.mod setting.mod gpe.mod a.out
+
+mathf.mod mathf.o: mathf.f90
+	gfortran -c mathf.f90 $(options)
+
+io.mod io.o: io.f90
+	gfortran -c io.f90 $(options)
+
+setting.mod setting.o: setting.f90
+	gfortran -c setting.f90 $(options)
+
+gpe.mod gpe.o: gpe.f90
+	gfortran -c gpe.f90 $(options)
+
+a.out: gpe.o io.o setting.o mathf.o
+	gfortran -o a.out *.o $(options)
+
 clean:
-	rm -f *.o *.mod
+	rm *.o *.mod a.out
