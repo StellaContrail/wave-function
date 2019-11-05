@@ -38,8 +38,8 @@ program main
     ParticleCount    = 1d2
     ScatteringLength = 5.1d-9
     N                = 128
-    allocate (Phi_next(0:N), Phi_prev(0:N), Pot(0:N), mus(0:N))
-    allocate (Phi_temp(0:N, 0:N), H(0:N,0:N))
+    allocate (Phi_next(1:N), Phi_prev(1:N), Pot(1:N), mus(1:N))
+    allocate (Phi_temp(1:N, 1:N), H(1:N,1:N))
     ! Calculation of coefficients and variables using defined physical values
     xmax    = 10d0
     Azero   = sqrt(hbar/(omega*mass))
@@ -51,16 +51,16 @@ program main
     ! Show configuration of fundamental physical constants
     print *, "Physical constants of the system----------------------------------"
     print *, "<Fundamental Physical Constants>"
-    print *, "m  (Mass of the bose particle)     = ", mass
-    print *, "omega (Angular velocity of HO)     = ", omega
-    print *, "N (Particle Count)                 = ", ParticleCount
-    print *, "a (ScatteringLength)               = ", ScatteringLength
-    print *, "n (Dimension of the space)         = ", N
-    print *, "A0 (Length of the HO Ground State) = ", Azero
-    print *, "Xs (Characteristic Length)         = ", Xs
+    print *, "m  (Mass of the bose particle)   [kg] = ", mass
+    print *, "omega (Angular velocity of HO)[rad/s] = ", omega
+    print *, "N (Particle Count)            [count] = ", ParticleCount
+    print *, "a (ScatteringLength)              [m] = ", ScatteringLength
+    print *, "n (Dimension of the space)    [count] = ", N
+    print *, "A0 (Length of the HO Ground State)[m] = ", Azero
+    print *, "Xs (Characteristic Length)        [m] = ", Xs
     print *, "<Coefficients of NLSE terms>"
-    print *, "Epsilon (A0/Xs)^2                  = ", epsilon
-    print *, "Kappa (Coefficient of NL term)     = ", kappa
+    print *, "Epsilon (A0/Xs)^2                     = ", epsilon
+    print *, "Kappa (Coefficient of NL term)        = ", kappa
     print *, "------------------------------------------------------------------"
     write (*, *)
     
@@ -82,7 +82,7 @@ program main
     ! Start I/O Procedure
     open(10, file="data.txt")
     ! Solve the inconsistent equation until the wave function converges
-    do i = 1, 1
+    do i = 1, 50
         write (*, '(A, I4, A)') "#", i, " step calculation began --------------"
         ! Construct the hamiltonian using present wave function data
         call hamiltonian(H, Pot, N, dh, epsilon, kappa, Phi_prev)
@@ -91,16 +91,17 @@ program main
         call solve_eigen(H, Phi_temp, mus, N)
         print *, "- NLSE has been successfully calculated  |"
 
-        Phi_next(0:) = Phi_temp(0:, 0)
+        ! Update the wave function
+        Phi_next(1:) = Phi_temp(1:, 1)
         print *, "- Wave function has been updated         |"
 
-        ! Apply Boundary Condition
-        Phi_next(0) = dcmplx(0d0, 0d0)
-        Phi_next(N) = dcmplx(0d0, 0d0)
-        print *, "- Boundary condition has been applied    |"
+        ! Normalize the wave function
+        call normalize(Phi_next, N, dh)
+        print *, "- Wave function has been normalized      |"
 
         ! Substitute chemical potential
-        mu = mus(0)
+        mu = mus(1)
+        print '(X, A, F10.5, A)', "- New Chemical potential = ", mu, "    |"
         print *, "- Chemical potential has been updated    |"
 
         Phi_prev = Phi_next
@@ -115,6 +116,6 @@ program main
     print *, "----------------------------------------------------------"
     write (*, *)
     print *, "Result of the calculation ----------------------------------------"
-    print *, "Chemical Potential : ", mu
+    print *, "mu (Chemical Potential) [J] = ", mu
     write (*, *)
 end program 
