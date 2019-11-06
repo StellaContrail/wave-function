@@ -31,6 +31,8 @@ program main
     double precision,allocatable   :: mus(:)           ! multiple chemical potentials returned by zhbev
     integer                        :: i                ! Loop variable
     double precision               :: prob             ! Probability of the system (should be 1)
+    character(:),allocatable       :: string           ! ouput string
+    logical                        :: enable           ! enable output
     ! Definition of physical values (this could be replaced with I/O)
     ! These values are referenced from
     ! 'Numerical Solution of the Gross-Pitaevskii Equation for Bose-Einstein Condensation'
@@ -86,32 +88,41 @@ program main
 
     ! Start I/O Procedure
     open(10, file="data.txt")
+    allocate(character(len=50) :: string)
+    enable = .false.
     ! Solve the inconsistent equation until the wave function converges
     do i = 1, 50000
-        write (*, '(A, I6, A)') "#", i, " step calculation began ------------"
+        write (string, '(A, I6, A)') "#", i, " step calculation began ------------"
+        call print_ex(string, enable, 'E', 50, i)
         ! Construct the hamiltonian using present wave function data
         call hamiltonian(H, Pot, N, dh, epsilon, kappa, Phi_prev)
-        print *, "- New hamiltonian has been reconstructed |"
+        write (string, '(X, A)') "- New hamiltonian has been reconstructed |"
+        call print_ex(string, enable, 'E', 50, i)
 
         ! Solve Nonlinear Schroedinger Equation Using the Assumed Wave function
         call exp_mat(H, Phi_prev, N, dt, epsilon, iu, Phi_temp)
-        print *, "- NLSE has been successfully calculated  |"
+        write (string, '(X, A)') "- NLSE has been successfully calculated  |"
+        call print_ex(string, enable, 'E', 50, i)
 
         ! Update the wave function
         Phi_next(:) = Phi_temp(:)
-        print *, "- Wave function has been updated         |"
+        write (string, '(X, A)') "- Wave function has been updated         |"
+        call print_ex(string, enable, 'E', 50, i)
 
         ! Check if the probability is conserved
         call integrate(abs(Phi_next)**2d0, N, dh, prob)
-        print '(X, A, F15.10, A)', "- Probability = ", prob, "          |"
+        write (string, '(X, A, F15.10, A)') "- Probability = ", prob, "          |"
+        call print_ex(string, enable, 'E', 50, i)
 
         Phi_prev = Phi_next
         if (mod(i, 50) == 0) then
             call output(10, Phi_prev, N, dh, xmax)
-            print *, "- Wave function has been saved into file |"
+            write (string, '(X, A)') "- Wave function has been saved into file |"
+            call print_ex(string, enable, 'E', 50, i)
         end if
 
-        print *, "- Finished                               |"
+        write (string, '(X, A)') "- Finished                               |"
+        call print_ex(string, enable, 'E', 50, i)
     end do
     print *, "------------------------------------------"
     print *, ""
