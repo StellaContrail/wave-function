@@ -35,67 +35,10 @@ contains
         f(:) = f(:) / sqrt(sum)
     end subroutine normalize
 
-    ! Solve Ax = lambda*x for lambda and x
-    subroutine solve_eigen(A, Z, W, N)
-        double precision,intent(in)      :: A(1:N, 1:N)             ! Input Matrix
-        character,parameter              :: JOBZ  = 'V'             ! Eigenvalues and eigenvectors are computed
-        character,parameter              :: RANGE = 'I'             ! The ILth through IUth eigenvectors will be found
-        integer,intent(in)               :: N                       ! The order of the matrix
-        double precision                 :: D(1:N)                  ! The n diagonal elements of the tridiagonal matrix
-        double precision                 :: E(1:N)                  ! The subdiagonal elements of the tridiagonal matrix
-        double precision,parameter       :: VL    = 0d0             ! The lower bound of the interval to be searched for eigenvalues
-        double precision,parameter       :: VU    = 0d0             ! The upper bound of the interval to be searched for eigenvalues
-        integer,parameter                :: IL    = 1               ! The index of the smallest eigenvalues to be returned
-        integer,parameter                :: IU    = 1               ! The index of the largest eigenvalues to be returned
-        double precision                 :: ABSTOL                  ! Obsolete feature of LAPACK
-        integer                          :: M                       ! Total number of eigenvalues found
-        double precision,intent(out)     :: W(1:N)                  ! Eigenvalues in ascending order
-        complex(kind(0d0)),intent(out)   :: Z(1:N, 1:N)             ! The ith column of Z holding the eigenvector associated with W(i)
-        integer                          :: LDZ                     ! The first dimension of the array Z
-        integer                          :: ISUPPZ(1:2*N)           ! The indices indicating the nonzero elements in Z
-        double precision,allocatable     :: WORK(:)                 ! Workspace
-        integer                          :: LWORK                   ! The dimension of the array work
-        integer,allocatable              :: IWORK(:)                ! Workspace
-        integer                          :: LIWORK                  ! The dimension of the array iwork
-        integer                          :: INFO                    ! Success/Error indicator
-        integer                          :: i                       ! Loop variable
-
-        ! Substitute diagonal/non-diagonal elements of input matrix A
-        do i = 1, N
-            D(i) = A(i, i)
-            if (i < N) then
-                E(i) = A(i, i+1)
-            end if
-        end do
-        
-        LDZ = N
-
-        allocate (WORK(1), IWORK(1))
-        call zstegr(JOBZ, RANGE, N, D, E, VL, VU, IL, IU, ABSTOL, M, W, Z, N, ISUPPZ, WORK, -1, IWORK, -1, INFO)
-        LWORK  = int(WORK(1))
-        LIWORK = int(WORK(1))
-        
-        deallocate(WORK, IWORK)
-        allocate(WORK(LWORK), IWORK(LIWORK))
-        call zstegr(JOBZ, RANGE, N, D, E, VL, VU, IL, IU, ABSTOL, M, W, Z, N, ISUPPZ, WORK, LWORK, IWORK, LIWORK, INFO)
-        deallocate(WORK, IWORK)
-
-        if (INFO < 0) then
-            write (*, *) "ERROR : Argument ", -INFO, " has illegal value"
-        else if (INFO == 1) then
-            write (*, *) "ERROR : The dqds algorithm failed to converge"
-            stop
-        else if (INFO == 2) then
-            write (*, *) "ERROR : Inverse iteration failed to converge"
-            stop
-        end if
-    end subroutine solve_eigen
-
     ! Calculate C := exp(Ax)
     ! A : REAL array having dimension of NxN
     ! x : Complex array having dimension of N
     ! C : Complex array having dimension of N
-    ! [Note] The input matrix A has to be tridiagonal
     subroutine exp_mat(A, f, N, dt, epsilon, iu, ans)
         integer,intent(in)             :: N
         double precision,intent(in)    :: A(1:N, 1:N), dt, epsilon
@@ -120,7 +63,6 @@ contains
     ! A : REAL array having dimension of NxN
     ! B : COMPLEX array having dimension of N
     ! C : COMPLEX array having dimension of N
-    ! [Note] The input matrix A has to be tridiagonal
     subroutine multiply_symmetry(A, B, N, C)
         integer,intent(in)             :: N
         double precision,intent(in)    :: A(1:N, 1:N)
@@ -128,14 +70,33 @@ contains
         complex(kind(0d0)),intent(out) :: C(1:N)
         integer                        :: i
 
-        C(1) = A(1,1)*B(1)+A(1,2)*B(2)
-        C(N) = A(N,N)*B(N)+A(N,N-1)*B(N-1)
-        do i = 2, N-1
-            C(i) = A(i,i)*B(i)+A(i,i-1)*B(i-1)+A(i,i+1)*B(i+1)
+        do i = 1, N
+            if (i == 1) then
+                C(i) = A(i,i)*B(i)+A(i,i+1)*B(i+1)+A(i,i+2)*B(i+2)+A(i,i+3)*B(i+3)+A(i,i+4)*B(i+4)
+            else if (i == 2) then
+                C(i) = A(i,i-1)*B(i-1)+A(i,i)*B(i)+A(i,i+1)*B(i+1)+A(i,i+2)*B(i+2)+A(i,i+3)*B(i+3)+A(i,i+4)*B(i+4)
+            else if (i == 3) then
+                C(i) = A(i,i-2)*B(i-2)+A(i,i-1)*B(i-1)+A(i,i)*B(i)+A(i,i+1)*B(i+1)+A(i,i+2)*B(i+2)+A(i,i+3)*B(i+3)+A(i,i+4)*B(i+4)
+            else if (i == 4) then
+                C(i) = A(i,i-3)*B(i-3)+A(i,i-2)*B(i-2)+A(i,i-1)*B(i-1)+A(i,i)*B(i)+A(i,i+1)*B(i+1)+A(i,i+2)*B(i+2)+A(i,i+3)*B(i+3)&
+                +A(i,i+4)*B(i+4)
+            else if (i == N-3) then
+                C(i) = A(i,i-4)*B(i-4)+A(i,i-3)*B(i-3)+A(i,i-2)*B(i-2)+A(i,i-1)*B(i-1)+A(i,i)*B(i)+A(i,i+1)*B(i+1)+A(i,i+2)*B(i+2)&
+                +A(i,i+3)*B(i+3)
+            else if (i == N-2) then
+                C(i) = A(i,i-4)*B(i-4)+A(i,i-3)*B(i-3)+A(i,i-2)*B(i-2)+A(i,i-1)*B(i-1)+A(i,i)*B(i)+A(i,i+1)*B(i+1)+A(i,i+2)*B(i+2)
+            else if (i == N-1) then
+                C(i) = A(i,i-4)*B(i-4)+A(i,i-3)*B(i-3)+A(i,i-2)*B(i-2)+A(i,i-1)*B(i-1)+A(i,i)*B(i)+A(i,i+1)*B(i+1)
+            else if (i == N) then
+                C(i) = A(i,i-4)*B(i-4)+A(i,i-3)*B(i-3)+A(i,i-2)*B(i-2)+A(i,i-1)*B(i-1)+A(i,i)*B(i)
+            else
+                C(i) = A(i,i-4)*B(i-4)+A(i,i-3)*B(i-3)+A(i,i-2)*B(i-2)+A(i,i-1)*B(i-1)+A(i,i)*B(i)+A(i,i+1)*B(i+1)+A(i,i+2)*B(i+2)&
+                +A(i,i+3)*B(i+3)+A(i,i+4)*B(i+4)
+            end if
         end do
     end subroutine multiply_symmetry
 
-    ! Calculate expected value of a tridiagonal matrix A
+    ! Calculate expected value of a symmetric matrix A
     ! i.e. calculate ans := <f|A|f>
     ! A   : REAL array having dimension of NxN
     ! f   : COMPLEX array having dimension of N

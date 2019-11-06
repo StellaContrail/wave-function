@@ -37,18 +37,36 @@ contains
     complex(kind(0d0)),intent(in) :: Phi(1:N)
     integer                       :: i
     double precision              :: coe
-    coe = -0.5d0 * epsilon * epsilon / (dh * dh) ! Coefficient of the laplacian part
+    coe = -0.5d0 * epsilon * epsilon / (5040d0 * dh * dh) ! Coefficient of the laplacian part
     H(:, :) = 0d0
 
     ! Laplacian part
     do i = 1, N
-       H(i, i) = -2d0 * coe
+       H(i, i)      = -14350d0 * coe
        if (i > 1) then
-          H(i, i-1) = 1d0 * coe
+          H(i, i-1) = 8064d0 * coe
        end if
        if (i < N) then
-          H(i, i+1) = 1d0 * coe
+          H(i, i+1) = 8064d0 * coe
        end if
+       if (i > 2) then
+         H(i, i-2)  = -1008d0 * coe
+      end if
+      if (i < N-1) then
+         H(i, i+2)  = -1008d0 * coe
+      end if
+      if (i > 3) then
+         H(i, i-3)  = 128d0 * coe
+      end if
+      if (i < N-2) then
+         H(i, i+3)  = 128d0 * coe
+      end if
+      if (i > 4) then
+         H(i, i-4)  = -9d0 * coe
+      end if
+      if (i < N-3) then
+         H(i, i+4)  = -9d0 * coe
+      end if
     end do
 
     ! Potential and Nonlinear part
