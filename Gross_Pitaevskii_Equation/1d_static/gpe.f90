@@ -58,6 +58,7 @@ program main
     print *, "n (Dimension of the space)    [count] = ", N
     print *, "A0 (Length of the HO Ground State)[m] = ", Azero
     print *, "Xs (Characteristic Length)        [m] = ", Xs
+    print *, "dh (Step of distance)             [m] = ", dh
     print *, "<Coefficients of NLSE terms>"
     print *, "Epsilon (A0/Xs)^2                     = ", epsilon
     print *, "Kappa (Coefficient of NL term)        = ", kappa
