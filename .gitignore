@@ -1,8 +1,3 @@
-data.txt
-a.out
-extensions.mod
-extension.mod
-complex_extension.mod
-methods.mod
-wave.txt
-density.txt
+*.txt
+*.out
+*.mod
