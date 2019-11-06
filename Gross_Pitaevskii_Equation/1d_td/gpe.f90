@@ -33,6 +33,7 @@ program main
     double precision               :: prob             ! Probability of the system (should be 1)
     character(:),allocatable       :: string           ! ouput string
     logical                        :: enable           ! enable output
+    integer                        :: iter_interval    ! output every iter_interval
     ! Definition of physical values (this could be replaced with I/O)
     ! These values are referenced from
     ! 'Numerical Solution of the Gross-Pitaevskii Equation for Bose-Einstein Condensation'
@@ -51,7 +52,7 @@ program main
     epsilon = (Azero/Xs)**2d0
     kappa   = (4d0*pi*ScatteringLength*ParticleCount/Azero)*(Azero/Xs)**5d0
     dh      = (2d0*xmax)/N
-    dt      = 0.1d0*dh*dh
+    dt      = 0.4d0*dh*dh
 
     ! Show configuration of fundamental physical constants
     print *, "Physical constants of the system----------------------------------"
@@ -89,40 +90,46 @@ program main
     ! Start I/O Procedure
     open(10, file="data.txt")
     allocate(character(len=50) :: string)
-    enable = .false.
+    enable = .true.
+    iter_interval = 1000
     ! Solve the inconsistent equation until the wave function converges
     do i = 1, 50000
         write (string, '(A, I6, A)') "#", i, " step calculation began ------------"
-        call print_ex(string, enable, 'E', 50, i)
+        call print_ex(string, enable, 'E', iter_interval, i)
         ! Construct the hamiltonian using present wave function data
         call hamiltonian(H, Pot, N, dh, epsilon, kappa, Phi_prev)
         write (string, '(X, A)') "- New hamiltonian has been reconstructed |"
-        call print_ex(string, enable, 'E', 50, i)
+        call print_ex(string, enable, 'E', iter_interval, i)
 
         ! Solve Nonlinear Schroedinger Equation Using the Assumed Wave function
         call exp_mat(H, Phi_prev, N, dt, epsilon, iu, Phi_temp)
         write (string, '(X, A)') "- NLSE has been successfully calculated  |"
-        call print_ex(string, enable, 'E', 50, i)
+        call print_ex(string, enable, 'E', iter_interval, i)
 
         ! Update the wave function
         Phi_next(:) = Phi_temp(:)
         write (string, '(X, A)') "- Wave function has been updated         |"
-        call print_ex(string, enable, 'E', 50, i)
+        call print_ex(string, enable, 'E', iter_interval, i)
 
         ! Check if the probability is conserved
         call integrate(abs(Phi_next)**2d0, N, dh, prob)
-        write (string, '(X, A, F15.10, A)') "- Probability = ", prob, "          |"
-        call print_ex(string, enable, 'E', 50, i)
+        write (string, '(X, A, F15.10, A)') "- Probability       = ", prob, "    |"
+        call print_ex(string, enable, 'E', iter_interval, i)
+
+        ! Calculate chemical potential
+        call expected_value_symm(Phi_prev, H, N, mu)
+        write (string, '(X, A, F10.5, A)') "- Chemical Potential = ", mu, "        |"
+        call print_ex(string, enable, 'E', iter_interval, i)
 
         Phi_prev = Phi_next
         if (mod(i, 50) == 0) then
             call output(10, Phi_prev, N, dh, xmax)
             write (string, '(X, A)') "- Wave function has been saved into file |"
-            call print_ex(string, enable, 'E', 50, i)
+            call print_ex(string, enable, 'E', iter_interval, i)
         end if
 
         write (string, '(X, A)') "- Finished                               |"
-        call print_ex(string, enable, 'E', 50, i)
+        call print_ex(string, enable, 'E', iter_interval, i)
     end do
     print *, "------------------------------------------"
     print *, ""
@@ -133,6 +140,6 @@ program main
     write (*, *)
     print *, "Result of the calculation ----------------------------------------"
     call expected_value_symm(Phi_prev, H, N, mu)
-    print '(X, A, F7.5)', "mu (Chemical Potential) [J] = ", mu
+    print '(X, A, F10.5)', "mu (Chemical Potential) [J] = ", mu
     write (*, *)
 end program 
