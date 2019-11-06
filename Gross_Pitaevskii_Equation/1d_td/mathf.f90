@@ -95,33 +95,53 @@ contains
         double precision,intent(in)    :: A(1:N, 1:N), dt, epsilon
         complex(kind(0d0)),intent(in)  :: f(1:N), iu
         complex(kind(0d0)),intent(out) :: ans(1:N)
-        complex(kind(0d0))             :: temp(1:N), Atemp(1:N)
         integer i
+        complex(kind(0d0))             :: temp(1:N), Atemp(1:N)
 
-        temp(:) = f(:)
+        ! First term of Taylor expansion
+        temp(:)   = f(:)
         ans(:) = temp(:)
 
+        ! Other terms of Taylor expansion
         do i = 1, 4
             call multiply_symmetry(A, temp, N, Atemp)
-            temp(:) = -iu*Atemp*dt/(epsilon*i)
+            temp(:)   = -iu*Atemp*dt/(epsilon*i)
             ans(:) = ans(:) + temp(:)
         end do
     end subroutine exp_mat
 
-    subroutine multiply_symmetry(A, f, N, ans)
-        integer,intent(in)              :: N
-        double precision,intent(in)     :: A(1:N, 1:N)
-        complex(kind(0d0)),intent(in)   :: f(1:N)
-        complex(kind(0d0)),intent(out)  :: ans(1:N)
-        integer i
-        do i = 1, N
-            if (i == 1) then
-                ans(1) = A(1, 1)*f(1) + A(1, 2)*f(2)
-            else if (i == N) then
-                ans(N) = A(N, N)*f(N) + A(N, N-1)*f(N-1)
-            else
-                ans(i) = A(i, i)*f(i) + A(i, i-1)*f(i-1) + A(i, i+1)*f(i+1)
-            end if
+    ! Calculate C := AB
+    ! A : REAL array having dimension of NxN
+    ! B : COMPLEX array having dimension of N
+    ! C : COMPLEX array having dimension of N
+    ! [Note] The input matrix A has to be tridiagonal
+    subroutine multiply_symmetry(A, B, N, C)
+        integer,intent(in)             :: N
+        double precision,intent(in)    :: A(1:N, 1:N)
+        complex(kind(0d0)),intent(in)  :: B(1:N)
+        complex(kind(0d0)),intent(out) :: C(1:N)
+        integer                        :: i
+
+        C(1) = A(1,1)*B(1)+A(1,2)*B(2)
+        C(N) = A(N,N)*B(N)+A(N,N-1)*B(N-1)
+        do i = 2, N-1
+            C(i) = A(i,i)*B(i)+A(i,i-1)*B(i-1)+A(i,i+1)*B(i+1)
         end do
     end subroutine multiply_symmetry
+
+    ! Calculate expected value of a tridiagonal matrix A
+    ! i.e. calculate <A> := <f|A|f>
+    subroutine expected_value_symm(f, A, N, ans)
+        integer,intent(in)             :: N
+        double precision,intent(in)    :: A(1:N, 1:N)
+        complex(kind(0d0)),intent(in)  :: f(1:N)
+        double precision,intent(out)   :: ans
+        complex(kind(0d0))             :: Af(1:N), temp
+        call multiply_symmetry(A, f, N, Af)
+        temp = dot_product(f, Af)
+        if (aimag(temp) > 1d-5) then
+            print *, "ERROR : Possible calculation error at expected_value_symm"
+        end if
+        ans = dble(temp)
+    end subroutine
 end module mathf

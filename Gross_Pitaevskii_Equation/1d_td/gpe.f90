@@ -61,8 +61,8 @@ program main
     print *, "n (Dimension of the space)    [count] = ", N
     print *, "A0 (Length of the HO Ground State)[m] = ", Azero
     print *, "Xs (Characteristic Length)        [m] = ", Xs
-    print *, "dh (A step of distance)           [m] = ", dh
-    print *, "dt (A step of time)               [s] = ", dt
+    print *, "dh (Step of distance)             [m] = ", dh
+    print *, "dt (Step of time)                 [s] = ", dt
     print *, "<Coefficients of NLSE terms>"
     print *, "Epsilon (A0/Xs)^2                     = ", epsilon
     print *, "Kappa (Coefficient of NL term)        = ", kappa
@@ -87,8 +87,8 @@ program main
     ! Start I/O Procedure
     open(10, file="data.txt")
     ! Solve the inconsistent equation until the wave function converges
-    do i = 1, 5000
-        write (*, '(A, I4, A)') "#", i, " step calculation began --------------"
+    do i = 1, 50000
+        write (*, '(A, I6, A)') "#", i, " step calculation began ------------"
         ! Construct the hamiltonian using present wave function data
         call hamiltonian(H, Pot, N, dh, epsilon, kappa, Phi_prev)
         print *, "- New hamiltonian has been reconstructed |"
@@ -121,6 +121,6 @@ program main
     print *, "----------------------------------------------------------"
     write (*, *)
     print *, "Result of the calculation ----------------------------------------"
-    print *, "mu (Chemical Potential) [J] = "
+    print *, "mu (Chemical Potential) [J] = ", mu
     write (*, *)
 end program 

@@ -58,6 +58,7 @@ program main
     print *, "n (Dimension of the space)    [count] = ", N
     print *, "A0 (Length of the HO Ground State)[m] = ", Azero
     print *, "Xs (Characteristic Length)        [m] = ", Xs
+    print *, "dh (Step of distance)             [m] = ", dh
     print *, "<Coefficients of NLSE terms>"
     print *, "Epsilon (A0/Xs)^2                     = ", epsilon
     print *, "Kappa (Coefficient of NL term)        = ", kappa
@@ -66,7 +67,7 @@ program main
     
     print *, "Calculation Start-----------------------------------------"
     ! Initialization of wave function and potential
-    call initialize(Phi_next, Phi_prev, Pot, N, dh, xmax)
+    call initialize(Phi_next, Phi_prev, Pot, N, dh, xmax, Azero)
     write (*, *) "- Initialized the wave function and potential function"
 
     ! Normalization of wave function
@@ -101,7 +102,7 @@ program main
 
         ! Substitute chemical potential
         mu = mus(1)
-        print '(X, A, F10.5, A)', "- New Chemical potential = ", mu, "    |"
+        print '(X, A, F9.5, A)', "- New Chemical potential : ", mu, " [J] |"
         print *, "- Chemical potential has been updated    |"
 
         Phi_prev = Phi_next
@@ -116,6 +117,6 @@ program main
     print *, "----------------------------------------------------------"
     write (*, *)
     print *, "Result of the calculation ----------------------------------------"
-    print *, "mu (Chemical Potential) [J] = ", mu
+    print '(X, A, F9.5)', "mu (Chemical Potential) [J] = ", mu
     write (*, *)
 end program 
