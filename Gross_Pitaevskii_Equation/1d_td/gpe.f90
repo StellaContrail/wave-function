@@ -20,7 +20,7 @@ program main
     double precision               :: xmax             ! largest x position (Boundary position)
     double precision               :: mass             ! mass of a boson
     double precision               :: omega            ! angular velocity of harmonic potential
-    double precision               :: ParticleCount    ! number of bose particles
+    integer                        :: ParticleCount    ! number of bose particles
     double precision               :: ScatteringLength ! s-wave scattering length
     double precision               :: mu               ! chemical potential
     ! Coefficients and variables (not user defined)
@@ -132,6 +132,7 @@ program main
     print *, "----------------------------------------------------------"
     write (*, *)
     print *, "Result of the calculation ----------------------------------------"
-    print *, "mu (Chemical Potential) [J] = ", mu
+    call expected_value_symm(Phi_prev, H, N, mu)
+    print '(X, A, F7.5)', "mu (Chemical Potential) [J] = ", mu
     write (*, *)
 end program 
