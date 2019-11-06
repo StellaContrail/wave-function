@@ -1,3 +1,4 @@
+! Mathematical Procedures
 module mathf
     implicit none
 contains
@@ -90,6 +91,11 @@ contains
         end if
     end subroutine solve_eigen
 
+    ! Calculate C := exp(Ax)
+    ! A : REAL array having dimension of NxN
+    ! x : Complex array having dimension of N
+    ! C : Complex array having dimension of N
+    ! [Note] The input matrix A has to be tridiagonal
     subroutine exp_mat(A, f, N, dt, epsilon, iu, ans)
         integer,intent(in)             :: N
         double precision,intent(in)    :: A(1:N, 1:N), dt, epsilon
@@ -130,7 +136,10 @@ contains
     end subroutine multiply_symmetry
 
     ! Calculate expected value of a tridiagonal matrix A
-    ! i.e. calculate <A> := <f|A|f>
+    ! i.e. calculate ans := <f|A|f>
+    ! A   : REAL array having dimension of NxN
+    ! f   : COMPLEX array having dimension of N
+    ! ans : REAL value
     subroutine expected_value_symm(f, A, N, ans)
         integer,intent(in)             :: N
         double precision,intent(in)    :: A(1:N, 1:N)
