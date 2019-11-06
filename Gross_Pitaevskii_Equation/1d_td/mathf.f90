@@ -90,12 +90,38 @@ contains
         end if
     end subroutine solve_eigen
 
-    subroutine apply_exponential(A, f, N, dh, hbar, iu, f_next)
+    subroutine exp_mat(A, f, N, dt, epsilon, iu, ans)
         integer,intent(in)             :: N
-        double precision,intent(in)    :: A(1:N, 1:N), dh, hbar
+        double precision,intent(in)    :: A(1:N, 1:N), dt, epsilon
         complex(kind(0d0)),intent(in)  :: f(1:N), iu
-        complex(kind(0d0)),intent(out) :: f_next(1:N)
+        complex(kind(0d0)),intent(out) :: ans(1:N)
+        complex(kind(0d0))             :: temp(1:N), Atemp(1:N)
         integer i
-        
-    end subroutine apply_exponential
+
+        temp(:) = f(:)
+        ans(:) = temp(:)
+
+        do i = 1, 4
+            call multiply_symmetry(A, temp, N, Atemp)
+            temp(:) = -iu*Atemp*dt/(epsilon*i)
+            ans(:) = ans(:) + temp(:)
+        end do
+    end subroutine exp_mat
+
+    subroutine multiply_symmetry(A, f, N, ans)
+        integer,intent(in)              :: N
+        double precision,intent(in)     :: A(1:N, 1:N)
+        complex(kind(0d0)),intent(in)   :: f(1:N)
+        complex(kind(0d0)),intent(out)  :: ans(1:N)
+        integer i
+        do i = 1, N
+            if (i == 1) then
+                ans(1) = A(1, 1)*f(1) + A(1, 2)*f(2)
+            else if (i == N) then
+                ans(N) = A(N, N)*f(N) + A(N, N-1)*f(N-1)
+            else
+                ans(i) = A(i, i)*f(i) + A(i, i-1)*f(i-1) + A(i, i+1)*f(i+1)
+            end if
+        end do
+    end subroutine multiply_symmetry
 end module mathf
