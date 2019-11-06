@@ -16,14 +16,20 @@ program main
     double precision,allocatable   :: Pot(:)           ! Potential
     double precision,allocatable   :: H(:,:)
     double precision               :: dh               ! Step of distance in the x-direction
+<<<<<<< HEAD
     double precision               :: dt               ! Step of time     in the t-direction
+=======
+>>>>>>> 3096838a4ae31bf9300dfcf01b45c983364a4c68
     double precision               :: xmax             ! largest x position (Boundary position)
     double precision               :: mass             ! mass of a boson
     double precision               :: omega            ! angular velocity of harmonic potential
     double precision               :: ParticleCount    ! number of bose particles
     double precision               :: ScatteringLength ! s-wave scattering length
     double precision               :: mu               ! chemical potential
+<<<<<<< HEAD
     double precision               :: prob             ! Probability of the system
+=======
+>>>>>>> 3096838a4ae31bf9300dfcf01b45c983364a4c68
     ! Coefficients and variables (not user defined)
     double precision               :: Azero            ! length of the harmonic oscillator ground state
     double precision               :: Xs               ! characteristic length of the condensate
@@ -49,7 +55,10 @@ program main
     epsilon = (Azero/Xs)**2d0
     kappa   = (4d0*pi*ScatteringLength*ParticleCount/Azero)*(Azero/Xs)**5d0
     dh      = (2d0*xmax)/N
+<<<<<<< HEAD
     dt      = 0.4d0 * dh * dh
+=======
+>>>>>>> 3096838a4ae31bf9300dfcf01b45c983364a4c68
 
     ! Show configuration of fundamental physical constants
     print *, "Physical constants of the system----------------------------------"
@@ -61,8 +70,11 @@ program main
     print *, "n (Dimension of the space)    [count] = ", N
     print *, "A0 (Length of the HO Ground State)[m] = ", Azero
     print *, "Xs (Characteristic Length)        [m] = ", Xs
+<<<<<<< HEAD
     print *, "dh (Step of distance)             [m] = ", dh
     print *, "dt (Step of time)                 [s] = ", dt
+=======
+>>>>>>> 3096838a4ae31bf9300dfcf01b45c983364a4c68
     print *, "<Coefficients of NLSE terms>"
     print *, "Epsilon (A0/Xs)^2                     = ", epsilon
     print *, "Kappa (Coefficient of NL term)        = ", kappa
@@ -87,12 +99,18 @@ program main
     ! Start I/O Procedure
     open(10, file="data.txt")
     ! Solve the inconsistent equation until the wave function converges
+<<<<<<< HEAD
     do i = 1, 50000
         write (*, '(A, I6, A)') "#", i, " step calculation began ------------"
+=======
+    do i = 1, 50
+        write (*, '(A, I4, A)') "#", i, " step calculation began --------------"
+>>>>>>> 3096838a4ae31bf9300dfcf01b45c983364a4c68
         ! Construct the hamiltonian using present wave function data
         call hamiltonian(H, Pot, N, dh, epsilon, kappa, Phi_prev)
         print *, "- New hamiltonian has been reconstructed |"
 
+<<<<<<< HEAD
         ! Evolve the wave function using the previous wave function data
         call apply_exponential(H, Phi_prev, N, dt, epsilon, iu, Phi_next)
         print *, "- Wave function has been updated         |"
@@ -111,18 +129,44 @@ program main
             call output(10, Phi_prev, N, dh, xmax)
         end if
 
+=======
+        ! Solve Nonlinear Schroedinger Equation Using the Assumed Wave function
+        call solve_eigen(H, Phi_temp, mus, N)
+        print *, "- NLSE has been successfully calculated  |"
+
+        ! Update the wave function
+        Phi_next(1:) = Phi_temp(1:, 1)
+        print *, "- Wave function has been updated         |"
+
+        ! Normalize the wave function
+        call normalize(Phi_next, N, dh)
+        print *, "- Wave function has been normalized      |"
+
+        ! Substitute chemical potential
+        mu = mus(1)
+        print '(X, A, F10.5, A)', "- New Chemical potential = ", mu, "    |"
+        print *, "- Chemical potential has been updated    |"
+
+>>>>>>> 3096838a4ae31bf9300dfcf01b45c983364a4c68
         Phi_prev = Phi_next
         print *, "- Finished                               |"
     end do
     print *, "------------------------------------------"
     print *, ""
     write (*, *) "- All calculation procedures have been finished"
+<<<<<<< HEAD
+=======
+    call output(10, Phi_prev, N, dh, xmax)
+>>>>>>> 3096838a4ae31bf9300dfcf01b45c983364a4c68
     close (10)
     write (*, *) "- Calculation result has been saved into ", "data.txt"
     print *, "----------------------------------------------------------"
     write (*, *)
     print *, "Result of the calculation ----------------------------------------"
+<<<<<<< HEAD
     
+=======
+>>>>>>> 3096838a4ae31bf9300dfcf01b45c983364a4c68
     print *, "mu (Chemical Potential) [J] = ", mu
     write (*, *)
 end program 

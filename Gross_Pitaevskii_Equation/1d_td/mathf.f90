@@ -90,6 +90,7 @@ contains
         end if
     end subroutine solve_eigen
 
+<<<<<<< HEAD
     subroutine apply_exponential(A, f, N, dt, epsilon, iu, f_next)
         integer,intent(in)             :: N
         double precision,intent(in)    :: A(1:N, 1:N), dt, epsilon
@@ -144,4 +145,14 @@ contains
         end if
         ans = dble(temp)
     end subroutine
+=======
+    subroutine apply_exponential(A, f, N, dh, hbar, iu, f_next)
+        integer,intent(in)             :: N
+        double precision,intent(in)    :: A(1:N, 1:N), dh, hbar
+        complex(kind(0d0)),intent(in)  :: f(1:N), iu
+        complex(kind(0d0)),intent(out) :: f_next(1:N)
+        integer i
+        
+    end subroutine apply_exponential
+>>>>>>> 3096838a4ae31bf9300dfcf01b45c983364a4c68
 end module mathf

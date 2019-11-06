@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 set terminal gif animate delay 10 optimize size 640,480
 set output "data.gif"
 set xrange [-10:10]
@@ -27,3 +28,8 @@ do for [i=0: data_num-1] {
 }
 unset output
 set terminal wxt
+=======
+set grid
+plot "data.txt" every :::0::0 with lines
+replot "data.txt" every :::1::1 with lines
+>>>>>>> 3096838a4ae31bf9300dfcf01b45c983364a4c68
