@@ -20,7 +20,7 @@ contains
          x = -xmax + dh*i
          Pot(i) = 0.5d0*x*x
          ! Assume the form of the initial wave function
-         Phi_prev(i) = exp(-0.5d0*x*x/(Azero**2d0))
+         Phi_prev(i) = exp(-0.5d0*x*x)
     end do
   end subroutine initialize
 
