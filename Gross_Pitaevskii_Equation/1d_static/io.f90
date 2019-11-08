@@ -9,8 +9,8 @@ contains
     double precision x
     integer i
     do i = 1, N
-       x = -xmax + dh * i
-       write (unit, '(F15.5, X, F15.5)') x, abs(f(i))**2d0
+      x = -xmax + dh * i
+      write (unit, '(*(F8.5, X))') x, real(f(i)), aimag(f(i)), abs(f(i))**2d0
     end do
     write (unit, *)
   end subroutine output

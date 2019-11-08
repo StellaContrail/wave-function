@@ -46,7 +46,7 @@ program main
     allocate (Phi_next(1:N), Phi_prev(1:N), Pot(1:N), mus(1:N))
     allocate (Phi_temp(1:N), H(1:N,1:N))
     ! Calculation of coefficients and variables using defined physical values
-    xmax    = 10d0
+    xmax    = 5d0
     Azero   = sqrt(hbar/(omega*mass))
     Xs      = Azero   ! Usually chosen to be Azero for a weak/moderate interaction
     epsilon = (Azero/Xs)**2d0
@@ -89,6 +89,7 @@ program main
 
     ! Start I/O Procedure
     open(10, file="data.txt")
+    open(11, file="data_flux.txt")
     allocate(character(len=50) :: string)
     enable = .true.
     iter_interval = 50
@@ -117,16 +118,23 @@ program main
         call print_ex(string, enable, 'E', iter_interval, i)
 
         ! Calculate chemical potential
-        call expected_value_symm(Phi_prev, H, N, mu)
+        call expected_value_symm(Phi_next, H, N, mu)
         write (string, '(X, A, F10.5, A)') "- Chemical Potential = ", mu, "        |"
         call print_ex(string, enable, 'E', iter_interval, i)
 
-        Phi_prev = Phi_next
         if (mod(i, 50) == 0) then
-            call output(10, Phi_prev, N, dh, xmax)
+            call output(10, Phi_next, N, dh, xmax)
             write (string, '(X, A)') "- Wave function has been saved into file |"
             call print_ex(string, enable, 'E', iter_interval, i)
+
+            ! j(x=0) = div[Phi(x=0)] = ∂_x[Phi(x=0)]
+            write (11, *) dt*i, (Phi_next(66)-Phi_next(64))/(2d0*dh)
+            write (string, '(X, A)') "- Flux has been saved into file          |"
+            call print_ex(string, enable, 'E', iter_interval, i)
         end if
+
+        ! Substitute Phi_next into Phi_prev to calculate the TDGPE
+        Phi_prev = Phi_next
 
         write (string, '(X, A)') "- Finished                               |"
         call print_ex(string, enable, 'E', iter_interval, i)
@@ -135,6 +143,7 @@ program main
     print *, ""
     write (*, *) "- All calculation procedures have been finished"
     close (10)
+    close (11)
     write (*, *) "- Calculation result has been saved into ", "data.txt"
     print *, "----------------------------------------------------------"
     write (*, *)

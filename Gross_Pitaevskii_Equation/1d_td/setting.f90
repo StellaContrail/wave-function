@@ -14,19 +14,21 @@ contains
     double precision,intent(out)    :: Pot(1:N)
     double precision,intent(in)     :: dh, xmax, Azero
     integer i
-    double precision x
+    double precision x, dummy, real_part, imag_part
     Phi_next(:) = dcmplx(0d0, 0d0)
+
+    open(11, file="data_shifted.txt")
     do i = 1, N
-        x = -xmax + dh*i
-        Pot(i) = 0.5d0*x*x
-        if (i == 1 .or. i == N) then
-            ! Boundary Condition (Fixed)
-            Phi_prev(i) = dcmplx(0d0, 0d0)
-        else
-           ! Assume the form of the initial wave function
-            Phi_prev(i) = exp(-0.5d0*x*x/(Azero*Azero))+x*exp(-0.5d0*x*x/(Azero*Azero))
-        end if
+         x = -xmax + dh*i
+         Pot(i) = 0.5d0*x*x
+         
+         ! Read wave function data from a file
+         read (11, *) dummy, real_part, imag_part, dummy
+         Phi_prev(i) = dcmplx(real_part, imag_part)
+         ! Assume the form of the initial wave function
+         !Phi_prev(i) = exp(-0.5d0*x*x/(Azero*Azero))+x*exp(-0.5d0*x*x/(Azero*Azero))
     end do
+    close(11)
   end subroutine initialize
 
   ! Construct the hamiltonian

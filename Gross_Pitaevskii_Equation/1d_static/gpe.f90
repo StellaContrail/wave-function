@@ -132,7 +132,7 @@ program main
     print *, "Result of the calculation ----------------------------------------"
     print '(X, A, F9.5)', "mu (Chemical Potential) [J] = ", mu
     write (*, *)
-    call apply_phase_shift(Phi_prev(floor(N/2d0):N), N, iu, pi, Phi_prev(floor(N/2d0):N))
+    call apply_phase_shift(Phi_prev(floor(N/2d0):N), N, iu, 0d0, Phi_prev(floor(N/2d0):N))
     open(10, file="data_shifted.txt")
     call output(10, Phi_prev, N, dh, xmax)
     close(10)

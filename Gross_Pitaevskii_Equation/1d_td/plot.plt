@@ -3,7 +3,7 @@ set output "data.gif"
 set yrange [-1:1]
 set grid
 # SETTINGS
-xmax        = 10    # BOUNDARY OF X
+xmax        = 5     # BOUNDARY OF X
 N           = 128   # STEP COUNT
 iter        = 50000 # ITERATION COUNT OF TIME
 iter_output = 50    # SKIP COUNT IN THE ITERATION OF TIME
