@@ -13,14 +13,15 @@ contains
     complex(kind(0d0)),intent(out)  :: Phi_next(1:N), Phi_prev(1:N)
     double precision,intent(out)    :: Pot(1:N)
     double precision,intent(in)     :: dh, xmax, Azero
-    integer i
-    double precision x
+    integer                         :: i
+    double precision                :: x
+    double precision,parameter      :: sigma = 0.05d0
     Phi_next(:) = dcmplx(0d0, 0d0)
     do i = 1, N
          x = -xmax + dh*i
-         Pot(i) = 0.5d0*x*x
+         Pot(i) = 0.5d0*x*x + 100d0*exp(-0.5d0*x*x/(sigma**2d0))
          ! Assume the form of the initial wave function
-         Phi_prev(i) = exp(-0.5d0*x*x)
+         Phi_prev(i) = exp(-0.5d0*x*x/(Azero*Azero))
     end do
   end subroutine initialize
 

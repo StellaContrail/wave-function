@@ -89,4 +89,19 @@ contains
             stop
         end if
     end subroutine solve_eigen
+
+    ! Shift the phase of input complex vector f by Phase
+    ! f        : COMPLEX array having dimension of N
+    ! N        : Integer dimension of F
+    ! iu       : Imaginary unit. sqrt(-1)
+    ! Phase    : The phase of array f would be shifted by Phase
+    ! f_result : The phase-shifted input vector would be substituted into this variable
+    subroutine apply_phase_shift(f, N, iu, Phase, f_result)
+        integer,intent(in)             :: N
+        double precision,intent(in)    :: Phase
+        complex(kind(0d0)),intent(in)  :: f(1:N), iu
+        complex(kind(0d0)),intent(out) :: f_result(1:N)
+        
+        f_result(:) = exp(-iu*Phase)*f(:)
+    end subroutine
 end module mathf

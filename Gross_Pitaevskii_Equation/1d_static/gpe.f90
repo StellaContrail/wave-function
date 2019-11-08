@@ -7,7 +7,7 @@ program main
     double precision,parameter     :: pi   = acos(-1d0)       ! PI
     complex(kind(0d0)),parameter   :: iu   = dcmplx(0d0, 1d0) ! Imaginary unit
     ! Physical constants
-    double precision,parameter     :: hbar = 1.05d-34         ! Reduced Plank constant
+    double precision,parameter     :: hbar = 1d0              ! Reduced Plank constant
     ! Physical values
     integer                        :: N                ! Dimension of Space
     complex(kind(0d0)),allocatable :: Phi_temp(:, :)   ! Temporary wave function used by zhbev
@@ -19,7 +19,7 @@ program main
     double precision               :: xmax             ! largest x position (Boundary position)
     double precision               :: mass             ! mass of a boson
     double precision               :: omega            ! angular velocity of harmonic potential
-    double precision               :: ParticleCount    ! number of bose particles
+    integer                        :: ParticleCount    ! number of bose particles
     double precision               :: ScatteringLength ! s-wave scattering length
     double precision               :: mu               ! chemical potential
     ! Coefficients and variables (not user defined)
@@ -29,19 +29,20 @@ program main
     double precision               :: kappa            ! coeffient of the nonlinear term
     double precision,allocatable   :: mus(:)           ! multiple chemical potentials returned by zhbev
     integer                        :: i                ! Loop variable
+    logical                        :: loop_end_flag    ! Loop end flag
     ! Definition of physical values (this could be replaced with I/O)
     ! These values are referenced from
     ! 'Numerical Solution of the Gross-Pitaevskii Equation for Bose-Einstein Condensation'
     ! by Weizhu Bao et al. (2003)
-    mass             = 1.44d-25
-    omega            = 20d0 * pi
-    ParticleCount    = 1d2
+    mass             = 1d0
+    omega            = 1d0
+    ParticleCount    = 100
     ScatteringLength = 5.1d-9
     N                = 128
     allocate (Phi_next(1:N), Phi_prev(1:N), Pot(1:N), mus(1:N))
     allocate (Phi_temp(1:N, 1:N), H(1:N,1:N))
     ! Calculation of coefficients and variables using defined physical values
-    xmax    = 10d0
+    xmax    = 5d0
     Azero   = sqrt(hbar/(omega*mass))
     Xs      = Azero   ! Usually chosen to be Azero for a weak/moderate interaction
     epsilon = (Azero/Xs)**2d0
@@ -82,7 +83,9 @@ program main
 
     ! Start I/O Procedure
     open(10, file="data.txt")
-    ! Solve the inconsistent equation until the wave function converges
+    ! Set the loop exit flag to be false
+    loop_end_flag = .false.
+    ! Solve the inconsistent equation until the chemical potential converges
     do i = 1, 50
         write (*, '(A, I4, A)') "#", i, " step calculation began --------------"
         ! Construct the hamiltonian using present wave function data
@@ -100,6 +103,12 @@ program main
         call normalize(Phi_next, N, dh)
         print *, "- Wave function has been normalized      |"
 
+        ! Check if chemical potential has been converged or not
+        if (abs(mus(1) - mu) < 1d-6) then
+            print *, "* Chemical potential has been converged! |"
+            loop_end_flag = .true.
+        end if
+
         ! Substitute chemical potential
         mu = mus(1)
         print '(X, A, F9.5, A)', "- New Chemical potential : ", mu, " [J] |"
@@ -107,6 +116,10 @@ program main
 
         Phi_prev = Phi_next
         print *, "- Finished                               |"
+
+        if (loop_end_flag) then
+            exit
+        end if
     end do
     print *, "------------------------------------------"
     print *, ""
@@ -119,4 +132,9 @@ program main
     print *, "Result of the calculation ----------------------------------------"
     print '(X, A, F9.5)', "mu (Chemical Potential) [J] = ", mu
     write (*, *)
+    call apply_phase_shift(Phi_prev(floor(N/2d0):N), N, iu, pi, Phi_prev(floor(N/2d0):N))
+    open(10, file="data_shifted.txt")
+    call output(10, Phi_prev, N, dh, xmax)
+    close(10)
+    print *, "PHASE SHIFTED BY PI => ", "data_shifted.txt"
 end program 
