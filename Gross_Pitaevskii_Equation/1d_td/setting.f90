@@ -8,11 +8,11 @@ contains
     ! N        : Dimension of space exclusing the first element
     ! dh       : Step distance of space
     ! xmax     : Max x position
-  subroutine initialize(Phi_next, Phi_prev, Pot, N, dh, xmax)
+  subroutine initialize(Phi_next, Phi_prev, Pot, N, dh, xmax, Azero)
     integer,intent(in)              :: N
     complex(kind(0d0)),intent(out)  :: Phi_next(1:N), Phi_prev(1:N)
     double precision,intent(out)    :: Pot(1:N)
-    double precision,intent(in)     :: dh, xmax
+    double precision,intent(in)     :: dh, xmax, Azero
     integer i
     double precision x
     Phi_next(:) = dcmplx(0d0, 0d0)
@@ -24,7 +24,7 @@ contains
             Phi_prev(i) = dcmplx(0d0, 0d0)
         else
            ! Assume the form of the initial wave function
-            Phi_prev(i) = exp(-0.5d0*x*x)
+            Phi_prev(i) = exp(-0.5d0*x*x/(Azero*Azero))+x*exp(-0.5d0*x*x/(Azero*Azero))
         end if
     end do
   end subroutine initialize

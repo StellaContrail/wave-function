@@ -1,26 +1,32 @@
 set terminal gif animate delay 10 optimize size 640,480
 set output "data.gif"
-set xrange [-10:10]
 set yrange [-1:1]
 set grid
-xmax        = 10
-N           = 128
-dh          = 2.0*xmax/N
+# SETTINGS
+xmax        = 10    # BOUNDARY OF X
+N           = 128   # STEP COUNT
+iter        = 50000 # ITERATION COUNT OF TIME
+iter_output = 50    # SKIP COUNT IN THE ITERATION OF TIME
+skip_output = 25    # SKIP COUNT OF SHOWING SPEED AND ETA
+# OTHER VARIABLES USED BY SCRIPT
+dh          = real(2*xmax)/N
 dt          = 0.4*dh*dh
-iter        = 50000
-iter_output = 50
-data_num    = int(iter/iter_output)
+data_num    = int(real(iter)/iter_output)
 time_new    = 0.0
 time_old    = 0.0
+set xrange [-xmax:xmax]
 do for [i=0: data_num-1] {
-    if (i%50 == 0) {
-        interval = time_new - time_old
-        speed    = interval == 0.0 ? 0.0 : 50.0 / interval
-        time_old = time_new
+    if (i%skip_output == 0) {
         time_new = time(0.0)
-        print sprintf("%d / %d    SPD : %.2f lines/s   ETA : %.2f sec", i, data_num, speed, speed==0.0?0.0:(data_num-i+1)/speed)
+        interval = time_new - time_old
+        speed    = real(skip_output) / interval
+        time_old = time_new
+        print sprintf("%d / %d    SPD : %.2f lines/s   ETA : %.2f sec", i, data_num, speed, (data_num-i+1)/speed)
     }
-    set title sprintf("Time development of Non-Linear Schroedinger Equation (t=%.2f s)", dt*i)
+    # [NOTE]
+    # When "GD Warning: one parameter to a memory allocation multiplication is negative or zero, failing operation gracefully" appears,
+    # it is a sign that a result of some multiplication is not shown properly (or change of degit isn't shown entirely)
+    set title sprintf("Time development of Non-Linear Schroedinger Equation\n( T = %.3f s )", dt*i)
     #plot "data.txt" every :::i::i using 1:2 with lines title "REAL","data.txt" every :::i::i using 1:3 with lines title "IMAG", "data.txt" every :::i::i using 1:4 with lines title "ABSL", 0.5*x*x title "V(x)"
     #plot "data.txt" every :::i::i using 1:2 with lines title "REAL"
     plot "data.txt" every :::i::i using 1:4 with lines title "PROB", 0.5*x*x title "V(x)"

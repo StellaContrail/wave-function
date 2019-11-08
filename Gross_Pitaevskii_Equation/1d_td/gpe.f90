@@ -7,10 +7,10 @@ program main
     double precision,parameter     :: pi   = acos(-1d0)       ! PI
     complex(kind(0d0)),parameter   :: iu   = dcmplx(0d0, 1d0) ! Imaginary unit
     ! Physical constants
-    double precision,parameter     :: hbar = 1.05d-34         ! Reduced Plank constant
+    double precision,parameter     :: hbar = 1d0              ! Reduced Plank constant
     ! Physical values
     integer                        :: N                ! Dimension of Space
-    complex(kind(0d0)),allocatable :: Phi_temp(:)   ! Temporary wave function used by zhbev
+    complex(kind(0d0)),allocatable :: Phi_temp(:)      ! Temporary wave function used by zhbev
     complex(kind(0d0)),allocatable :: Phi_next(:)      ! Wave function at next step
     complex(kind(0d0)),allocatable :: Phi_prev(:)      ! Wave function at previous step
     double precision,allocatable   :: Pot(:)           ! Potential
@@ -38,9 +38,9 @@ program main
     ! These values are referenced from
     ! 'Numerical Solution of the Gross-Pitaevskii Equation for Bose-Einstein Condensation'
     ! by Weizhu Bao et al. (2003)
-    mass             = 1.44d-25
-    omega            = 20d0 * pi
-    ParticleCount    = 1d2
+    mass             = 1d0
+    omega            = 1d0
+    ParticleCount    = 100
     ScatteringLength = 5.1d-9
     N                = 128
     allocate (Phi_next(1:N), Phi_prev(1:N), Pot(1:N), mus(1:N))
@@ -74,7 +74,7 @@ program main
     
     print *, "Calculation Start-----------------------------------------"
     ! Initialization of wave function and potential
-    call initialize(Phi_next, Phi_prev, Pot, N, dh, xmax)
+    call initialize(Phi_next, Phi_prev, Pot, N, dh, xmax, Azero)
     write (*, *) "- Initialized the wave function and potential function"
 
     ! Normalization of wave function
@@ -91,7 +91,7 @@ program main
     open(10, file="data.txt")
     allocate(character(len=50) :: string)
     enable = .true.
-    iter_interval = 1000
+    iter_interval = 50
     ! Solve the inconsistent equation until the wave function converges
     do i = 1, 50000
         write (string, '(A, I6, A)') "#", i, " step calculation began ------------"
