@@ -23,6 +23,7 @@ program main
     integer                        :: ParticleCount    ! number of bose particles
     double precision               :: ScatteringLength ! s-wave scattering length
     double precision               :: mu               ! chemical potential
+    double precision,allocatable   :: j(:)             ! probability current
     ! Coefficients and variables (not user defined)
     double precision               :: Azero            ! length of the harmonic oscillator ground state
     double precision               :: Xs               ! characteristic length of the condensate
@@ -43,7 +44,7 @@ program main
     ParticleCount    = 100
     ScatteringLength = 5.1d-9
     N                = 129
-    allocate (Phi_next(1:N), Phi_prev(1:N), Pot(1:N), mus(1:N))
+    allocate (Phi_next(1:N), Phi_prev(1:N), Pot(1:N), mus(1:N), j(1:N))
     allocate (Phi_temp(1:N), H(1:N,1:N))
     ! Calculation of coefficients and variables using defined physical values
     xmax    = 10d0
@@ -89,7 +90,7 @@ program main
 
     ! Start I/O Procedure
     open(10, file="data.txt")
-    open(11, file="data_flux.txt")
+    open(11, file="data_current.txt")
     allocate(character(len=50) :: string)
     enable = .true.
     iter_interval = 50
@@ -127,8 +128,9 @@ program main
             write (string, '(X, A)') "- Wave function has been saved into file |"
             call print_ex(string, enable, 'E', iter_interval, i)
 
-            ! j(x=0) = div[Phi(x=0)] = ∂_x[Phi(x=0)]
-            write (11, *) dt*i, (Phi_next(66)-Phi_next(64))/(2d0*dh)
+            ! Probability current calculation and output
+            call calc_current(Phi_next, N, dh, hbar, mass, j)
+            call output_current(11, j, N, dh, xmax)
             write (string, '(X, A)') "- Flux has been saved into file          |"
             call print_ex(string, enable, 'E', iter_interval, i)
         end if

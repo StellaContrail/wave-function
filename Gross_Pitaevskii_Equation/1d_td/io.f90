@@ -15,6 +15,19 @@ contains
         write (unit, *)
     end subroutine output
 
+    ! Output probability current to a file
+    subroutine output_current(unit, f, N, dh, xmax)
+        integer,intent(in)            :: unit, N
+        double precision,intent(in)   :: dh, xmax, f(1:N)
+        double precision x
+        integer i
+        do i = 1, N
+            x = -xmax + dh * i
+            write (unit, '(*(F8.5, X))') x, f(i)
+        end do
+        write (unit, *)
+    end subroutine
+
     ! Print string to display
     ! string : content to print
     ! enable : whether to enable print feature

@@ -114,4 +114,22 @@ contains
         end if
         ans = dble(temp)
     end subroutine
+
+    ! Calculate probability current at given time
+    subroutine calc_current(f, N, dh, hbar, mass, j)
+        integer,intent(in)            :: N
+        double precision,intent(in)   :: dh, hbar, mass
+        complex(kind(0d0)),intent(in) :: f(1:N)
+        double precision,intent(out)  :: j(1:N)
+        integer                       :: i
+        do i = 1, N
+            if (i == 1) then
+                j(1) = hbar * aimag( conjg(f(1))*(f(2)-f(1))/dh ) / mass
+            else if (i == N) then
+                j(N) = hbar * aimag( conjg(f(N))*(f(N)-f(N-1))/dh ) / mass
+            else
+                j(i) = hbar * aimag( conjg(f(i))*(f(i+1)-f(i-1))/(2d0*dh) ) / mass
+            end if
+        end do
+    end subroutine
 end module mathf
