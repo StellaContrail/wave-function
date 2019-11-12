@@ -42,7 +42,7 @@ program main
     omega            = 1d0
     ParticleCount    = 100
     ScatteringLength = 5.1d-9
-    N                = 128
+    N                = 129
     allocate (Phi_next(1:N), Phi_prev(1:N), Pot(1:N), mus(1:N))
     allocate (Phi_temp(1:N), H(1:N,1:N))
     ! Calculation of coefficients and variables using defined physical values
