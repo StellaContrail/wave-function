@@ -42,7 +42,7 @@ program main
     allocate (Phi_next(1:N), Phi_prev(1:N), Pot(1:N), mus(1:N))
     allocate (Phi_temp(1:N, 1:N), H(1:N,1:N))
     ! Calculation of coefficients and variables using defined physical values
-    xmax    = 5d0
+    xmax    = 10d0
     Azero   = sqrt(hbar/(omega*mass))
     Xs      = Azero   ! Usually chosen to be Azero for a weak/moderate interaction
     epsilon = (Azero/Xs)**2d0
