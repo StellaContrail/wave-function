@@ -9,7 +9,8 @@ program main
     ! Physical constants
     double precision,parameter     :: hbar = 1d0              ! Reduced Plank constant
     ! Physical values
-    integer                        :: N                ! Dimension of Space
+    integer                        :: N                ! Number of division in space
+    integer                        :: DIM              ! Dimension of discretized wave function array
     complex(kind(0d0)),allocatable :: Phi_temp(:, :)   ! Temporary wave function used by zhbev
     complex(kind(0d0)),allocatable :: Phi_next(:)      ! Wave function at next step
     complex(kind(0d0)),allocatable :: Phi_prev(:)      ! Wave function at previous step
@@ -30,6 +31,7 @@ program main
     double precision,allocatable   :: mus(:)           ! multiple chemical potentials returned by zhbev
     integer                        :: i                ! Loop variable
     logical                        :: loop_end_flag    ! Loop end flag
+    character(len=1)               :: yn               ! Yes/No flag
     ! Definition of physical values (this could be replaced with I/O)
     ! These values are referenced from
     ! 'Numerical Solution of the Gross-Pitaevskii Equation for Bose-Einstein Condensation'
@@ -38,16 +40,17 @@ program main
     omega            = 1d0
     ParticleCount    = 100
     ScatteringLength = 5.1d-9
-    N                = 129
-    allocate (Phi_next(1:N), Phi_prev(1:N), Pot(1:N), mus(1:N))
-    allocate (Phi_temp(1:N, 1:N), H(1:N,1:N))
+    N                = 519!129   ! N must be an odd number
+    DIM              = N + 1 ! Include n=0 point
+    allocate (Phi_next(0:N), Phi_prev(0:N), Pot(0:N), mus(0:N))
+    allocate (Phi_temp(0:N, 0:N), H(0:N,0:N))
     ! Calculation of coefficients and variables using defined physical values
     xmax    = 10d0
     Azero   = sqrt(hbar/(omega*mass))
     Xs      = Azero   ! Usually chosen to be Azero for a weak/moderate interaction
     epsilon = (Azero/Xs)**2d0
     kappa   = (4d0*pi*ScatteringLength*ParticleCount/Azero)*(Azero/Xs)**5d0
-    dh      = (2d0*xmax)/N
+    dh      = xmax / (n/2 + 0.5d0)
 
     ! Show configuration of fundamental physical constants
     print *, "Physical constants of the system----------------------------------"
@@ -89,20 +92,20 @@ program main
     do i = 1, 50
         write (*, '(A, I4, A)') "#", i, " step calculation began -------------------------------------------"
         ! Construct the hamiltonian using present wave function data
-        call hamiltonian(H, Pot, N, dh, epsilon, kappa, Phi_prev)
+        call hamiltonian(H, Pot, abs(Phi_prev)**2d0, N, dh, epsilon, kappa)
         print *, "- New hamiltonian has been reconstructed with initial assumed density |"
         ! Solve Nonlinear Schroedinger Equation Using the Assumed Wave function
-        call solve_eigen(H, Phi_temp, mus, N)
+        call solve_eigen(H, Phi_temp, mus, DIM)
         print *, "- NLSE has been successfully calculated with initial assumed density  |"
-        ! Update the wave function
-        Phi_next(1:) = Phi_temp(1:, 1)
-        Phi_temp(1:, 1) = 0.5d0*(Phi_next(1:) + Phi_prev(1:))
-        print *, "- NLSE has been successfully calculated with averaged density         |"
+        ! Take out the first (lowest energy) eigenvector
+        Phi_next(:) = Phi_temp(:, 1)
+        ! Take an average between t and t+dt and make new probability whose time step is at t+0.5*dt approximately
+        Phi_temp(:, 1) = 0.5d0*(Phi_next(:) + Phi_prev(:))
         ! Construct the hamiltonian using present wave function data
-        call hamiltonian(H, Pot, N, dh, epsilon, kappa, Phi_temp(1:, 1))
+        call hamiltonian(H, Pot, abs(Phi_temp(:,1))**2d0, N, dh, epsilon, kappa)
         print *, "- New hamiltonian has been reconstructed with averaged density        |"
-        ! Solve Nonlinear Schroedinger Equation Using the Assumed Wave function
-        call solve_eigen(H, Phi_next, mus, N)
+        ! Solve Nonlinear Schroedinger Equation with averaged probability density calculated from t and t+dt wave functions
+        call solve_eigen(H, Phi_next, mus, DIM)
         print *, "- NLSE has been successfully calculated with averaged density         |"
 
         ! Normalize the wave function
@@ -138,9 +141,27 @@ program main
     print *, "Result of the calculation ----------------------------------------"
     print '(X, A, F9.5)', "mu (Chemical Potential) [J] = ", mu
     write (*, *)
-    call apply_phase_shift(Phi_prev(floor(N/2d0):N), N-floor(N/2d0)+1, iu, 0d0, Phi_prev(floor(N/2d0):N))
-    open(10, file="data_shifted.txt")
+    write (*, '(X, A)', advance='no') "Apply Phase Shift (d(Theta)=PI) on Wave function on the right side ? : "
+    read (*, *) yn
+    call apply_phase_shift(Phi_prev(floor(N/2d0):N), N-floor(N/2d0)+1, iu, pi, Phi_prev(floor(N/2d0):N))
+    do
+        if (yn == 'y') then
+            
+            exit
+        else if (yn == 'n') then
+            call apply_phase_shift(Phi_prev(floor(N/2d0):N), N-floor(N/2d0)+1, iu, 0d0, Phi_prev(floor(N/2d0):N))
+            exit
+        else
+            write (*, *) "Please input 'y' or 'n'"
+        end if
+    end do
+    if (yn == 'y') then
+        print *, "PHASE SHIFTED BY PI   => ", "data_pi_shifted.txt"
+        open(10, file="data_pi_shifted.txt")
+    else if (yn == 'n') then
+        print *, "PHASE SHIFTED BY ZERO => ", "data_non_shifted.txt"
+        open(10, file="data_non_shifted.txt")
+    end if
     call output(10, Phi_prev, N, dh, xmax)
     close(10)
-    print *, "PHASE SHIFTED BY PI => ", "data_shifted.txt"
 end program 

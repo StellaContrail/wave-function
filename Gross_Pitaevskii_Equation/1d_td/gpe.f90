@@ -9,7 +9,8 @@ program main
     ! Physical constants
     double precision,parameter     :: hbar = 1d0              ! Reduced Plank constant
     ! Physical values
-    integer                        :: N                ! Dimension of Space
+    integer                        :: N                ! Number of division in space
+    integer                        :: DIM              ! Dimension of discretized wave function
     complex(kind(0d0)),allocatable :: Phi_temp(:)      ! Temporary wave function used by zhbev
     complex(kind(0d0)),allocatable :: Phi_next(:)      ! Wave function at next step
     complex(kind(0d0)),allocatable :: Phi_prev(:)      ! Wave function at previous step
@@ -43,16 +44,16 @@ program main
     omega            = 1d0
     ParticleCount    = 100
     ScatteringLength = 5.1d-9
-    N                = 129
-    allocate (Phi_next(1:N), Phi_prev(1:N), Pot(1:N), mus(1:N), j(1:N))
-    allocate (Phi_temp(1:N), H(1:N,1:N))
+    N                = 519
+    allocate (Phi_next(0:N), Phi_prev(0:N), Pot(0:N), mus(0:N), j(0:N))
+    allocate (Phi_temp(0:N), H(0:N,0:N))
     ! Calculation of coefficients and variables using defined physical values
     xmax    = 10d0
     Azero   = sqrt(hbar/(omega*mass))
     Xs      = Azero   ! Usually chosen to be Azero for a weak/moderate interaction
     epsilon = (Azero/Xs)**2d0
     kappa   = (4d0*pi*ScatteringLength*ParticleCount/Azero)*(Azero/Xs)**5d0
-    dh      = (2d0*xmax)/N
+    dh      = xmax / (n/2 + 0.5d0)
     dt      = 0.4d0*dh*dh
 
     ! Show configuration of fundamental physical constants
@@ -87,7 +88,7 @@ program main
     close(10)
     write (*, *) "- Initial wave function has been saved into ", "data_initial.txt"
     print *, ""
-
+    
     ! Start I/O Procedure
     open(10, file="data.txt")
     open(11, file="data_current.txt")

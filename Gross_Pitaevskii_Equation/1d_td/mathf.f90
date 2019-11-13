@@ -9,12 +9,12 @@ contains
     ! sum : The result of the integration
     subroutine integrate(f, N, dh, sum)
         integer,intent(in)           :: N
-        double precision,intent(in)  :: f(1:N), dh
+        double precision,intent(in)  :: f(0:N), dh
         double precision,intent(out) :: sum
         integer i
         sum = 0d0
-        do i = 1, N
-            if (i == 1 .or. i == N) then
+        do i = 0, N
+            if (i == 0 .or. i == N) then
                 sum = sum + 0.5*f(i)*dh
             else
                 sum = sum + f(i)*dh
@@ -29,9 +29,9 @@ contains
     subroutine normalize(f, N, dh)
         integer,intent(in)                :: N
         double precision,intent(in)       :: dh
-        complex(kind(0d0)),intent(inout)  :: f(1:N)
+        complex(kind(0d0)),intent(inout)  :: f(0:N)
         double precision sum
-        call Integrate(abs(f(:))**2d0, N, dh, sum)
+        call integrate(abs(f(:))**2d0, N, dh, sum)
         f(:) = f(:) / sqrt(sum)
     end subroutine normalize
 
@@ -41,11 +41,11 @@ contains
     ! C : Complex array having dimension of N
     subroutine exp_mat(A, f, N, dt, epsilon, iu, ans)
         integer,intent(in)             :: N
-        double precision,intent(in)    :: A(1:N, 1:N), dt, epsilon
-        complex(kind(0d0)),intent(in)  :: f(1:N), iu
-        complex(kind(0d0)),intent(out) :: ans(1:N)
-        integer i
-        complex(kind(0d0))             :: temp(1:N), Atemp(1:N)
+        double precision,intent(in)    :: A(0:N, 0:N), dt, epsilon
+        complex(kind(0d0)),intent(in)  :: f(0:N), iu
+        complex(kind(0d0)),intent(out) :: ans(0:N)
+        integer                        :: i
+        complex(kind(0d0))             :: temp(0:N), Atemp(0:N)
 
         ! First term of Taylor expansion
         temp(:)   = f(:)
@@ -65,19 +65,19 @@ contains
     ! C : COMPLEX array having dimension of N
     subroutine multiply_symmetry(A, B, N, C)
         integer,intent(in)             :: N
-        double precision,intent(in)    :: A(1:N, 1:N)
-        complex(kind(0d0)),intent(in)  :: B(1:N)
-        complex(kind(0d0)),intent(out) :: C(1:N)
+        double precision,intent(in)    :: A(0:N, 0:N)
+        complex(kind(0d0)),intent(in)  :: B(0:N)
+        complex(kind(0d0)),intent(out) :: C(0:N)
         integer                        :: i
 
-        do i = 1, N
-            if (i == 1) then
+        do i = 0, N
+            if (i == 0) then
                 C(i) = A(i,i)*B(i)+A(i,i+1)*B(i+1)+A(i,i+2)*B(i+2)+A(i,i+3)*B(i+3)+A(i,i+4)*B(i+4)
-            else if (i == 2) then
+            else if (i == 1) then
                 C(i) = A(i,i-1)*B(i-1)+A(i,i)*B(i)+A(i,i+1)*B(i+1)+A(i,i+2)*B(i+2)+A(i,i+3)*B(i+3)+A(i,i+4)*B(i+4)
-            else if (i == 3) then
+            else if (i == 2) then
                 C(i) = A(i,i-2)*B(i-2)+A(i,i-1)*B(i-1)+A(i,i)*B(i)+A(i,i+1)*B(i+1)+A(i,i+2)*B(i+2)+A(i,i+3)*B(i+3)+A(i,i+4)*B(i+4)
-            else if (i == 4) then
+            else if (i == 3) then
                 C(i) = A(i,i-3)*B(i-3)+A(i,i-2)*B(i-2)+A(i,i-1)*B(i-1)+A(i,i)*B(i)+A(i,i+1)*B(i+1)+A(i,i+2)*B(i+2)+A(i,i+3)*B(i+3)&
                 +A(i,i+4)*B(i+4)
             else if (i == N-3) then
@@ -103,10 +103,10 @@ contains
     ! ans : REAL value
     subroutine expected_value_symm(f, A, N, ans)
         integer,intent(in)             :: N
-        double precision,intent(in)    :: A(1:N, 1:N)
-        complex(kind(0d0)),intent(in)  :: f(1:N)
+        double precision,intent(in)    :: A(0:N, 0:N)
+        complex(kind(0d0)),intent(in)  :: f(0:N)
         double precision,intent(out)   :: ans
-        complex(kind(0d0))             :: Af(1:N), temp
+        complex(kind(0d0))             :: Af(0:N), temp
         call multiply_symmetry(A, f, N, Af)
         temp = dot_product(f, Af)
         if (aimag(temp) > 1d-5) then
@@ -119,12 +119,12 @@ contains
     subroutine calc_current(f, N, dh, hbar, mass, j)
         integer,intent(in)            :: N
         double precision,intent(in)   :: dh, hbar, mass
-        complex(kind(0d0)),intent(in) :: f(1:N)
-        double precision,intent(out)  :: j(1:N)
+        complex(kind(0d0)),intent(in) :: f(0:N)
+        double precision,intent(out)  :: j(0:N)
         integer                       :: i
-        do i = 1, N
-            if (i == 1) then
-                j(1) = hbar * aimag( conjg(f(1))*(f(2)-f(1))/dh ) / mass
+        do i = 0, N
+            if (i == 0) then
+                j(0) = hbar * aimag( conjg(f(0))*(f(1)-f(0))/dh ) / mass
             else if (i == N) then
                 j(N) = hbar * aimag( conjg(f(N))*(f(N)-f(N-1))/dh ) / mass
             else
