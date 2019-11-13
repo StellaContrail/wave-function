@@ -32,9 +32,9 @@ contains
   end subroutine initialize
 
   ! Construct the hamiltonian
-  subroutine hamiltonian(H, Pot, N, dh, epsilon, kappa, Phi)
+  subroutine hamiltonian(H, Pot, density, N, dh, epsilon, kappa, Phi)
     integer,intent(in)            :: N
-    double precision,intent(in)   :: dh, Pot(1:N), epsilon, kappa
+    double precision,intent(in)   :: dh, Pot(1:N), epsilon, kappa, density(1:N)
     double precision,intent(out)  :: H(1:N, 1:N)
     complex(kind(0d0)),intent(in) :: Phi(1:N)
     integer                       :: i
@@ -73,7 +73,7 @@ contains
 
     ! Potential and Nonlinear part
     do i = 1, N
-       H(i, i) = H(i, i) + Pot(i) + kappa*abs(Phi(i))**2d0
+       H(i, i) = H(i, i) + Pot(i) + kappa*density(i)
     end do
   end subroutine hamiltonian
 end module

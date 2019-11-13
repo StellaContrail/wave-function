@@ -91,57 +91,65 @@ program main
     ! Start I/O Procedure
     open(10, file="data.txt")
     open(11, file="data_current.txt")
-    allocate(character(len=50) :: string)
+    allocate(character(len=80) :: string)
     enable = .true.
     iter_interval = 50
     ! Solve the inconsistent equation until the wave function converges
     do i = 1, 50000
-        write (string, '(A, I6, A)') "#", i, " step calculation began ------------"
+        write (string, '(A, I6, A)') "#", i, " step calculation began ---------------------------------------"
         call print_ex(string, enable, 'E', iter_interval, i)
         ! Construct the hamiltonian using present wave function data
-        call hamiltonian(H, Pot, N, dh, epsilon, kappa, Phi_prev)
-        write (string, '(X, A)') "- New hamiltonian has been reconstructed |"
+        call hamiltonian(H, Pot, abs(Phi_prev)**2d0, N, dh, epsilon, kappa, Phi_prev)
+        write (string, '(X, A)') "- New hamiltonian has been reconstructed with first assumed density |"
         call print_ex(string, enable, 'E', iter_interval, i)
 
         ! Solve Nonlinear Schroedinger Equation Using the Assumed Wave function
-        call exp_mat(H, Phi_prev, N, dt, epsilon, iu, Phi_temp)
-        write (string, '(X, A)') "- NLSE has been successfully calculated  |"
+        call exp_mat(H, Phi_prev, N, dt, epsilon, iu, Phi_next)
+        write (string, '(X, A)') "- NLSE has been successfully calculated with first assumed density  |"
         call print_ex(string, enable, 'E', iter_interval, i)
 
-        ! Update the wave function
-        Phi_next(:) = Phi_temp(:)
-        write (string, '(X, A)') "- Wave function has been updated         |"
+        ! Calculate the average wave function which are located at two different time points
+        Phi_temp(:) = 0.5d0*(Phi_next(:) + Phi_prev(:))
+
+        ! Construct the hamiltonian using present wave function data
+        call hamiltonian(H, Pot, abs(Phi_temp)**2d0, N, dh, epsilon, kappa, Phi_prev)
+        write (string, '(X, A)') "- New hamiltonian has been reconstructed with averaged density      |"
+        call print_ex(string, enable, 'E', iter_interval, i)
+
+        ! Solve Nonlinear Schroedinger Equation Using the Assumed Wave function
+        call exp_mat(H, Phi_prev, N, dt, epsilon, iu, Phi_next)
+        write (string, '(X, A)') "- NLSE has been successfully calculated with averaged density       |"
         call print_ex(string, enable, 'E', iter_interval, i)
 
         ! Check if the probability is conserved
         call integrate(abs(Phi_next)**2d0, N, dh, prob)
-        write (string, '(X, A, F15.10, A)') "- Probability       = ", prob, "    |"
+        write (string, '(X, A, F15.10, A)') "- Probability       = ", prob, "                               |"
         call print_ex(string, enable, 'E', iter_interval, i)
 
         ! Calculate chemical potential
         call expected_value_symm(Phi_next, H, N, mu)
-        write (string, '(X, A, F10.5, A)') "- Chemical Potential = ", mu, "        |"
+        write (string, '(X, A, F10.5, A)') "- Chemical Potential = ", mu, "                                   |"
         call print_ex(string, enable, 'E', iter_interval, i)
 
         if (mod(i, 50) == 0) then
             call output(10, Phi_next, N, dh, xmax)
-            write (string, '(X, A)') "- Wave function has been saved into file |"
+            write (string, '(X, A)') "- Wave function has been saved into file                            |"
             call print_ex(string, enable, 'E', iter_interval, i)
 
             ! Probability current calculation and output
             call calc_current(Phi_next, N, dh, hbar, mass, j)
             call output_current(11, j, N, dh, xmax)
-            write (string, '(X, A)') "- Flux has been saved into file          |"
+            write (string, '(X, A)') "- Flux has been saved into file                                     |"
             call print_ex(string, enable, 'E', iter_interval, i)
         end if
 
         ! Substitute Phi_next into Phi_prev to calculate the TDGPE
         Phi_prev = Phi_next
 
-        write (string, '(X, A)') "- Finished                               |"
+        write (string, '(X, A)') "- Finished                                                          |"
         call print_ex(string, enable, 'E', iter_interval, i)
     end do
-    print *, "------------------------------------------"
+    print *, "---------------------------------------------------------------------"
     print *, ""
     write (*, *) "- All calculation procedures have been finished"
     close (10)

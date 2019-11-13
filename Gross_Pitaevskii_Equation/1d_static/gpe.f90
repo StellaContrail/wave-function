@@ -87,41 +87,47 @@ program main
     loop_end_flag = .false.
     ! Solve the inconsistent equation until the chemical potential converges
     do i = 1, 50
-        write (*, '(A, I4, A)') "#", i, " step calculation began --------------"
+        write (*, '(A, I4, A)') "#", i, " step calculation began -------------------------------------------"
         ! Construct the hamiltonian using present wave function data
         call hamiltonian(H, Pot, N, dh, epsilon, kappa, Phi_prev)
-        print *, "- New hamiltonian has been reconstructed |"
+        print *, "- New hamiltonian has been reconstructed with initial assumed density |"
         ! Solve Nonlinear Schroedinger Equation Using the Assumed Wave function
         call solve_eigen(H, Phi_temp, mus, N)
-        print *, "- NLSE has been successfully calculated  |"
-
+        print *, "- NLSE has been successfully calculated with initial assumed density  |"
         ! Update the wave function
         Phi_next(1:) = Phi_temp(1:, 1)
-        print *, "- Wave function has been updated         |"
+        Phi_temp(1:, 1) = 0.5d0*(Phi_next(1:) + Phi_prev(1:))
+        print *, "- NLSE has been successfully calculated with averaged density         |"
+        ! Construct the hamiltonian using present wave function data
+        call hamiltonian(H, Pot, N, dh, epsilon, kappa, Phi_temp(1:, 1))
+        print *, "- New hamiltonian has been reconstructed with averaged density        |"
+        ! Solve Nonlinear Schroedinger Equation Using the Assumed Wave function
+        call solve_eigen(H, Phi_next, mus, N)
+        print *, "- NLSE has been successfully calculated with averaged density         |"
 
         ! Normalize the wave function
         call normalize(Phi_next, N, dh)
-        print *, "- Wave function has been normalized      |"
+        print *, "- Wave function has been normalized                                   |"
 
         ! Check if chemical potential has been converged or not
         if (abs(mus(1) - mu) < 1d-6) then
-            print *, "* Chemical potential has been converged! |"
+            print *, "* Chemical potential has been converged!                              |"
             loop_end_flag = .true.
         end if
 
         ! Substitute chemical potential
         mu = mus(1)
-        print '(X, A, F9.5, A)', "- New Chemical potential : ", mu, " [J] |"
-        print *, "- Chemical potential has been updated    |"
+        print '(X, A, F9.5, A)', "- New Chemical potential : ", mu, " [J]                              |"
+        print *, "- Chemical potential has been updated                                 |"
 
         Phi_prev = Phi_next
-        print *, "- Finished                               |"
+        print *, "- Finished                                                            |"
 
         if (loop_end_flag) then
             exit
         end if
     end do
-    print *, "------------------------------------------"
+    print *, "-----------------------------------------------------------------------"
     print *, ""
     write (*, *) "- All calculation procedures have been finished"
     call output(10, Phi_prev, N, dh, xmax)

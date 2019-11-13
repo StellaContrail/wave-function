@@ -1,4 +1,4 @@
-set terminal gif animate delay 10 optimize size 640,480
+set terminal gif animate delay 12 optimize size 640,480
 set output "data.gif"
 set yrange [-1:1]
 set grid
