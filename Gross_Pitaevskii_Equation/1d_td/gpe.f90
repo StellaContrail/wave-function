@@ -7,7 +7,7 @@ program main
     double precision,parameter     :: pi   = acos(-1d0)       ! PI
     complex(kind(0d0)),parameter   :: iu   = dcmplx(0d0, 1d0) ! Imaginary unit
     ! Physical constants
-    double precision,parameter     :: hbar = 1d0              ! Reduced Plank constant
+    double precision,parameter     :: hbar = 1.05d-34         ! Reduced Plank constant
     ! Physical values
     integer                        :: N                ! Number of division in space
     integer                        :: DIM              ! Dimension of discretized wave function
@@ -40,15 +40,15 @@ program main
     ! These values are referenced from
     ! 'Numerical Solution of the Gross-Pitaevskii Equation for Bose-Einstein Condensation'
     ! by Weizhu Bao et al. (2003)
-    mass             = 1d0
-    omega            = 1d0
+    mass             = 1.4d-25
+    omega            = 20d0 * pi
     ParticleCount    = 100
     ScatteringLength = 5.1d-9
-    N                = 519
+    N                = 257
     allocate (Phi_next(0:N), Phi_prev(0:N), Pot(0:N), mus(0:N), j(0:N))
     allocate (Phi_temp(0:N), H(0:N,0:N))
     ! Calculation of coefficients and variables using defined physical values
-    xmax    = 10d0
+    xmax    = 16d0
     Azero   = sqrt(hbar/(omega*mass))
     Xs      = Azero   ! Usually chosen to be Azero for a weak/moderate interaction
     epsilon = (Azero/Xs)**2d0
@@ -71,9 +71,13 @@ program main
     print *, "<Coefficients of NLSE terms>"
     print *, "Epsilon (A0/Xs)^2                     = ", epsilon
     print *, "Kappa (Coefficient of NL term)        = ", kappa
+    print *, "<Other Configuration Values>"
+    print *, "Delta (4*pi*a*N/a_0)                  = ", (4d0*pi*ScatteringLength*ParticleCount)/Azero
+    print *, "Healing length (8*pi*|a|*N/Xs^3)^-0.5 = ", ((8d0*pi*abs(ScatteringLength)*ParticleCount)/(Xs**3d0))**(-0.5d0)
     print *, "------------------------------------------------------------------"
     write (*, *)
-    
+    print *, "Press any key to start calculation..."
+    read (*, *)
     print *, "Calculation Start-----------------------------------------"
     ! Initialization of wave function and potential
     call initialize(Phi_next, Phi_prev, Pot, N, dh, xmax, Azero)

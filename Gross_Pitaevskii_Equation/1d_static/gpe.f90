@@ -7,7 +7,7 @@ program main
     double precision,parameter     :: pi   = acos(-1d0)       ! PI
     complex(kind(0d0)),parameter   :: iu   = dcmplx(0d0, 1d0) ! Imaginary unit
     ! Physical constants
-    double precision,parameter     :: hbar = 1d0              ! Reduced Plank constant
+    double precision,parameter     :: hbar = 1.05d-34         ! Reduced Plank constant
     ! Physical values
     integer                        :: N                ! Number of division in space
     integer                        :: DIM              ! Dimension of discretized wave function array
@@ -36,16 +36,16 @@ program main
     ! These values are referenced from
     ! 'Numerical Solution of the Gross-Pitaevskii Equation for Bose-Einstein Condensation'
     ! by Weizhu Bao et al. (2003)
-    mass             = 1d0
-    omega            = 1d0
+    mass             = 1.44d-25
+    omega            = 20d0 * pi
     ParticleCount    = 100
     ScatteringLength = 5.1d-9
-    N                = 519!129   ! N must be an odd number
+    N                = 257!129   ! N must be an odd number
     DIM              = N + 1 ! Include n=0 point
     allocate (Phi_next(0:N), Phi_prev(0:N), Pot(0:N), mus(0:N))
     allocate (Phi_temp(0:N, 0:N), H(0:N,0:N))
     ! Calculation of coefficients and variables using defined physical values
-    xmax    = 10d0
+    xmax    = 16d0
     Azero   = sqrt(hbar/(omega*mass))
     Xs      = Azero   ! Usually chosen to be Azero for a weak/moderate interaction
     epsilon = (Azero/Xs)**2d0
@@ -141,12 +141,11 @@ program main
     print *, "Result of the calculation ----------------------------------------"
     print '(X, A, F9.5)', "mu (Chemical Potential) [J] = ", mu
     write (*, *)
-    write (*, '(X, A)', advance='no') "Apply Phase Shift (d(Theta)=PI) on Wave function on the right side ? : "
-    read (*, *) yn
-    call apply_phase_shift(Phi_prev(floor(N/2d0):N), N-floor(N/2d0)+1, iu, pi, Phi_prev(floor(N/2d0):N))
     do
+        write (*, '(X, A)', advance='no') "Apply Phase Shift (d(Theta)=PI) on Wave function on the right side ? : "
+        read (*, *) yn
         if (yn == 'y') then
-            
+            call apply_phase_shift(Phi_prev(floor(N/2d0):N), N-floor(N/2d0)+1, iu, pi, Phi_prev(floor(N/2d0):N))
             exit
         else if (yn == 'n') then
             call apply_phase_shift(Phi_prev(floor(N/2d0):N), N-floor(N/2d0)+1, iu, 0d0, Phi_prev(floor(N/2d0):N))

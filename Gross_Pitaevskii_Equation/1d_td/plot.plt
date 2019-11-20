@@ -3,8 +3,8 @@ set output "data.gif"
 set yrange [-1:1]
 set grid
 # SETTINGS
-xmax        = 5     # BOUNDARY OF X
-N           = 128   # STEP COUNT
+xmax        = 16     # BOUNDARY OF X
+N           = 257   # STEP COUNT
 iter        = 50000 # ITERATION COUNT OF TIME
 iter_output = 50    # SKIP COUNT IN THE ITERATION OF TIME
 skip_output = 25    # SKIP COUNT OF SHOWING SPEED AND ETA
