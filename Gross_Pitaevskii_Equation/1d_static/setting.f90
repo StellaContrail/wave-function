@@ -15,14 +15,20 @@ contains
     double precision,intent(in)     :: dh, xmax, Azero
     integer                         :: i
     double precision                :: x
-    double precision,parameter      :: sigma = 0.5d0
+    double precision,parameter      :: sigma = 0.8d0
+    !double precision                :: dummy, real_part, imag_part
     Phi_next(:) = dcmplx(0d0, 0d0)
+    !open(10, file="data_shifted_.txt")
     do i = 0, N
          x = -xmax + dh*i
-         Pot(i) = 0.5d0*x*x + 100d0*exp(-0.5d0*x*x/(sigma**2d0))
+         Pot(i) = 0.5d0*x*x + 5d0*exp(-0.5d0*x*x/(sigma**2d0))
          ! Assume the form of the initial wave function
          Phi_prev(i) = exp(-0.5d0*x*x)
+         ! Read wave function data from a file
+         !read (10, *) dummy, real_part, imag_part, dummy, dummy
+         !Phi_prev(i) = dcmplx(real_part, imag_part)
     end do
+    !close(10)
   end subroutine initialize
 
   ! Construct the hamiltonian
@@ -32,18 +38,36 @@ contains
     double precision,intent(out)  :: H(0:N, 0:N)
     integer                       :: i
     double precision              :: coe
-    coe = -0.5d0 * epsilon * epsilon / (dh * dh) ! Coefficient of the laplacian part
+    coe = -0.5d0 * epsilon * epsilon / (5040d0 * dh * dh) ! Coefficient of the laplacian part
     H(:, :) = 0d0
 
     ! Laplacian part
-    do i = 0, N
-       H(i, i) = -2d0 * coe
+    do i = 1, N
+       H(i, i)      = -14350d0 * coe
        if (i > 1) then
-          H(i, i-1) = 1d0 * coe
+          H(i, i-1) = 8064d0 * coe
        end if
        if (i < N) then
-          H(i, i+1) = 1d0 * coe
+          H(i, i+1) = 8064d0 * coe
        end if
+       if (i > 2) then
+         H(i, i-2)  = -1008d0 * coe
+      end if
+      if (i < N-1) then
+         H(i, i+2)  = -1008d0 * coe
+      end if
+      if (i > 3) then
+         H(i, i-3)  = 128d0 * coe
+      end if
+      if (i < N-2) then
+         H(i, i+3)  = 128d0 * coe
+      end if
+      if (i > 4) then
+         H(i, i-4)  = -9d0 * coe
+      end if
+      if (i < N-3) then
+         H(i, i+4)  = -9d0 * coe
+      end if
     end do
 
     ! Potential and Nonlinear part

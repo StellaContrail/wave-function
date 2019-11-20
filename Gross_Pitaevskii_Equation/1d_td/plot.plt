@@ -3,13 +3,13 @@ set output "data.gif"
 set yrange [-1:1]
 set grid
 # SETTINGS
-xmax        = 16     # BOUNDARY OF X
-N           = 257   # STEP COUNT
+xmax        = 10     # BOUNDARY OF X
+N           = 2**8-1   # STEP COUNT
 iter        = 50000 # ITERATION COUNT OF TIME
 iter_output = 50    # SKIP COUNT IN THE ITERATION OF TIME
 skip_output = 25    # SKIP COUNT OF SHOWING SPEED AND ETA
 # OTHER VARIABLES USED BY SCRIPT
-dh          = real(2*xmax)/N
+dh          = xmax / real(N/2 + 0.5)
 dt          = 0.4*dh*dh
 data_num    = int(real(iter)/iter_output)
 time_new    = 0.0
@@ -26,10 +26,10 @@ do for [i=0: data_num-1] {
     # [NOTE]
     # When "GD Warning: one parameter to a memory allocation multiplication is negative or zero, failing operation gracefully" appears,
     # it is a sign that a result of some multiplication is not shown properly (or change of degit isn't shown entirely)
-    set title sprintf("Time development of Non-Linear Schroedinger Equation\n( T = %.3f s )", dt*i)
+    set title sprintf("Time development of Non-Linear Schroedinger Equation\n( T = %.3f )", dt*i)
     #plot "data.txt" every :::i::i using 1:2 with lines title "REAL","data.txt" every :::i::i using 1:3 with lines title "IMAG", "data.txt" every :::i::i using 1:4 with lines title "ABSL", 0.5*x*x title "V(x)"
     #plot "data.txt" every :::i::i using 1:2 with lines title "REAL"
-    plot "data.txt" every :::i::i using 1:4 with lines title "PROB", 0.5*x*x title "V(x)"
+    plot "data.txt" every :::i::i using 1:4 with lines title "PROB", 0.5*x*x title "V(x)", "data_shifted.txt" using 1:4 with lines title "INITIAL"
 }
 unset output
 set terminal wxt

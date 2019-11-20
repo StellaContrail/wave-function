@@ -44,11 +44,11 @@ program main
     omega            = 20d0 * pi
     ParticleCount    = 100
     ScatteringLength = 5.1d-9
-    N                = 257
+    N                = 2**8 - 1
     allocate (Phi_next(0:N), Phi_prev(0:N), Pot(0:N), mus(0:N), j(0:N))
     allocate (Phi_temp(0:N), H(0:N,0:N))
     ! Calculation of coefficients and variables using defined physical values
-    xmax    = 16d0
+    xmax    = 10d0
     Azero   = sqrt(hbar/(omega*mass))
     Xs      = Azero   ! Usually chosen to be Azero for a weak/moderate interaction
     epsilon = (Azero/Xs)**2d0

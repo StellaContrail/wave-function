@@ -11,7 +11,7 @@ program main
     ! Physical values
     integer                        :: N                ! Number of division in space
     integer                        :: DIM              ! Dimension of discretized wave function array
-    complex(kind(0d0)),allocatable :: Phi_temp(:, :)   ! Temporary wave function used by zhbev
+    complex(kind(0d0)),allocatable :: Phi_temp(:)      ! Temporary wave function used by zhbev
     complex(kind(0d0)),allocatable :: Phi_next(:)      ! Wave function at next step
     complex(kind(0d0)),allocatable :: Phi_prev(:)      ! Wave function at previous step
     double precision,allocatable   :: Pot(:)           ! Potential
@@ -28,7 +28,7 @@ program main
     double precision               :: Xs               ! characteristic length of the condensate
     double precision               :: epsilon          ! squared ratio of Azero to Xs
     double precision               :: kappa            ! coeffient of the nonlinear term
-    double precision,allocatable   :: mus(:)           ! multiple chemical potentials returned by zhbev
+    double precision               :: mu0              ! chemical potential returned by zhbev
     integer                        :: i                ! Loop variable
     logical                        :: loop_end_flag    ! Loop end flag
     character(len=1)               :: yn               ! Yes/No flag
@@ -40,12 +40,12 @@ program main
     omega            = 20d0 * pi
     ParticleCount    = 100
     ScatteringLength = 5.1d-9
-    N                = 257!129   ! N must be an odd number
+    N                = 2**8 - 1!129   ! N must be an odd number
     DIM              = N + 1 ! Include n=0 point
-    allocate (Phi_next(0:N), Phi_prev(0:N), Pot(0:N), mus(0:N))
-    allocate (Phi_temp(0:N, 0:N), H(0:N,0:N))
+    allocate (Phi_next(0:N), Phi_prev(0:N), Pot(0:N))
+    allocate (Phi_temp(0:N), H(0:N,0:N))
     ! Calculation of coefficients and variables using defined physical values
-    xmax    = 16d0
+    xmax    = 10d0
     Azero   = sqrt(hbar/(omega*mass))
     Xs      = Azero   ! Usually chosen to be Azero for a weak/moderate interaction
     epsilon = (Azero/Xs)**2d0
@@ -95,17 +95,17 @@ program main
         call hamiltonian(H, Pot, abs(Phi_prev)**2d0, N, dh, epsilon, kappa)
         print *, "- New hamiltonian has been reconstructed with initial assumed density |"
         ! Solve Nonlinear Schroedinger Equation Using the Assumed Wave function
-        call solve_eigen2(H, Phi_temp(:, 1), mus, DIM)
+        call solve_eigen2(H, Phi_temp, mu0, DIM)
         print *, "- NLSE has been successfully calculated with initial assumed density  |"
         ! Take out the first (lowest energy) eigenvector
-        Phi_next(:) = Phi_temp(:, 1)
+        Phi_next(:) = Phi_temp(:)
         ! Take an average between t and t+dt and make new probability whose time step is at t+0.5*dt approximately
-        Phi_temp(:, 1) = 0.5d0*(Phi_next(:) + Phi_prev(:))
+        Phi_temp(:) = 0.5d0*(Phi_next(:) + Phi_prev(:))
         ! Construct the hamiltonian using present wave function data
-        call hamiltonian(H, Pot, abs(Phi_temp(:,1))**2d0, N, dh, epsilon, kappa)
+        call hamiltonian(H, Pot, abs(Phi_temp)**2d0, N, dh, epsilon, kappa)
         print *, "- New hamiltonian has been reconstructed with averaged density        |"
         ! Solve Nonlinear Schroedinger Equation with averaged probability density calculated from t and t+dt wave functions
-        call solve_eigen2(H, Phi_next, mus, DIM)
+        call solve_eigen2(H, Phi_next, mu0, DIM)
         print *, "- NLSE has been successfully calculated with averaged density         |"
 
         ! Normalize the wave function
@@ -113,13 +113,13 @@ program main
         print *, "- Wave function has been normalized                                   |"
 
         ! Check if chemical potential has been converged or not
-        if (abs(mus(1) - mu) < 1d-6) then
+        if (abs(mu0 - mu) < 1d-6) then
             print *, "* Chemical potential has been converged!                              |"
             loop_end_flag = .true.
         end if
 
         ! Substitute chemical potential
-        mu = mus(1)
+        mu = mu0
         print '(X, A, F9.5, A)', "- New Chemical potential : ", mu, " [J]                              |"
         print *, "- Chemical potential has been updated                                 |"
 
@@ -141,26 +141,9 @@ program main
     print *, "Result of the calculation ----------------------------------------"
     print '(X, A, F9.5)', "mu (Chemical Potential) [J] = ", mu
     write (*, *)
-    do
-        write (*, '(X, A)', advance='no') "Apply Phase Shift (d(Theta)=PI) on Wave function on the right side ? : "
-        read (*, *) yn
-        if (yn == 'y') then
-            call apply_phase_shift(Phi_prev(floor(N/2d0):N), N-floor(N/2d0)+1, iu, pi, Phi_prev(floor(N/2d0):N))
-            exit
-        else if (yn == 'n') then
-            call apply_phase_shift(Phi_prev(floor(N/2d0):N), N-floor(N/2d0)+1, iu, 0d0, Phi_prev(floor(N/2d0):N))
-            exit
-        else
-            write (*, *) "Please input 'y' or 'n'"
-        end if
-    end do
-    if (yn == 'y') then
-        print *, "PHASE SHIFTED BY PI   => ", "data_pi_shifted.txt"
-        open(10, file="data_pi_shifted.txt")
-    else if (yn == 'n') then
-        print *, "PHASE SHIFTED BY ZERO => ", "data_non_shifted.txt"
-        open(10, file="data_non_shifted.txt")
-    end if
+    print *, "Wave function half of whose phase is changed by pi is saved into a file => ", "data_shifted.txt"
+    call apply_phase_shift(Phi_prev(floor(N/2d0):N), N-floor(N/2d0)+1, iu, pi, Phi_prev(floor(N/2d0):N))
+    open(10, file="data_shifted.txt")
     call output(10, Phi_prev, N, dh, xmax)
     close(10)
 end program 

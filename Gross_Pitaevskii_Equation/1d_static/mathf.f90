@@ -35,7 +35,7 @@ contains
     end subroutine normalize
 
     ! Solve Ax = lambda*x for lambda and x
-    subroutine solve_eigen(A, Z, W, N)
+    subroutine solve_eigen(A, Z, lambda, N)
         integer,intent(in)               :: N                       ! Number of division in space
         double precision,intent(in)      :: A(1:N, 1:N)             ! Input Matrix
         character,parameter              :: JOBZ  = 'V'             ! Eigenvalues and eigenvectors are computed
@@ -48,8 +48,9 @@ contains
         integer,parameter                :: IU    = 1               ! The index of the largest eigenvalues to be returned
         double precision                 :: ABSTOL                  ! Obsolete feature of LAPACK
         integer                          :: M                       ! Total number of eigenvalues found
-        double precision,intent(out)     :: W(1:N)                  ! Eigenvalues in ascending order
-        complex(kind(0d0)),intent(out)   :: Z(1:N, 1:N)             ! The ith column of Z holding the eigenvector associated with W(i)
+        double precision                 :: W(1:N)                  ! Eigenvalues in ascending order
+        complex(kind(0d0))               :: Z_(1:N, 1:N)            ! The ith column of Z holding the eigenvector associated with W(i)
+        complex(kind(0d0)),intent(out)   :: Z(1:N)                  ! The array holding the eigenvector associated with lambda
         integer                          :: LDZ                     ! The first dimension of the array Z
         integer                          :: ISUPPZ(1:2*N)           ! The indices indicating the nonzero elements in Z
         double precision,allocatable     :: WORK(:)                 ! Workspace
@@ -58,6 +59,7 @@ contains
         integer                          :: LIWORK                  ! The dimension of the array iwork
         integer                          :: INFO                    ! Success/Error indicator
         integer                          :: i                       ! Loop variable
+        double precision,intent(out)     :: lambda                  ! Eigenvalue
 
         ! Substitute diagonal/non-diagonal elements of input matrix A
         do i = 1, N
@@ -70,13 +72,13 @@ contains
         LDZ = N
 
         allocate (WORK(1), IWORK(1))
-        call zstegr(JOBZ, RANGE, N, D, E, VL, VU, IL, IU, ABSTOL, M, W, Z, N, ISUPPZ, WORK, -1, IWORK, -1, INFO)
+        call zstegr(JOBZ, RANGE, N, D, E, VL, VU, IL, IU, ABSTOL, M, W, Z_, N, ISUPPZ, WORK, -1, IWORK, -1, INFO)
         LWORK  = int(WORK(1))
         LIWORK = int(WORK(1))
         
         deallocate(WORK, IWORK)
         allocate(WORK(LWORK), IWORK(LIWORK))
-        call zstegr(JOBZ, RANGE, N, D, E, VL, VU, IL, IU, ABSTOL, M, W, Z, N, ISUPPZ, WORK, LWORK, IWORK, LIWORK, INFO)
+        call zstegr(JOBZ, RANGE, N, D, E, VL, VU, IL, IU, ABSTOL, M, W, Z_, N, ISUPPZ, WORK, LWORK, IWORK, LIWORK, INFO)
         deallocate(WORK, IWORK)
 
         if (INFO < 0) then
@@ -88,53 +90,43 @@ contains
             write (*, *) "ERROR : Inverse iteration failed to converge"
             stop
         end if
+
+        lambda = W(1)
+        Z(:) = Z_(:, 1)
     end subroutine solve_eigen
 
     ! Solve Ax = lambda*x for lambda and x
-    subroutine solve_eigen2(A, Z, W, N)
+    subroutine solve_eigen2(A, Z, lambda, N)
         character,parameter              :: JOBZ  = 'V'             ! Eigenvalues and eigenvectors are computed
-        character,parameter              :: RANGE = 'I'             ! The ILth through IUth eigenvectors will be found
         character,parameter              :: UPLO  = 'U'             ! The upper triangular part of A is stored
         integer,intent(in)               :: N                       ! Number of division in space
         double precision,intent(in)      :: A(1:N, 1:N)             ! Input Matrix
         integer                          :: LDA                     ! The first dimension of the array A
-        double precision,parameter       :: VL    = 0d0             ! The lower bound of the interval to be searched for eigenvalues
-        double precision,parameter       :: VU    = 0d0             ! The upper bound of the interval to be searched for eigenvalues
-        integer,parameter                :: IL    = 1               ! The index of the smallest eigenvalues to be returned
-        integer,parameter                :: IU    = 1               ! The index of the largest eigenvalues to be returned
-        double precision                 :: ABSTOL                  ! Obsolete feature of LAPACK
-        integer,parameter                :: M = IU - IL + 1         ! Total number of eigenvalues found
-        double precision,intent(out)     :: W(1:N)                  ! Eigenvalues in ascending order
-        complex(kind(0d0)),intent(out)   :: Z(1:N, 1:M)             ! The ith column of Z holding the eigenvector associated with W(i)
-        integer                          :: LDZ                     ! The first dimension of the array Z
-        double precision,allocatable     :: WORK(:)                 ! Workspace
+        double precision                 :: W(1:N)                  ! Eigenvalues in ascending order
+        complex(kind(0d0)),allocatable   :: WORK(:)                 ! Workspace
         integer                          :: LWORK                   ! The dimension of the array work
-        double precision,allocatable     :: RWORK(:)                ! Workspace
-        integer,allocatable              :: IWORK(:)                ! Workspace
-        integer,allocatable              :: JFAIL(:)                ! The indices of the eigenvectors that failed to converge
+        double precision                 :: RWORK(1:3*N-2)          ! Workspace
         integer                          :: INFO                    ! Success/Error indicator
-        integer                          :: i                       ! Loop variable
         complex(kind(0d0))               :: A_(1:N, 1:N)            ! Workspace
+        complex(kind(0d0))               :: Z(1:N)                  ! Eigenvector
+        double precision,intent(out)     :: lambda                  ! Eigenvalue
 
         ! As the input matrix A_ would be partly overwritten, we don't want A to be changed.
         A_(:, :) = dcmplx(A(:, :), 0d0)
         ! LDZ is the first dimension of the array Z
-        LDZ = N
-        ! ABSTOL is the absolute error tolerance for the eigenvalues.
-        ABSTOL = 2d0 * dlamch()
-        ! Allocate the arrays
-        allocate (RWORK(1:7*N), IWORK(1:5*N), JFAIL(1:N))
+        LDA = N
 
         ! Set parameters so the routine only calculates the optimal size of the WORK array.
         allocate (WORK(1))
         LWORK = -1
-        ! Call ZHEEVX subroutine to calculate the optimal size of the WORK array.
-        call zheevx(JOBZ, RANGE, UPLO, N, A_, LDA, VL, VU, IL, IU, ABSTOL, M, W, Z, LDZ, WORK, LWORK, RWORK, IWORK, JFAIL, INFO)
+        ! Call CHEEV subroutine to calculate the optimal size of the WORK array.
+        call zheev(JOBZ, UPLO, N, A_, LDA, W, WORK, LWORK, RWORK, INFO)
         LWORK  = int(WORK(1))
         ! Re-allocate the size of the array WORK
         deallocate(WORK)
         allocate(WORK(LWORK))
-        call zheevx(JOBZ, RANGE, UPLO, N, A_, LDA, VL, VU, IL, IU, ABSTOL, M, W, Z, LDZ, WORK, LWORK, RWORK, IWORK, JFAIL, INFO)
+        ! Actual calculation of eigenvalue equation
+        call zheev(JOBZ, UPLO, N, A_, LDA, W, WORK, LWORK, RWORK, INFO)
         deallocate(WORK)
 
         if (INFO < 0) then
@@ -146,6 +138,9 @@ contains
             write (*, *) "ERROR : Inverse iteration failed to converge"
             stop
         end if
+
+        lambda = W(1)
+        Z(:)   = A_(:, 1)
     end subroutine solve_eigen2
 
     ! Shift the phase of input complex vector f by Phase
@@ -162,25 +157,4 @@ contains
         
         f_result(:) = exp(-iu*Phase)*f(:)
     end subroutine
-
-    double precision function dlamch()
-        double precision,parameter :: one  = 1d0
-        double precision,parameter :: zero = 0d0
-        double precision           :: rnd, eps, sfmin, small
-
-        ! epsilon : The smallest number of the same kind as zero such that 1+eps > 1
-        eps = epsilon(zero)
-
-        ! tiny : The smallest positive number in the model of the type of zero
-        sfmin = tiny(zero)
-
-        ! huge : The largest number that is not an infinity in the model of the type of zero
-        small = one / huge(zero)
-
-        if ( small >= sfmin ) then
-            sfmin = small*( one+eps )
-        end if
-
-        dlamch = sfmin
-    end function dlamch
 end module mathf
