@@ -37,7 +37,11 @@ program main
     logical                        :: enable           ! enable output
     integer                        :: iter_interval    ! output every iter_interval
     logical                        :: loop_end_flag
-    DOUBLE PRECISION               :: mu0
+    double precision               :: mu0
+    complex(kind(0d0))             :: Z(1:2**8-1)
+    complex(kind(0d0))             :: f(1:3)
+    DOUBLE PRECISION               :: A(1:3, 1:3)
+    double precision               :: sum
     ! Definition of physical values (this could be replaced with I/O)
     ! These values are referenced from
     ! 'Numerical Solution of the Gross-Pitaevskii Equation for Bose-Einstein Condensation'
@@ -56,7 +60,7 @@ program main
     epsilon = (Azero/Xs)**2d0
     kappa   = (4d0*pi*ScatteringLength*ParticleCount/Azero)*(Azero/Xs)**5d0
     dh      = xmax / (n/2 + 0.5d0)
-    dt      = 0.4d0*dh*dh
+    dt      = 0.1d0*dh*dh
     loop_end_flag = .false.
 
     ! Show configuration of fundamental physical constants
@@ -95,10 +99,7 @@ program main
     close(10)
     write (*, *) "- Initial wave function has been saved into ", "data_initial.txt"
     print *, ""
-    call hamiltonian(H, Pot, abs(Phi_prev)**2d0, N, dh, epsilon, kappa, Phi_prev)
-    call expected_value_symm(Phi_prev, H, N, mu)
-    write (*, *) "E = ", mu
-    
+
     ! Start I/O Procedure
     open(10, file="data.txt")
     open(11, file="data_current.txt")
@@ -110,7 +111,7 @@ program main
         write (string, '(A, I6, A)') "#", i, " step calculation began ---------------------------------------"
         call print_ex(string, enable, 'E', iter_interval, i)
         ! Construct the hamiltonian using present wave function data
-        call hamiltonian(H, Pot, abs(Phi_prev)**2d0, N, dh, epsilon, kappa, Phi_prev)
+        call hamiltonian(H, Pot, abs(Phi_prev)**2d0, N, dh, epsilon, kappa)
         write (string, '(X, A)') "- New hamiltonian has been reconstructed with first assumed density |"
         call print_ex(string, enable, 'E', iter_interval, i)
 
@@ -124,7 +125,7 @@ program main
         Phi_temp(:) = sqrt(0.5d0*(abs(Phi_next(:))**2d0 + abs(Phi_prev(:))**2d0))
 
         ! Construct the hamiltonian using present wave function data
-        call hamiltonian(H, Pot, abs(Phi_temp)**2d0, N, dh, epsilon, kappa, Phi_prev)
+        call hamiltonian(H, Pot, abs(Phi_temp)**2d0, N, dh, epsilon, kappa)
         write (string, '(X, A)') "- New hamiltonian has been reconstructed with averaged density      |"
         call print_ex(string, enable, 'E', iter_interval, i)
 
@@ -136,13 +137,13 @@ program main
 
         ! Calculate chemical potential
         mu0 = mu
-        call expected_value_symm(Phi_next, H, N, mu)
+        call expected_value_symm(Phi_next, H, N, mu, dh)
         write (string, '(X, A, F10.5, A)') "- Chemical Potential = ", mu, "                                   |"
         call print_ex(string, enable, 'E', iter_interval, i)
 
         ! Check if chemical potential has been converged or not
         if (abs(mu0 - mu) < 1d-6) then
-            print *, "* Chemical potential has been converged!                             |"
+            print *, "* Chemical potential has been converged!                            |"
             loop_end_flag = .true.
         end if
 
@@ -165,7 +166,7 @@ program main
     print *, "----------------------------------------------------------"
     write (*, *)
     print *, "Result of the calculation ----------------------------------------"
-    call expected_value_symm(Phi_prev, H, N, mu)
+    call expected_value_symm(Phi_prev, H, N, mu, dh)
     print '(X, A, F10.5)', "mu (Chemical Potential) = ", mu
     write (*, *)
 end program 
