@@ -48,7 +48,7 @@ program main
     ! by Weizhu Bao et al. (2003)
     mass             = 1.4d-25
     omega            = 20d0 * pi
-    ParticleCount    = 10000
+    ParticleCount    = 1000
     ScatteringLength = 5.1d-9
     N                = 2**8 - 1
     allocate (Phi_next(0:N), Phi_prev(0:N), Pot(0:N), mus(0:N), j(0:N))
@@ -169,4 +169,9 @@ program main
     call expected_value_symm(Phi_prev, H, N, mu, dh)
     print '(X, A, F10.5)', "mu (Chemical Potential) = ", mu
     write (*, *)
+    print *, "Wave function half of whose phase is changed by pi is saved into a file => ", "data_shifted.txt"
+    call apply_phase_shift(Phi_prev(floor(N/2d0):N), N-floor(N/2d0)+1, iu, pi, Phi_prev(floor(N/2d0):N))
+    open(11, file="data_shifted.txt")
+    call output(11, Phi_prev, N, dh, xmax)
+    close(11)
 end program 

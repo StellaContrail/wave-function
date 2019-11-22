@@ -21,7 +21,7 @@ do for [i=0: data_num-1] {
         interval = time_new - time_old
         speed    = real(skip_output) / interval
         time_old = time_new
-        print sprintf("%d / %d    SPD : %.2f lines/s   ETA : %.2f sec", i, data_num, speed, (data_num-i+1)/speed)
+        print sprintf("%5d / %5d    SPD : %5.2f lines/s   ETA : %5.2f sec", i, data_num, speed, (data_num-i+1)/speed)
     }
     # [NOTE]
     # When "GD Warning: one parameter to a memory allocation multiplication is negative or zero, failing operation gracefully" appears,

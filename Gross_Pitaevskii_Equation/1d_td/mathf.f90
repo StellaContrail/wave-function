@@ -101,14 +101,14 @@ contains
     ! A   : REAL array having dimension of NxN
     ! f   : COMPLEX array having dimension of N
     ! ans : REAL value
-    subroutine expected_value_symm(f, A, N, ans)
+    subroutine expected_value_symm(f, A, N, ans, dh)
         integer,intent(in)             :: N
-        double precision,intent(in)    :: A(0:N, 0:N)
+        double precision,intent(in)    :: A(0:N, 0:N), dh
         complex(kind(0d0)),intent(in)  :: f(0:N)
         double precision,intent(out)   :: ans
         complex(kind(0d0))             :: Af(0:N), temp
         call multiply_symmetry(A, f, N, Af)
-        temp = dot_product(f, Af)
+        temp = dot_product(f, Af) * dh
         if (aimag(temp) > 1d-5) then
             print *, "ERROR : Possible calculation error at expected_value_symm"
         end if

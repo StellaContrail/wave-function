@@ -21,7 +21,7 @@ contains
     !open(10, file="data_shifted_.txt")
     do i = 0, N
          x = -xmax + dh*i
-         Pot(i) = 0.5d0*x*x! + 5d0*exp(-0.5d0*x*x/(sigma**2d0))
+         Pot(i) = 0.5d0*x*x + 5d0*exp(-0.5d0*x*x/(sigma**2d0))
          !if (abs(x) < 2d0) then
          !   Pot(i) = -5d0
          !else

@@ -42,7 +42,7 @@ program main
     ! by Weizhu Bao et al. (2003)
     mass             = 1.4d-25
     omega            = 20d0 * pi
-    ParticleCount    = 100
+    ParticleCount    = 1000
     ScatteringLength = 5.1d-9
     N                = 2**8 - 1
     allocate (Phi_next(0:N), Phi_prev(0:N), Pot(0:N), mus(0:N), j(0:N))
@@ -132,7 +132,7 @@ program main
         call print_ex(string, enable, 'E', iter_interval, i)
 
         ! Calculate chemical potential
-        call expected_value_symm(Phi_next, H, N, mu)
+        call expected_value_symm(Phi_next, H, N, mu, dh)
         write (string, '(X, A, F10.5, A)') "- Chemical Potential = ", mu, "                                   |"
         call print_ex(string, enable, 'E', iter_interval, i)
 
@@ -163,7 +163,7 @@ program main
     print *, "----------------------------------------------------------"
     write (*, *)
     print *, "Result of the calculation ----------------------------------------"
-    call expected_value_symm(Phi_prev, H, N, mu)
+    call expected_value_symm(Phi_prev, H, N, mu, dh)
     print '(X, A, F10.5)', "mu (Chemical Potential) [J] = ", mu
     write (*, *)
 end program 
