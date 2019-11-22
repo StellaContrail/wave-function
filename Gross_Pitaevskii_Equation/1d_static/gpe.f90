@@ -37,7 +37,7 @@ program main
     ! by Weizhu Bao et al. (2003)
     mass             = 1.44d-25
     omega            = 20d0 * pi
-    ParticleCount    = 100
+    ParticleCount    = 200
     ScatteringLength = 5.1d-9
     N                = 2**8 - 1!129   ! N must be an odd number
     DIM              = N + 1 ! Include n=0 point
@@ -56,15 +56,18 @@ program main
     print *, "<Fundamental Physical Constants>"
     print *, "m  (Mass of the bose particle)   [kg] = ", mass
     print *, "omega (Angular velocity of HO)[rad/s] = ", omega
-    print *, "N (Particle Count)            [count] = ", ParticleCount
-    print *, "a (ScatteringLength)              [m] = ", ScatteringLength
-    print *, "n (Dimension of the space)    [count] = ", N
+    print *, "N  (Particle Count)           [count] = ", ParticleCount
+    print *, "a  (ScatteringLength)             [m] = ", ScatteringLength
+    print *, "n  (Dimension of the space)   [count] = ", N
     print *, "A0 (Length of the HO Ground State)[m] = ", Azero
     print *, "Xs (Characteristic Length)        [m] = ", Xs
-    print *, "dh (Step of distance)             [m] = ", dh
+    print *, "dh (Step of distance)             [m] = ", dh*Xs
     print *, "<Coefficients of NLSE terms>"
     print *, "Epsilon (A0/Xs)^2                     = ", epsilon
     print *, "Kappa (Coefficient of NL term)        = ", kappa
+    print *, "<Other Configuration Values>"
+    print *, "Delta (4*pi*a*N/a_0)                  = ", (4d0*pi*ScatteringLength*ParticleCount)/Azero
+    print *, "Healing length (8*pi*|a|*N/Xs^3)^-0.5 = ", ((8d0*pi*abs(ScatteringLength)*ParticleCount)/(Xs**3d0))**(-0.5d0)
     print *, "------------------------------------------------------------------"
     write (*, *)
     
@@ -88,18 +91,18 @@ program main
     ! Set the loop exit flag to be false
     loop_end_flag = .false.
     ! Solve the inconsistent equation until the chemical potential converges
-    do i = 1, 50
+    do i = 1, 300
         write (*, '(A, I4, A)') "#", i, " step calculation began -------------------------------------------"
         ! Construct the hamiltonian using present wave function data
         call hamiltonian(H, Pot, abs(Phi_prev)**2d0, N, dh, epsilon, kappa)
         print *, "- New hamiltonian has been reconstructed with initial assumed density |"
         ! Solve Nonlinear Schroedinger Equation Using the Assumed Wave function
-        call solve_eigen(H, Phi_temp, mu0, DIM)
+        call solve_eigen(H, Phi_temp(0:N), mu0, DIM)
         print *, "- NLSE has been successfully calculated with initial assumed density  |"
         ! Take out the first (lowest energy) eigenvector
         Phi_next(:) = Phi_temp(:)
         ! Take an average between t and t+dt and make new probability whose time step is at t+0.5*dt approximately
-        Phi_temp(:) = 0.5d0*(Phi_next(:) + Phi_prev(:))
+        Phi_temp(:) = sqrt(0.5d0*(abs(Phi_next(:))**2d0 + abs(Phi_prev(:))**2d0))
         ! Construct the hamiltonian using present wave function data
         call hamiltonian(H, Pot, abs(Phi_temp)**2d0, N, dh, epsilon, kappa)
         print *, "- New hamiltonian has been reconstructed with averaged density        |"
@@ -119,7 +122,7 @@ program main
 
         ! Substitute chemical potential
         mu = mu0
-        print '(X, A, F9.5, A)', "- New Chemical potential : ", mu, " [J]                              |"
+        print '(X, A, F9.5, A)', "- New Chemical potential : ", mu, "                                  |"
         print *, "- Chemical potential has been updated                                 |"
 
         Phi_prev = Phi_next
@@ -138,11 +141,11 @@ program main
     print *, "----------------------------------------------------------"
     write (*, *)
     print *, "Result of the calculation ----------------------------------------"
-    print '(X, A, F9.5)', "mu (Chemical Potential) [J] = ", mu
+    print '(X, A, F9.5)', "mu (Chemical Potential)     = ", mu
     write (*, *)
     print *, "Wave function half of whose phase is changed by pi is saved into a file => ", "data_shifted.txt"
     call apply_phase_shift(Phi_prev(floor(N/2d0):N), N-floor(N/2d0)+1, iu, pi, Phi_prev(floor(N/2d0):N))
-    open(10, file="data_shifted.txt")
-    call output(10, Phi_prev, N, dh, xmax)
-    close(10)
+    open(11, file="data_shifted.txt")
+    call output(11, Phi_prev, N, dh, xmax)
+    close(11)
 end program 

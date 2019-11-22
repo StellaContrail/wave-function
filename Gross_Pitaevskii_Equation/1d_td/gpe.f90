@@ -114,7 +114,7 @@ program main
         call print_ex(string, enable, 'E', iter_interval, i)
 
         ! Calculate the average wave function which are located at two different time points
-        Phi_temp(:) = 0.5d0*(Phi_next(:) + Phi_prev(:))
+        Phi_temp(:) = sqrt(0.5d0*(abs(Phi_next(:))**2d0 + abs(Phi_prev(:))**2d0))
 
         ! Construct the hamiltonian using present wave function data
         call hamiltonian(H, Pot, abs(Phi_temp)**2d0, N, dh, epsilon, kappa, Phi_prev)

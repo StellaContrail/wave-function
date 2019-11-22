@@ -21,7 +21,12 @@ contains
     !open(10, file="data_shifted_.txt")
     do i = 0, N
          x = -xmax + dh*i
-         Pot(i) = 0.5d0*x*x + 5d0*exp(-0.5d0*x*x/(sigma**2d0))
+         Pot(i) = 0.5d0*x*x! + 5d0*exp(-0.5d0*x*x/(sigma**2d0))
+         !if (abs(x) < 2d0) then
+         !   Pot(i) = -5d0
+         !else
+         !   Pot(i) = 0d0
+         !end if
          ! Assume the form of the initial wave function
          Phi_prev(i) = exp(-0.5d0*x*x)
          ! Read wave function data from a file
