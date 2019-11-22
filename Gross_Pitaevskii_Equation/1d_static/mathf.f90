@@ -36,67 +36,6 @@ contains
 
     ! Solve Ax = lambda*x for lambda and x
     subroutine solve_eigen(A, Z, lambda, N)
-        integer,intent(in)               :: N                       ! Number of division in space
-        double precision,intent(in)      :: A(1:N, 1:N)             ! Input Matrix
-        character,parameter              :: JOBZ  = 'V'             ! Eigenvalues and eigenvectors are computed
-        character,parameter              :: RANGE = 'I'             ! The ILth through IUth eigenvectors will be found
-        double precision                 :: D(1:N)                  ! The n diagonal elements of the tridiagonal matrix
-        double precision                 :: E(1:N)                  ! The subdiagonal elements of the tridiagonal matrix
-        double precision,parameter       :: VL    = 0d0             ! The lower bound of the interval to be searched for eigenvalues
-        double precision,parameter       :: VU    = 0d0             ! The upper bound of the interval to be searched for eigenvalues
-        integer,parameter                :: IL    = 1               ! The index of the smallest eigenvalues to be returned
-        integer,parameter                :: IU    = 1               ! The index of the largest eigenvalues to be returned
-        double precision                 :: ABSTOL                  ! Obsolete feature of LAPACK
-        integer                          :: M                       ! Total number of eigenvalues found
-        double precision                 :: W(1:N)                  ! Eigenvalues in ascending order
-        complex(kind(0d0))               :: Z_(1:N, 1:N)            ! The ith column of Z holding the eigenvector associated with W(i)
-        complex(kind(0d0)),intent(out)   :: Z(1:N)                  ! The array holding the eigenvector associated with lambda
-        integer                          :: LDZ                     ! The first dimension of the array Z
-        integer                          :: ISUPPZ(1:2*N)           ! The indices indicating the nonzero elements in Z
-        double precision,allocatable     :: WORK(:)                 ! Workspace
-        integer                          :: LWORK                   ! The dimension of the array work
-        integer,allocatable              :: IWORK(:)                ! Workspace
-        integer                          :: LIWORK                  ! The dimension of the array iwork
-        integer                          :: INFO                    ! Success/Error indicator
-        integer                          :: i                       ! Loop variable
-        double precision,intent(out)     :: lambda                  ! Eigenvalue
-
-        ! Substitute diagonal/non-diagonal elements of input matrix A
-        do i = 1, N
-            D(i) = A(i, i)
-            if (i < N) then
-                E(i) = A(i, i+1)
-            end if
-        end do
-        
-        LDZ = N
-
-        allocate (WORK(1), IWORK(1))
-        call zstegr(JOBZ, RANGE, N, D, E, VL, VU, IL, IU, ABSTOL, M, W, Z_, N, ISUPPZ, WORK, -1, IWORK, -1, INFO)
-        LWORK  = int(WORK(1))
-        LIWORK = int(WORK(1))
-        
-        deallocate(WORK, IWORK)
-        allocate(WORK(LWORK), IWORK(LIWORK))
-        call zstegr(JOBZ, RANGE, N, D, E, VL, VU, IL, IU, ABSTOL, M, W, Z_, N, ISUPPZ, WORK, LWORK, IWORK, LIWORK, INFO)
-        deallocate(WORK, IWORK)
-
-        if (INFO < 0) then
-            write (*, *) "ERROR : Argument ", -INFO, " has illegal value"
-        else if (INFO == 1) then
-            write (*, *) "ERROR : The dqds algorithm failed to converge"
-            stop
-        else if (INFO == 2) then
-            write (*, *) "ERROR : Inverse iteration failed to converge"
-            stop
-        end if
-
-        lambda = W(1)
-        Z(:) = Z_(:, 1)
-    end subroutine solve_eigen
-
-    ! Solve Ax = lambda*x for lambda and x
-    subroutine solve_eigen2(A, Z, lambda, N)
         character,parameter              :: JOBZ  = 'V'             ! Eigenvalues and eigenvectors are computed
         character,parameter              :: UPLO  = 'U'             ! The upper triangular part of A is stored
         integer,intent(in)               :: N                       ! Number of division in space
@@ -141,7 +80,7 @@ contains
 
         lambda = W(1)
         Z(:)   = A_(:, 1)
-    end subroutine solve_eigen2
+    end subroutine solve_eigen
 
     ! Shift the phase of input complex vector f by Phase
     ! f        : COMPLEX array having dimension of N

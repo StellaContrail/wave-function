@@ -95,7 +95,7 @@ program main
         call hamiltonian(H, Pot, abs(Phi_prev)**2d0, N, dh, epsilon, kappa)
         print *, "- New hamiltonian has been reconstructed with initial assumed density |"
         ! Solve Nonlinear Schroedinger Equation Using the Assumed Wave function
-        call solve_eigen2(H, Phi_temp, mu0, DIM)
+        call solve_eigen(H, Phi_temp, mu0, DIM)
         print *, "- NLSE has been successfully calculated with initial assumed density  |"
         ! Take out the first (lowest energy) eigenvector
         Phi_next(:) = Phi_temp(:)
@@ -105,7 +105,7 @@ program main
         call hamiltonian(H, Pot, abs(Phi_temp)**2d0, N, dh, epsilon, kappa)
         print *, "- New hamiltonian has been reconstructed with averaged density        |"
         ! Solve Nonlinear Schroedinger Equation with averaged probability density calculated from t and t+dt wave functions
-        call solve_eigen2(H, Phi_next, mu0, DIM)
+        call solve_eigen(H, Phi_next, mu0, DIM)
         print *, "- NLSE has been successfully calculated with averaged density         |"
 
         ! Normalize the wave function
