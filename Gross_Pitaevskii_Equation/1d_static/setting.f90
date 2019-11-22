@@ -8,11 +8,11 @@ contains
     ! N        : Dimension of space exclusing the first element
     ! dh       : Step distance of space
     ! xmax     : Max x position
-  subroutine initialize(Phi_next, Phi_prev, Pot, N, dh, xmax, Azero)
+  subroutine initialize(Phi_next, Phi_prev, Pot, N, dh, xmax)
     integer,intent(in)              :: N
     complex(kind(0d0)),intent(out)  :: Phi_next(0:N), Phi_prev(0:N)
     double precision,intent(out)    :: Pot(0:N)
-    double precision,intent(in)     :: dh, xmax, Azero
+    double precision,intent(in)     :: dh, xmax
     integer                         :: i
     double precision                :: x
     double precision,parameter      :: sigma = 0.8d0

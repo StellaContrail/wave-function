@@ -31,7 +31,6 @@ program main
     double precision               :: mu0              ! chemical potential returned by zhbev
     integer                        :: i                ! Loop variable
     logical                        :: loop_end_flag    ! Loop end flag
-    character(len=1)               :: yn               ! Yes/No flag
     ! Definition of physical values (this could be replaced with I/O)
     ! These values are referenced from
     ! 'Numerical Solution of the Gross-Pitaevskii Equation for Bose-Einstein Condensation'
@@ -71,7 +70,7 @@ program main
     
     print *, "Calculation Start-----------------------------------------"
     ! Initialization of wave function and potential
-    call initialize(Phi_next, Phi_prev, Pot, N, dh, xmax, Azero)
+    call initialize(Phi_next, Phi_prev, Pot, N, dh, xmax)
     write (*, *) "- Initialized the wave function and potential function"
 
     ! Normalization of wave function
