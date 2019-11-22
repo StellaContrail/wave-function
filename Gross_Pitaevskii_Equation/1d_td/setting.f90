@@ -43,27 +43,27 @@ contains
     H(:, :) = 0d0
 
     ! Laplacian part
-    do i = 1, N
+    do i = 0, N
        H(i, i)      = -14350d0 * coe
-       if (i > 1) then
+       if (i > 0) then
           H(i, i-1) = 8064d0 * coe
        end if
        if (i < N) then
           H(i, i+1) = 8064d0 * coe
        end if
-       if (i > 2) then
+       if (i > 1) then
          H(i, i-2)  = -1008d0 * coe
       end if
       if (i < N-1) then
          H(i, i+2)  = -1008d0 * coe
       end if
-      if (i > 3) then
+      if (i > 2) then
          H(i, i-3)  = 128d0 * coe
       end if
       if (i < N-2) then
          H(i, i+3)  = 128d0 * coe
       end if
-      if (i > 4) then
+      if (i > 3) then
          H(i, i-4)  = -9d0 * coe
       end if
       if (i < N-3) then

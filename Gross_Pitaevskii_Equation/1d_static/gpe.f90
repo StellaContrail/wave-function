@@ -37,7 +37,7 @@ program main
     ! by Weizhu Bao et al. (2003)
     mass             = 1.44d-25
     omega            = 20d0 * pi
-    ParticleCount    = 200
+    ParticleCount    = 1000
     ScatteringLength = 5.1d-9
     N                = 2**8 - 1!129   ! N must be an odd number
     DIM              = N + 1 ! Include n=0 point
