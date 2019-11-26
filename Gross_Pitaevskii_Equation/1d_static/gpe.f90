@@ -11,11 +11,12 @@ program main
     ! Physical values
     integer                        :: N                ! Number of division in space
     integer                        :: DIM              ! Dimension of discretized wave function array
-    complex(kind(0d0)),allocatable :: Phi_temp(:)      ! Temporary wave function used by zhbev
-    complex(kind(0d0)),allocatable :: Phi_next(:)      ! Wave function at next step
-    complex(kind(0d0)),allocatable :: Phi_prev(:)      ! Wave function at previous step
+    double precision,allocatable :: Phi_temp(:)        ! Temporary wave function used by zhbev
+    double precision,allocatable :: Phi_next(:)        ! Wave function at next step
+    double precision,allocatable :: Phi_prev(:)        ! Wave function at previous step
     double precision,allocatable   :: Pot(:)           ! Potential
-    double precision,allocatable   :: H(:,:)
+    double precision,allocatable   :: H(:,:)           ! Hamiltonian
+    double precision,allocatable   :: H_temp(:,:)      ! Temporary Hamiltonian used by zhbev
     double precision               :: dh               ! Step of distance in the x-direction
     double precision               :: xmax             ! largest x position (Boundary position)
     double precision               :: mass             ! mass of a boson
@@ -29,7 +30,7 @@ program main
     double precision               :: epsilon          ! squared ratio of Azero to Xs
     double precision               :: kappa            ! coeffient of the nonlinear term
     double precision               :: mu0              ! chemical potential returned by zhbev
-    integer                        :: i                ! Loop variable
+    integer                        :: i,j,k            ! Loop variable
     logical                        :: loop_end_flag    ! Loop end flag
     ! Definition of physical values (this could be replaced with I/O)
     ! These values are referenced from
@@ -41,10 +42,10 @@ program main
     ScatteringLength = 5.1d-9
     N                = 2**8 - 1!129   ! N must be an odd number
     DIM              = N + 1 ! Include n=0 point
-    allocate (Phi_next(0:N), Phi_prev(0:N), Pot(0:N))
-    allocate (Phi_temp(0:N), H(0:N,0:N))
+    allocate (Phi_next(0:N), Phi_prev(0:N), Pot(0:N), H(0:N,0:N))
+    allocate (Phi_temp(1:DIM), H_temp(1:DIM,1:DIM))
     ! Calculation of coefficients and variables using defined physical values
-    xmax    = 10d0
+    xmax    = 20d0
     Azero   = sqrt(hbar/(omega*mass))
     Xs      = Azero   ! Usually chosen to be Azero for a weak/moderate interaction
     epsilon = (Azero/Xs)**2d0
@@ -91,24 +92,25 @@ program main
     ! Set the loop exit flag to be false
     loop_end_flag = .false.
     ! Solve the inconsistent equation until the chemical potential converges
+    open(13, file="density.txt")
     do i = 1, 300
         write (*, '(A, I4, A)') "#", i, " step calculation began -------------------------------------------"
         ! Construct the hamiltonian using present wave function data
         call hamiltonian(H, Pot, abs(Phi_prev)**2d0, N, dh, epsilon, kappa)
         print *, "- New hamiltonian has been reconstructed with initial assumed density |"
+        ! Substitute values into temporary arrays so the subrotutine can receieve them smoothly
+        do j = 0, N
+            do k = 0, N
+                H_temp(j+1, k+1) = H(j,k)
+            end do
+        end do
         ! Solve Nonlinear Schroedinger Equation Using the Assumed Wave function
-        call solve_eigen(H, Phi_temp(0:N), mu0, DIM)
+        call solve_eigen(H_temp(1:DIM, 1:DIM), Phi_temp(1:DIM), mu0, DIM)
         print *, "- NLSE has been successfully calculated with initial assumed density  |"
         ! Take out the first (lowest energy) eigenvector
-        Phi_next(:) = Phi_temp(:)
-        ! Take an average between t and t+dt and make new probability whose time step is at t+0.5*dt approximately
-        Phi_temp(:) = sqrt(0.5d0*(abs(Phi_next(:))**2d0 + abs(Phi_prev(:))**2d0))
-        ! Construct the hamiltonian using present wave function data
-        call hamiltonian(H, Pot, abs(Phi_temp)**2d0, N, dh, epsilon, kappa)
-        print *, "- New hamiltonian has been reconstructed with averaged density        |"
-        ! Solve Nonlinear Schroedinger Equation with averaged probability density calculated from t and t+dt wave functions
-        call solve_eigen(H, Phi_next, mu0, DIM)
-        print *, "- NLSE has been successfully calculated with averaged density         |"
+        do j = 0, N
+            Phi_next(j) = Phi_temp(j+1)
+        end do
 
         ! Normalize the wave function
         call normalize(Phi_next, N, dh)
@@ -125,13 +127,14 @@ program main
         print '(X, A, F9.5, A)', "- New Chemical potential : ", mu, "                                  |"
         print *, "- Chemical potential has been updated                                 |"
 
-        Phi_prev = Phi_next
+        Phi_prev(0:N) = Phi_next(0:N)
         print *, "- Finished                                                            |"
 
         if (loop_end_flag) then
             exit
         end if
     end do
+    close(13)
     print *, "-----------------------------------------------------------------------"
     print *, ""
     write (*, *) "- All calculation procedures have been finished"
@@ -143,9 +146,9 @@ program main
     print *, "Result of the calculation ----------------------------------------"
     print '(X, A, F9.5)', "mu (Chemical Potential)     = ", mu
     write (*, *)
-    print *, "Wave function half of whose phase is changed by pi is saved into a file => ", "data_shifted.txt"
-    call apply_phase_shift(Phi_prev(floor(N/2d0):N), N-floor(N/2d0)+1, iu, pi, Phi_prev(floor(N/2d0):N))
-    open(11, file="data_shifted.txt")
-    call output(11, Phi_prev, N, dh, xmax)
-    close(11)
+    !print *, "Wave function half of whose phase is changed by pi is saved into a file => ", "data_shifted.txt"
+    !call apply_phase_shift(Phi_prev(floor(N/2d0):N), N-floor(N/2d0)+1, iu, pi, Phi_prev(floor(N/2d0):N))
+    !open(11, file="data_shifted.txt")
+    !call output(11, Phi_prev, N, dh, xmax)
+    !close(11)
 end program 

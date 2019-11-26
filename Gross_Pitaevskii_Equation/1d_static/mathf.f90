@@ -28,7 +28,7 @@ contains
     subroutine normalize(f, N, dh)
         integer,intent(in)                :: N
         double precision,intent(in)       :: dh
-        complex(kind(0d0)),intent(inout)  :: f(0:N)
+        double precision,intent(inout)  :: f(0:N)
         double precision sum
         call Integrate(abs(f(:))**2d0, N, dh, sum)
         f(:) = f(:) / sqrt(sum)
@@ -42,16 +42,15 @@ contains
         double precision,intent(in)      :: A(1:N, 1:N)             ! Input Matrix
         integer                          :: LDA                     ! The first dimension of the array A
         double precision                 :: W(1:N)                  ! Eigenvalues in ascending order
-        complex(kind(0d0)),allocatable   :: WORK(:)                 ! Workspace
+        double precision,allocatable     :: WORK(:)                 ! Workspace
         integer                          :: LWORK                   ! The dimension of the array work
-        double precision                 :: RWORK(1:3*N-2)          ! Workspace
         integer                          :: INFO                    ! Success/Error indicator
-        complex(kind(0d0))               :: A_(1:N, 1:N)            ! Workspace
-        complex(kind(0d0))               :: Z(1:N)                  ! Eigenvector
+        double precision                 :: A_(1:N, 1:N)            ! Workspace
+        double precision                 :: Z(1:N)                  ! Eigenvector
         double precision,intent(out)     :: lambda                  ! Eigenvalue
 
         ! As the input matrix A_ would be partly overwritten, we don't want A to be changed.
-        A_(:, :) = dcmplx(A(:, :), 0d0)
+        A_(:, :) = A(:, :)
         ! LDZ is the first dimension of the array Z
         LDA = N
 
@@ -59,13 +58,13 @@ contains
         allocate (WORK(1))
         LWORK = -1
         ! Call CHEEV subroutine to calculate the optimal size of the WORK array.
-        call zheev(JOBZ, UPLO, N, A_, LDA, W, WORK, LWORK, RWORK, INFO)
+        call dsyev(JOBZ, UPLO, N, A_, LDA, W, WORK, LWORK, INFO)
         LWORK  = int(WORK(1))
         ! Re-allocate the size of the array WORK
         deallocate(WORK)
         allocate(WORK(LWORK))
         ! Actual calculation of eigenvalue equation
-        call zheev(JOBZ, UPLO, N, A_, LDA, W, WORK, LWORK, RWORK, INFO)
+        call dsyev(JOBZ, UPLO, N, A_, LDA, W, WORK, LWORK, INFO)
         deallocate(WORK)
 
         if (INFO < 0) then
@@ -91,7 +90,8 @@ contains
     subroutine apply_phase_shift(f, N, iu, Phase, f_result)
         integer,intent(in)             :: N
         double precision,intent(in)    :: Phase
-        complex(kind(0d0)),intent(in)  :: f(0:N), iu
+        double precision,intent(in)    :: f(0:N)
+        complex(kind(0d0)),intent(in)  :: iu
         complex(kind(0d0)),intent(out) :: f_result(0:N)
         
         f_result(:) = exp(-iu*Phase)*f(:)
