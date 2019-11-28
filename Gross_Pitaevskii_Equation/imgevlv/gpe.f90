@@ -137,7 +137,7 @@ program main
 
         ! Calculate chemical potential
         mu0 = mu
-        call expected_value_symm(Phi_next, H, N, mu, dh)
+        call expected_value_symm(Phi_next, H, N, mu)
         write (string, '(X, A, F10.5, A)') "- Chemical Potential = ", mu, "                                   |"
         call print_ex(string, enable, 'E', iter_interval, i)
 
@@ -166,7 +166,7 @@ program main
     print *, "----------------------------------------------------------"
     write (*, *)
     print *, "Result of the calculation ----------------------------------------"
-    call expected_value_symm(Phi_prev, H, N, mu, dh)
+    call expected_value_symm(Phi_prev, H, N, mu)
     print '(X, A, F10.5)', "mu (Chemical Potential) = ", mu
     write (*, *)
     print *, "Wave function half of whose phase is changed by pi is saved into a file => ", "data_shifted.txt"
