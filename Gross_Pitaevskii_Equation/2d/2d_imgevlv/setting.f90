@@ -22,9 +22,11 @@ contains
          y = -xmax + dh*j
          do i = 0, N
             x = -xmax + dh*i
-            Pot(i, j) = 0.5d0*(x*x+gamma*gamma*y*y)
+
+            ! External potential
+            Pot(i, j) = 0.5d0*(x*x+gamma*gamma*y*y) + 100d0*exp(-0.5d0*(x*x+y*y)/(sigma*sigma))
             
-            ! Assume the form of the initial wave function
+            ! Initial trial wave function
             Phi_prev(i, j) = dcmplx(exp(-0.5d0*(x*x+y*y)), 0d0)
          end do
       end do

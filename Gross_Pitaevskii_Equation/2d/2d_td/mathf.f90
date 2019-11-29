@@ -2,11 +2,6 @@
 module mathf
     implicit none
 contains
-    ! Integration of function f using Trapezoidal rule
-    ! f   : Integrand array
-    ! N   : Dimension of space excluding the first element
-    ! dh  : Step distance of space
-    ! sum : The result of the integration
     subroutine integrate(f, N, dh, sum)
         integer,intent(in)           :: N
         double precision,intent(in)  :: f(0:N, 0:N), dh
@@ -33,10 +28,6 @@ contains
         end do
     end subroutine
 
-    ! Normalize the given function f
-    ! f   : Function to be normalized
-    ! N   : Dimension of f
-    ! dh  : step distance of space
     subroutine normalize(f, N, dh)
         integer,intent(in)                :: N
         double precision,intent(in)       :: dh
@@ -46,14 +37,10 @@ contains
         f(:, :) = f(:, :) / sqrt(sum)
     end subroutine normalize
 
-    ! Calculate C := exp(Ax)
-    ! A : REAL array having dimension of NxN
-    ! x : Complex array having dimension of N
-    ! C : Complex array having dimension of N
-    subroutine evolve(Phi_old, N, dt, dh, epsilon, kappa, density, Pot, Phi_next)
+    subroutine evolve(Phi_old, N, dt, dh, epsilon, kappa, iu, density, Pot, Phi_next)
         integer,intent(in)             :: N
         double precision,intent(in)    :: dt, dh, epsilon, kappa, density(0:N,0:N), Pot(0:N,0:N)
-        complex(kind(0d0)),intent(in)  :: Phi_old(0:N,0:N)
+        complex(kind(0d0)),intent(in)  :: Phi_old(0:N,0:N), iu
         complex(kind(0d0)),intent(out) :: Phi_next(0:N,0:N)
         integer                        :: i
         complex(kind(0d0))             :: temp(0:N,0:N), Atemp(0:N,0:N)
@@ -63,17 +50,14 @@ contains
         Phi_next(:,:) = temp(:,:)
 
         ! Other terms of Taylor expansion
-        do i = 1, 4
+        do i = 1, 20
             call apply_hamiltonian(temp, N, dh, epsilon, kappa, density, Pot, Atemp)
             ! Atemp = H*LastTerm
-            temp(:,:)   = -Atemp(:,:)*dt/(epsilon*i)
+            temp(:,:)   = -iu*Atemp(:,:)*dt/(epsilon*i)
             Phi_next(:,:) = Phi_next(:,:) + temp(:,:)
         end do
     end subroutine evolve
 
-    ! Calculate C := HPhi
-    ! Where H is Hamiltonian of the system
-    ! and Phi is 2 dimensional wave function
     subroutine apply_hamiltonian(Phi, N, dh, epsilon, kappa, density, Pot, HPhi)
         integer,intent(in)             :: N
         complex(kind(0d0)),intent(in)  :: Phi(0:N,0:N)
@@ -83,34 +67,51 @@ contains
         double precision,intent(in)    :: Pot(0:N,0:N), density(0:N,0:N)
         
         HPhi(:,:) = dcmplx(0d0, 0d0)
-        ! Laplacian part
+        ! Laplacian part (Five Point Stencil)
         do j = 0, N
             do i = 0, N
-                HPhi(i,j) = -4d0*Phi(i,j)
+                HPhi(i,j) = -60d0*Phi(i,j)
                 if (0 < i) then
-                    HPhi(i,j) = HPhi(i,j) + Phi(i-1,j)
+                    HPhi(i,j) = HPhi(i,j) + 16d0*Phi(i-1,j)
                 end if
-                if (0 < j) then
-                    HPhi(i,j) = HPhi(i,j) + Phi(i,j-1)
+                if (1 < i) then
+                    HPhi(i,j) = HPhi(i,j) - Phi(i-2,j)
+                end if
+                if (i < N-1) then
+                    HPhi(i,j) = HPhi(i,j) - Phi(i+2,j)
                 end if
                 if (i < N) then
-                    HPhi(i,j) = HPhi(i,j) + Phi(i+1,j)
+                    HPhi(i,j) = HPhi(i,j) + 16d0*Phi(i+1,j)
+                end if
+
+                if (0 < j) then
+                    HPhi(i,j) = HPhi(i,j) + 16d0*Phi(i,j-1)
+                end if
+                if (1 < j) then
+                    HPhi(i,j) = HPhi(i,j) - Phi(i,j-2)
+                end if
+                if (j < N-1) then
+                    HPhi(i,j) = HPhi(i,j) - Phi(i,j+2)
                 end if
                 if (j < N) then
-                    HPhi(i,j) = HPhi(i,j) + Phi(i,j+1)
+                    HPhi(i,j) = HPhi(i,j) + 16d0*Phi(i,j+1)
                 end if
             end do
         end do
-        HPhi(:,:) = HPhi(:,:) / (dh*dh)
+        HPhi(:,:) = HPhi(:,:) / (12d0*dh*dh)
+        
+        do j = 0, N
+            do i = 0, N
+                ! Kinetic energy
+                HPhi(i,j) = -0.5d0*epsilon*epsilon*HPhi(i,j)
 
-        ! Kinetic energy
-        HPhi(:,:) = -0.5d0*epsilon*epsilon*HPhi(:,:)
+                ! External potential
+                HPhi(i,j) = HPhi(i,j) + Pot(i,j)*Phi(i,j)
 
-        ! External potential
-        HPhi(:,:) = HPhi(:,:) + Pot(:,:)
-
-        ! Nonlinear part
-        HPhi(:,:) = HPhi(:,:) + kappa*density(:,:)
+                ! Nonlinear part
+                HPhi(i,j) = HPhi(i,j) + kappa*density(i,j)*Phi(i,j)
+            end do
+        end do
     end subroutine
 
     ! Solve Energy Expected Value
@@ -120,13 +121,36 @@ contains
         double precision,intent(in)    :: Pot(0:N,0:N)
         complex(kind(0d0)),intent(in)  :: Phi(0:N,0:N)
         double precision,intent(out)   :: mu
-        complex(kind(0d0))             :: HPhi(0:N,0:N), PhiHPhi(0:N,0:N)
-        double precision               :: f(0:N, 0:N)
+        complex(kind(0d0))             :: HPhi(0:N,0:N), sum_temp(0:N), sum
+        integer                        :: i, j
         mu = 0d0
 
         call apply_hamiltonian(Phi, N, dh, epsilon, kappa, abs(Phi)**2d0, Pot, HPhi)
-        PhiHPhi(:, :) = matmul(conjg(Phi(:,:)), HPhi(:,:))
-        f(:, :) = dble(PhiHPhi(:, :))
-        call integrate(f, N, dh, mu)
+
+        sum_temp(:) = dcmplx(0d0, 0d0)
+        do j = 0, N
+            do i = 0, N
+                if (i == 0 .or. i == N) then
+                    sum_temp(j) = sum_temp(j) + 0.5d0*conjg(Phi(i,j))*HPhi(i,j)*dh
+                else 
+                    sum_temp(j) = sum_temp(j) + conjg(Phi(i,j))*HPhi(i,j)*dh
+                end if
+            end do
+        end do
+
+        sum = dcmplx(0d0, 0d0)
+        do i = 0, N
+            if (i == 0 .or. i == N) then
+                sum = sum + 0.5d0*sum_temp(i)*dh
+            else
+                sum = sum + sum_temp(i)*dh
+            end if
+        end do
+
+        if (aimag(sum) > 1d-5) then
+            write (*, *) "There may be an error when calculating energy in solve_energy()"
+        end if
+
+        mu = dble(sum)
     end subroutine
 end module mathf

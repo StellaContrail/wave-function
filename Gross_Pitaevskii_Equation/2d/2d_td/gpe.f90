@@ -1,4 +1,4 @@
-! Imaginary time-development of Gross-Pitaevskii Equation in 2 dimensional space
+! Time-development of Gross-Pitaevskii Equation in 2 dimensional space
 ! For a reason of Hamiltonian being not dense matrix, we will use just multiple dimensional array here
 
 program main
@@ -8,9 +8,9 @@ program main
     implicit none
     ! Mathematical constants
     double precision,parameter     :: pi   = acos(-1d0)       ! PI
-    complex(kind(0d0)),parameter   :: iu   = 1d0 !dcmplx(0d0, 1d0) ! Imaginary unit
+    complex(kind(0d0)),parameter   :: iu   = dcmplx(0d0, 1d0) ! Imaginary unit
     ! Physical constants
-    double precision,parameter     :: hbar = 1d0 !1.05d-34         ! Reduced Plank constant
+    double precision,parameter     :: hbar = 1.05d-34         ! Reduced Plank constant
     ! Physical values
     integer                        :: N                ! Number of division in space
     complex(kind(0d0)),allocatable :: Phi_temp(:, :)   ! Temporary wave function used by zhbev
@@ -39,17 +39,18 @@ program main
     integer                        :: iter_interval    ! output every iter_interval
     logical                        :: loop_end_flag
     double precision               :: mu0
+    double precision               :: prob
     ! Definition of physical values (this could be replaced with I/O)
     ! These values are referenced from
     ! 'Numerical Solution of the Gross-Pitaevskii Equation for Bose-Einstein Condensation'
     ! by Weizhu Bao et al. (2003)
     mass             = 1.4d-25
-    omega_x          = 1d0 !20d0 * pi
+    omega_x          = 20d0 * pi
     omega_y          = omega_x
     gamma            = omega_y / omega_x
-    ParticleCount    = 1000
+    ParticleCount    = 100
     ScatteringLength = 5.1d-9
-    N                = 2**7 - 1
+    N                = 50 - 1
     allocate (Phi_next(0:N,0:N), Phi_prev(0:N,0:N), Pot(0:N,0:N), j(0:N,0:N))
     allocate (Phi_temp(0:N, 0:N))
     ! Calculation of coefficients and variables using defined physical values
@@ -57,9 +58,9 @@ program main
     Azero   = sqrt(hbar/(omega_x*mass))
     Xs      = Azero   ! Usually chosen to be Azero for a weak/moderate interaction
     epsilon = (Azero/Xs)**2d0
-    kappa   = 0d0!(4d0*pi*ScatteringLength*ParticleCount/Azero)*(Azero/Xs)**5d0
+    kappa   = (4d0*pi*ScatteringLength*ParticleCount/Azero)*(Azero/Xs)**5d0
     dh      = xmax / (n/2 + 0.5d0)
-    dt      = 0.1d0*dh*dh
+    dt      = 0.01d0*dh*dh
     loop_end_flag = .false.
 
     ! Show configuration of fundamental physical constants
@@ -86,38 +87,36 @@ program main
     print *, "Press any key to start calculation..."
     read (*, *)
     print *, "Calculation Start-----------------------------------------"
-    ! Initialization of wave function and potential
+    ! Initialization of wave functions and potential
     call initialize(Phi_next, Phi_prev, Pot, N, dh, xmax, gamma)
     write (*, *) "- Initialized the wave function and potential function"
-
-    ! Normalization of wave function
-    call normalize(Phi_prev, N, dh)
 
     ! Output the initial wave function to file
     open(10, file="data_initial.txt")
     call output(10, Phi_prev, N, dh, xmax)
     close(10)
     write (*, *) "- Initial wave function has been saved into ", "data_initial.txt"
-    print *, ""
-    call solve_energy(Phi_prev, Pot, N, epsilon, kappa, mu0, dh)
-    write (*, *) "Energy : ", mu0
 
     ! Start I/O Procedure
     open(10, file="data.txt")
-    open(11, file="data_current.txt")
+    !open(11, file="data_current.txt")
     allocate(character(len=80) :: string)
     enable = .true.
-    iter_interval = 1
+    iter_interval = 50
     ! Solve the inconsistent equation until the wave function converges
-    do i = 1, 50000
+    do i = 1, 10000
         write (string, '(A, I6, A)') "#", i, " step calculation began ---------------------------------------"
         call print_ex(string, enable, 'E', iter_interval, i)
 
         ! Evolve the system
-        call evolve(Phi_prev, N, dt, dh, epsilon, kappa, abs(Phi_prev)**2d0, Pot, Phi_next)
+        call evolve(Phi_prev, N, dt, dh, epsilon, kappa, iu, abs(Phi_prev)**2d0, Pot, Phi_next)
         write (string, '(X, A)') "- The imaginary time evolution has been carried out                 |"
         call print_ex(string, enable, 'E', iter_interval, i)
-        call normalize(Phi_next, N, dh)
+
+        ! Check if the probability is conserved
+        call integrate(abs(Phi_next)**2d0, N, dh, prob)
+        write (string, '(X, A, F15.10, A)') "- Probability       = ", prob, "                               |"
+        call print_ex(string, enable, 'E', iter_interval, i)
 
         ! Calculate chemical potential
         mu0 = mu
@@ -125,10 +124,16 @@ program main
         write (string, '(X, A, F10.5, A)') "- Chemical Potential = ", mu, "                                   |"
         call print_ex(string, enable, 'E', iter_interval, i)
 
-        ! Check if chemical potential has been converged or not
-        if (abs(mu0 - mu) < 1d-6) then
-            print *, "* Chemical potential has been converged!                            |"
-            loop_end_flag = .true.
+        if (mod(i, 50) == 0) then
+            call output(10, Phi_next, N, dh, xmax)
+            write (string, '(X, A)') "- Wave function has been saved into file                            |"
+            call print_ex(string, enable, 'E', iter_interval, i)
+
+            ! Probability current calculation and output
+            !call calc_current(Phi_next, N, dh, hbar, mass, j)
+            !call output_current(11, j, N, dh, xmax)
+            !write (string, '(X, A)') "- Flux has been saved into file                                     |"
+            !call print_ex(string, enable, 'E', iter_interval, i)
         end if
 
         ! Substitute Phi_next into Phi_prev to calculate the TDGPE
@@ -140,16 +145,11 @@ program main
         if (loop_end_flag) then
             exit
         end if
-        
-        call output(10, Phi_next, N, dh, xmax)
-        close (10)
-        stop
     end do
     print *, "---------------------------------------------------------------------"
     print *, ""
     write (*, *) "- All calculation procedures have been finished"
-    call output(10, Phi_prev, N, dh, xmax)
-    close (10)
+    !close (11)
     write (*, *) "- Calculation result has been saved into ", "data.txt"
     print *, "----------------------------------------------------------"
     write (*, *)
@@ -159,7 +159,7 @@ program main
     write (*, *)
     print *, "Wave function half of whose phase is changed by pi is saved into a file => ", "data_shifted.txt"
     !call apply_phase_shift(Phi_prev(floor(N/2d0):N), N-floor(N/2d0)+1, iu, pi, Phi_prev(floor(N/2d0):N))
-    open(11, file="data_shifted.txt")
-    call output(11, Phi_prev, N, dh, xmax)
-    close(11)
+    !open(11, file="data_shifted.txt")
+    !call output(11, Phi_prev, N, dh, xmax)
+    !close(11)
 end program 

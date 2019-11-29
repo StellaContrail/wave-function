@@ -108,8 +108,8 @@ contains
         double precision,intent(out)   :: ans
         complex(kind(0d0))             :: Af(0:N), temp
         call multiply_symmetry(A, f, N, Af)
-        ! Note that f is coordinate representation (that means 1 = ∫<f|x><x|f>*dh is correct)
-        temp = dot_product(f, Af)*dh
+        
+        temp = dot_product(f, Af) / dot_product(f, f)
         if (aimag(temp) > 1d-5) then
             print *, "ERROR : Possible calculation error at expected_value_symm"
         end if
