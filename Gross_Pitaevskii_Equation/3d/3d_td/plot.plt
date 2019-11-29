@@ -13,7 +13,7 @@ iter_output = 50    # SKIP COUNT IN THE ITERATION OF TIME
 skip_output = 25    # SKIP COUNT OF SHOWING SPEED AND ETA
 # OTHER VARIABLES USED BY SCRIPT
 dh          = xmax / real(N/2 + 0.5)
-dt          = 0.4*dh*dh
+dt          = 0.01*dh*dh
 data_num    = int(real(iter)/iter_output)
 time_new    = 0.0
 time_old    = 0.0

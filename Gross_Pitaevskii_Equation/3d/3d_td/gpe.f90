@@ -13,21 +13,23 @@ program main
     double precision,parameter     :: hbar = 1.05d-34         ! Reduced Plank constant
     ! Physical values
     integer                        :: N                ! Number of division in space
-    complex(kind(0d0)),allocatable :: Phi_temp(:, :)   ! Temporary wave function used by zhbev
-    complex(kind(0d0)),allocatable :: Phi_next(:, :)   ! Wave function at next step
-    complex(kind(0d0)),allocatable :: Phi_prev(:, :)   ! Wave function at previous step
-    double precision,allocatable   :: Pot(:, :)        ! Potential
+    complex(kind(0d0)),allocatable :: Phi_temp(:, :, :)! Temporary wave function used by zhbev
+    complex(kind(0d0)),allocatable :: Phi_next(:, :, :)! Wave function at next step
+    complex(kind(0d0)),allocatable :: Phi_prev(:, :, :)! Wave function at previous step
+    double precision,allocatable   :: Pot(:, :, :)     ! Potential
     double precision               :: dh               ! Step of distance in the x-direction
     double precision               :: dt               ! Step of time     in the t-direction
     double precision               :: xmax             ! largest x position (Boundary position)
     double precision               :: mass             ! mass of a boson
     double precision               :: omega_x          ! angular velocity of harmonic potential in x direction
     double precision               :: omega_y          ! angular velocity of harmonic potential in y direction
-    double precision               :: gamma            ! The ratio of angular velocity in y direction to the one in x direction
+    double precision               :: omega_z          ! angular velocity of harmonic potential in z direction
+    double precision               :: gamma_y          ! The ratio of angular velocity in y direction to the one in x direction
+    double precision               :: gamma_z          ! The ratio of angular velocity in z direction to the one in z direction
     integer                        :: ParticleCount    ! number of bose particles
     double precision               :: ScatteringLength ! s-wave scattering length
     double precision               :: mu               ! chemical potential
-    double precision,allocatable   :: j(:, :)          ! probability current
+    double precision,allocatable   :: j(:, :, :)       ! probability current
     ! Coefficients and variables (not user defined)
     double precision               :: Azero            ! length of the harmonic oscillator ground state
     double precision               :: Xs               ! characteristic length of the condensate
@@ -47,12 +49,14 @@ program main
     mass             = 1.4d-25
     omega_x          = 20d0 * pi
     omega_y          = omega_x
-    gamma            = omega_y / omega_x
+    omega_z          = omega_x
+    gamma_y          = omega_y / omega_x
+    gamma_z          = omega_z / omega_x
     ParticleCount    = 100
     ScatteringLength = 5.1d-9
     N                = 50 - 1
-    allocate (Phi_next(0:N,0:N), Phi_prev(0:N,0:N), Pot(0:N,0:N), j(0:N,0:N))
-    allocate (Phi_temp(0:N, 0:N))
+    allocate (Phi_next(0:N,0:N,0:N), Phi_prev(0:N,0:N,0:N), Pot(0:N,0:N,0:N), j(0:N,0:N,0:N))
+    allocate (Phi_temp(0:N,0:N,0:N))
     ! Calculation of coefficients and variables using defined physical values
     xmax    = 10d0
     Azero   = sqrt(hbar/(omega_x*mass))
@@ -88,12 +92,12 @@ program main
     read (*, *)
     print *, "Calculation Start-----------------------------------------"
     ! Initialization of wave functions and potential
-    call initialize(Phi_next, Phi_prev, Pot, N, dh, xmax, gamma)
+    call initialize(Phi_next, Phi_prev, Pot, N, dh, xmax, gamma_y, gamma_z)
     write (*, *) "- Initialized the wave function and potential function"
 
     ! Output the initial wave function to file
     open(10, file="data_initial.txt")
-    call output(10, Phi_prev, N, dh, xmax)
+    call output_projection(10, Phi_prev, N, dh, xmax)
     close(10)
     write (*, *) "- Initial wave function has been saved into ", "data_initial.txt"
 
@@ -125,7 +129,7 @@ program main
         call print_ex(string, enable, 'E', iter_interval, i)
 
         if (mod(i, 50) == 0) then
-            call output(10, Phi_next, N, dh, xmax)
+            call output_projection(10, Phi_next, N, dh, xmax)
             write (string, '(X, A)') "- Wave function has been saved into file                            |"
             call print_ex(string, enable, 'E', iter_interval, i)
 

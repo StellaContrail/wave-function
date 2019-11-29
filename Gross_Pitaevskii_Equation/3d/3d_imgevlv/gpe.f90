@@ -13,21 +13,23 @@ program main
     double precision,parameter     :: hbar = 1.05d-34         ! Reduced Plank constant
     ! Physical values
     integer                        :: N                ! Number of division in space
-    complex(kind(0d0)),allocatable :: Phi_temp(:, :)   ! Temporary wave function used by zhbev
-    complex(kind(0d0)),allocatable :: Phi_next(:, :)   ! Wave function at next step
-    complex(kind(0d0)),allocatable :: Phi_prev(:, :)   ! Wave function at previous step
-    double precision,allocatable   :: Pot(:, :)        ! Potential
+    complex(kind(0d0)),allocatable :: Phi_temp(:, :, :)! Temporary wave function used by zhbev
+    complex(kind(0d0)),allocatable :: Phi_next(:, :, :)! Wave function at next step
+    complex(kind(0d0)),allocatable :: Phi_prev(:, :, :)! Wave function at previous step
+    double precision,allocatable   :: Pot(:, :, :)     ! Potential
     double precision               :: dh               ! Step of distance in the x-direction
     double precision               :: dt               ! Step of time     in the t-direction
     double precision               :: xmax             ! largest x position (Boundary position)
     double precision               :: mass             ! mass of a boson
     double precision               :: omega_x          ! angular velocity of harmonic potential in x direction
     double precision               :: omega_y          ! angular velocity of harmonic potential in y direction
-    double precision               :: gamma            ! The ratio of angular velocity in y direction to the one in x direction
+    double precision               :: omega_z          ! angular velocity of harmonic potential in z direction
+    double precision               :: gamma_y          ! The ratio of angular velocity in y direction to the one in x direction
+    double precision               :: gamma_z          ! The ratio of angular velocity in z direction to the one in x direction
     integer                        :: ParticleCount    ! number of bose particles
     double precision               :: ScatteringLength ! s-wave scattering length
     double precision               :: mu               ! chemical potential
-    double precision,allocatable   :: j(:, :)          ! probability current
+    double precision,allocatable   :: j(:, :, :)       ! probability current
     ! Coefficients and variables (not user defined)
     double precision               :: Azero            ! length of the harmonic oscillator ground state
     double precision               :: Xs               ! characteristic length of the condensate
@@ -46,12 +48,14 @@ program main
     mass             = 1.4d-25
     omega_x          = 20d0 * pi
     omega_y          = omega_x
-    gamma            = omega_y / omega_x
+    omega_z          = omega_x
+    gamma_y          = omega_y / omega_x
+    gamma_z          = omega_z / omega_x
     ParticleCount    = 100
     ScatteringLength = 5.1d-9
     N                = 50 - 1
-    allocate (Phi_next(0:N,0:N), Phi_prev(0:N,0:N), Pot(0:N,0:N), j(0:N,0:N))
-    allocate (Phi_temp(0:N, 0:N))
+    allocate (Phi_next(0:N,0:N,0:N), Phi_prev(0:N,0:N,0:N), Pot(0:N,0:N,0:N), j(0:N,0:N,0:N))
+    allocate (Phi_temp(0:N, 0:N,0:N))
     ! Calculation of coefficients and variables using defined physical values
     xmax    = 10d0
     Azero   = sqrt(hbar/(omega_x*mass))
@@ -87,7 +91,7 @@ program main
     read (*, *)
     print *, "Calculation Start-----------------------------------------"
     ! Initialization of wave functions and potential
-    call initialize(Phi_next, Phi_prev, Pot, N, dh, xmax, gamma)
+    call initialize(Phi_next, Phi_prev, Pot, N, dh, xmax, gamma_y, gamma_z)
     write (*, *) "- Initialized the wave function and potential function"
 
     ! Normalization of wave function
@@ -95,19 +99,19 @@ program main
 
     ! Output the initial wave function to file
     open(10, file="data_initial.txt")
-    call output(10, Phi_prev, N, dh, xmax)
+    call output_projection(10, Phi_prev, N, dh, xmax)
     close(10)
     write (*, *) "- Initial wave function has been saved into ", "data_initial.txt"
 
     ! Output the form of potential to file
     open(10, file="data_pot.txt")
-    call output_real(10, Pot, N, dh, xmax)
+    call output_cutout(10, Pot, N, dh, xmax, 25)
     close(10)
     write (*, *) "- Potential form has been saved into ", "data_pot.txt"
 
     ! Start I/O Procedure
     open(10, file="data.txt")
-    open(11, file="data_current.txt")
+    open(11, file="data_raw.txt")
     allocate(character(len=80) :: string)
     enable = .true.
     iter_interval = 50
@@ -147,8 +151,10 @@ program main
     print *, "---------------------------------------------------------------------"
     print *, ""
     write (*, *) "- All calculation procedures have been finished"
-    call output(10, Phi_prev, N, dh, xmax)
+    call output_projection(10, Phi_prev, N, dh, xmax)
+    call output(11, Phi_prev, N, dh, xmax)
     close (10)
+    close(11)
     write (*, *) "- Calculation result has been saved into ", "data.txt"
     print *, "----------------------------------------------------------"
     write (*, *)
@@ -156,9 +162,9 @@ program main
     !call expected_value_symm(Phi_prev, H, N, mu)
     print '(X, A, F10.5)', "mu (Chemical Potential) = ", mu
     write (*, *)
-    print *, "Wave function half of whose phase is changed by pi is saved into a file => ", "data_shifted.txt"
+    !print *, "Wave function half of whose phase is changed by pi is saved into a file => ", "data_shifted.txt"
     !call apply_phase_shift(Phi_prev(floor(N/2d0):N), N-floor(N/2d0)+1, iu, pi, Phi_prev(floor(N/2d0):N))
-    open(11, file="data_shifted.txt")
-    call output(11, Phi_prev, N, dh, xmax)
-    close(11)
+    !open(11, file="data_shifted.txt")
+    !call output_projection(11, Phi_prev, N, dh, xmax)
+    !close(11)
 end program 
