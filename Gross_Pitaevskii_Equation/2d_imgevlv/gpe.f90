@@ -8,15 +8,14 @@ program main
     implicit none
     ! Mathematical constants
     double precision,parameter     :: pi   = acos(-1d0)       ! PI
-    complex(kind(0d0)),parameter   :: iu   = dcmplx(0d0, 1d0) ! Imaginary unit
+    complex(kind(0d0)),parameter   :: iu   = 1d0 !dcmplx(0d0, 1d0) ! Imaginary unit
     ! Physical constants
-    double precision,parameter     :: hbar = 1.05d-34         ! Reduced Plank constant
+    double precision,parameter     :: hbar = 1d0 !1.05d-34         ! Reduced Plank constant
     ! Physical values
     integer                        :: N                ! Number of division in space
-    integer                        :: DIM              ! Dimension of discretized wave function
-    double precision,allocatable :: Phi_temp(:, :)   ! Temporary wave function used by zhbev
-    double precision,allocatable :: Phi_next(:, :)   ! Wave function at next step
-    double precision,allocatable :: Phi_prev(:, :)   ! Wave function at previous step
+    complex(kind(0d0)),allocatable :: Phi_temp(:, :)   ! Temporary wave function used by zhbev
+    complex(kind(0d0)),allocatable :: Phi_next(:, :)   ! Wave function at next step
+    complex(kind(0d0)),allocatable :: Phi_prev(:, :)   ! Wave function at previous step
     double precision,allocatable   :: Pot(:, :)        ! Potential
     double precision               :: dh               ! Step of distance in the x-direction
     double precision               :: dt               ! Step of time     in the t-direction
@@ -35,17 +34,17 @@ program main
     double precision               :: epsilon          ! squared ratio of Azero to Xs
     double precision               :: kappa            ! coeffient of the nonlinear term
     integer                        :: i                ! Loop variable
-    double precision               :: prob             ! Probability of the system (should be 1)
     character(:),allocatable       :: string           ! ouput string
     logical                        :: enable           ! enable output
     integer                        :: iter_interval    ! output every iter_interval
     logical                        :: loop_end_flag
+    double precision               :: mu0
     ! Definition of physical values (this could be replaced with I/O)
     ! These values are referenced from
     ! 'Numerical Solution of the Gross-Pitaevskii Equation for Bose-Einstein Condensation'
     ! by Weizhu Bao et al. (2003)
     mass             = 1.4d-25
-    omega_x          = 20d0 * pi
+    omega_x          = 1d0 !20d0 * pi
     omega_y          = omega_x
     gamma            = omega_y / omega_x
     ParticleCount    = 1000
@@ -58,7 +57,7 @@ program main
     Azero   = sqrt(hbar/(omega_x*mass))
     Xs      = Azero   ! Usually chosen to be Azero for a weak/moderate interaction
     epsilon = (Azero/Xs)**2d0
-    kappa   = (4d0*pi*ScatteringLength*ParticleCount/Azero)*(Azero/Xs)**5d0
+    kappa   = 0d0!(4d0*pi*ScatteringLength*ParticleCount/Azero)*(Azero/Xs)**5d0
     dh      = xmax / (n/2 + 0.5d0)
     dt      = 0.1d0*dh*dh
     loop_end_flag = .false.
@@ -100,7 +99,9 @@ program main
     close(10)
     write (*, *) "- Initial wave function has been saved into ", "data_initial.txt"
     print *, ""
-    
+    call solve_energy(Phi_prev, Pot, N, epsilon, kappa, mu0, dh)
+    write (*, *) "Energy : ", mu0
+
     ! Start I/O Procedure
     open(10, file="data.txt")
     open(11, file="data_current.txt")
@@ -112,37 +113,23 @@ program main
         write (string, '(A, I6, A)') "#", i, " step calculation began ---------------------------------------"
         call print_ex(string, enable, 'E', iter_interval, i)
 
-        ! Solve Nonlinear Schroedinger Equation Using the Assumed Wave function
-        !call exp_mat(H, Phi_prev, N, dt, epsilon, iu, Phi_next)
-        write (string, '(X, A)') "- NLSE has been successfully calculated with first assumed density  |"
+        ! Evolve the system
+        call evolve(Phi_prev, N, dt, dh, epsilon, kappa, abs(Phi_prev)**2d0, Pot, Phi_next)
+        write (string, '(X, A)') "- The imaginary time evolution has been carried out                 |"
         call print_ex(string, enable, 'E', iter_interval, i)
-        call normalize(Phi_prev, N, dh)
-
-        ! Calculate the average wave function which are located at two different time points
-        !Phi_temp(:) = sqrt(0.5d0*(abs(Phi_next(:))**2d0 + abs(Phi_prev(:))**2d0))
-
-        ! Construct the hamiltonian using present wave function data
-        !call hamiltonian(H, Pot, abs(Phi_temp)**2d0, N, dh, epsilon, kappa)
-        write (string, '(X, A)') "- New hamiltonian has been reconstructed with averaged density      |"
-        call print_ex(string, enable, 'E', iter_interval, i)
-
-        ! Solve Nonlinear Schroedinger Equation Using the Assumed Wave function
-        !call exp_mat(H, Phi_prev, N, dt, epsilon, iu, Phi_next)
-        write (string, '(X, A)') "- NLSE has been successfully calculated with averaged density       |"
-        call print_ex(string, enable, 'E', iter_interval, i)
-        call normalize(Phi_prev, N, dh)
+        call normalize(Phi_next, N, dh)
 
         ! Calculate chemical potential
-        !mu0 = mu
-        !call expected_value_symm(Phi_next, H, N, mu)
+        mu0 = mu
+        call solve_energy(Phi_next, Pot, N, epsilon, kappa, mu, dh)
         write (string, '(X, A, F10.5, A)') "- Chemical Potential = ", mu, "                                   |"
         call print_ex(string, enable, 'E', iter_interval, i)
 
         ! Check if chemical potential has been converged or not
-        !if (abs(mu0 - mu) < 1d-6) then
-        !    print *, "* Chemical potential has been converged!                            |"
-        !    loop_end_flag = .true.
-        !end if
+        if (abs(mu0 - mu) < 1d-6) then
+            print *, "* Chemical potential has been converged!                            |"
+            loop_end_flag = .true.
+        end if
 
         ! Substitute Phi_next into Phi_prev to calculate the TDGPE
         Phi_prev = Phi_next
@@ -153,6 +140,10 @@ program main
         if (loop_end_flag) then
             exit
         end if
+        
+        call output(10, Phi_next, N, dh, xmax)
+        close (10)
+        stop
     end do
     print *, "---------------------------------------------------------------------"
     print *, ""

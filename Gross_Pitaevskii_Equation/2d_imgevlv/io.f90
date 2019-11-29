@@ -5,31 +5,19 @@ contains
     subroutine output(unit, f, N, dh, xmax)
         integer,intent(in)            :: unit, N
         double precision,intent(in)   :: dh, xmax
-        double precision,intent(in) :: f(0:N, 0:N)
+        complex(kind(0d0)),intent(in) :: f(0:N, 0:N)
         double precision x, y
         integer i, j
+
         do j = 0, N
             y = -xmax + dh * j
             do i = 0, N
                 x = -xmax + dh * i
-                write (unit, '(*(F10.5, X))') x, y, f(i,j)**2d0
+                write (unit, '(*(F10.5, X))') x, y, abs(f(i,j))**2d0
             end do
         end do
         write (unit, *)
     end subroutine output
-
-    ! Output probability current to a file
-    subroutine output_current(unit, f, N, dh, xmax)
-        integer,intent(in)            :: unit, N
-        double precision,intent(in)   :: dh, xmax, f(0:N)
-        double precision x
-        integer i
-        do i = 0, N
-            x = -xmax + dh * i
-            write (unit, '(*(F10.5, X))') x, f(i)
-        end do
-        write (unit, *)
-    end subroutine
 
     ! Print string to display
     ! string : content to print
