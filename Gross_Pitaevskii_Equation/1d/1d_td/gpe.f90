@@ -10,11 +10,11 @@ program main
     double precision,parameter     :: hbar = 1.05d-34         ! Reduced Plank constant
     ! Physical values
     integer                        :: N                ! Number of division in space
-    integer                        :: DIM              ! Dimension of discretized wave function
     complex(kind(0d0)),allocatable :: Phi_temp(:)      ! Temporary wave function used by zhbev
     complex(kind(0d0)),allocatable :: Phi_next(:)      ! Wave function at next step
     complex(kind(0d0)),allocatable :: Phi_prev(:)      ! Wave function at previous step
     double precision,allocatable   :: Pot(:)           ! Potential
+    double precision,allocatable   :: Pot_TD(:)        ! Time-Dependant Potential
     double precision,allocatable   :: H(:,:)
     double precision               :: dh               ! Step of distance in the x-direction
     double precision               :: dt               ! Step of time     in the t-direction
@@ -36,16 +36,17 @@ program main
     character(:),allocatable       :: string           ! ouput string
     logical                        :: enable           ! enable output
     integer                        :: iter_interval    ! output every iter_interval
+    integer                        :: output_count     ! Number of processed data
     ! Definition of physical values (this could be replaced with I/O)
     ! These values are referenced from
     ! 'Numerical Solution of the Gross-Pitaevskii Equation for Bose-Einstein Condensation'
     ! by Weizhu Bao et al. (2003)
     mass             = 1.4d-25
     omega            = 20d0 * pi
-    ParticleCount    = 1000
+    ParticleCount    = 100
     ScatteringLength = 5.1d-9
     N                = 2**8 - 1
-    allocate (Phi_next(0:N), Phi_prev(0:N), Pot(0:N), mus(0:N), j(0:N))
+    allocate (Phi_next(0:N), Phi_prev(0:N), Pot(0:N), mus(0:N), j(0:N), Pot_TD(0:N))
     allocate (Phi_temp(0:N), H(0:N,0:N))
     ! Calculation of coefficients and variables using defined physical values
     xmax    = 10d0
@@ -80,8 +81,9 @@ program main
     read (*, *)
     print *, "Calculation Start-----------------------------------------"
     ! Initialization of wave function and potential
-    call initialize(Phi_next, Phi_prev, Pot, N, dh, xmax, Azero)
+    call initialize(Phi_next, Phi_prev, Pot, N, dh, xmax)
     write (*, *) "- Initialized the wave function and potential function"
+    Pot_TD(:) = Pot(:)
 
     ! Normalization of wave function
     call normalize(Phi_prev, N, dh)
@@ -96,15 +98,17 @@ program main
     ! Start I/O Procedure
     open(10, file="data.txt")
     open(11, file="data_current.txt")
+    open(30, file="data_potential.txt")
     allocate(character(len=80) :: string)
     enable = .true.
     iter_interval = 50
+    output_count = 0
     ! Solve the inconsistent equation until the wave function converges
     do i = 1, 50000
         write (string, '(A, I6, A)') "#", i, " step calculation began ---------------------------------------"
         call print_ex(string, enable, 'E', iter_interval, i)
         ! Construct the hamiltonian using present wave function data
-        call hamiltonian(H, Pot, abs(Phi_prev)**2d0, N, dh, epsilon, kappa, Phi_prev)
+        call hamiltonian(H, Pot_TD, abs(Phi_prev)**2d0, N, dh, epsilon, kappa)
         write (string, '(X, A)') "- New hamiltonian has been reconstructed with first assumed density |"
         call print_ex(string, enable, 'E', iter_interval, i)
 
@@ -117,7 +121,7 @@ program main
         Phi_temp(:) = sqrt(0.5d0*(abs(Phi_next(:))**2d0 + abs(Phi_prev(:))**2d0))
 
         ! Construct the hamiltonian using present wave function data
-        call hamiltonian(H, Pot, abs(Phi_temp)**2d0, N, dh, epsilon, kappa, Phi_prev)
+        call hamiltonian(H, Pot_TD, abs(Phi_temp)**2d0, N, dh, epsilon, kappa)
         write (string, '(X, A)') "- New hamiltonian has been reconstructed with averaged density      |"
         call print_ex(string, enable, 'E', iter_interval, i)
 
@@ -140,6 +144,8 @@ program main
             call output(10, Phi_next, N, dh, xmax)
             write (string, '(X, A)') "- Wave function has been saved into file                            |"
             call print_ex(string, enable, 'E', iter_interval, i)
+            call output_real(30, Pot_TD, N, dh, xmax)
+            output_count = output_count + 1
 
             ! Probability current calculation and output
             call calc_current(Phi_next, N, dh, hbar, mass, j)
@@ -153,13 +159,17 @@ program main
 
         write (string, '(X, A)') "- Finished                                                          |"
         call print_ex(string, enable, 'E', iter_interval, i)
+
+        call change_potential(Pot, Pot_TD, N, i)
     end do
     print *, "---------------------------------------------------------------------"
     print *, ""
     write (*, *) "- All calculation procedures have been finished"
     close (10)
     close (11)
+    close (30)
     write (*, *) "- Calculation result has been saved into ", "data.txt"
+    write (*, *) output_count, " groups of data"
     print *, "----------------------------------------------------------"
     write (*, *)
     print *, "Result of the calculation ----------------------------------------"

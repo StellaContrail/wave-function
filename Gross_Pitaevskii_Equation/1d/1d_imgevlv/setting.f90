@@ -20,7 +20,7 @@ contains
 
       do i = 0, N
          x = -xmax + dh*i
-         Pot(i) = 0.5d0*x*x + 100d0*exp(-0.5d0*x*x/(sigma**2d0))
+         Pot(i) = 0.5d0*x*x! + 100d0*exp(-0.5d0*x*x/(sigma**2d0))
          
          ! Assume the form of the initial wave function
          Phi_prev(i) = exp(-0.5d0*x*x)

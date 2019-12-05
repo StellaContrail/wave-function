@@ -101,9 +101,9 @@ contains
     ! A   : REAL array having dimension of NxN
     ! f   : COMPLEX array having dimension of N
     ! ans : REAL value
-    subroutine expected_value_symm(f, A, N, ans, dh)
+    subroutine expected_value_symm(f, A, N, ans)
         integer,intent(in)             :: N
-        double precision,intent(in)    :: A(0:N, 0:N), dh
+        double precision,intent(in)    :: A(0:N, 0:N)
         complex(kind(0d0)),intent(in)  :: f(0:N)
         double precision,intent(out)   :: ans
         complex(kind(0d0))             :: Af(0:N), temp

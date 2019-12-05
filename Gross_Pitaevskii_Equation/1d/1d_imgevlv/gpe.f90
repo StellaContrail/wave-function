@@ -48,7 +48,7 @@ program main
     ! by Weizhu Bao et al. (2003)
     mass             = 1.4d-25
     omega            = 20d0 * pi
-    ParticleCount    = 1000
+    ParticleCount    = 100
     ScatteringLength = 5.1d-9
     N                = 2**8 - 1
     allocate (Phi_next(0:N), Phi_prev(0:N), Pot(0:N), mus(0:N), j(0:N))
@@ -89,6 +89,10 @@ program main
     ! Initialization of wave function and potential
     call initialize(Phi_next, Phi_prev, Pot, N, dh, xmax, Azero)
     write (*, *) "- Initialized the wave function and potential function"
+
+    open(30, file="data_potential.txt")
+    call output_real(30, Pot, N, dh, xmax)
+    close(30)
 
     ! Normalization of wave function
     call normalize(Phi_prev, N, dh)

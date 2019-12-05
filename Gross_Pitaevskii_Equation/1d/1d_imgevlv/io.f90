@@ -22,6 +22,20 @@ contains
         write (unit, *)
     end subroutine output
 
+    ! Output to a file
+    subroutine output_real(unit, f, N, dh, xmax)
+        integer,intent(in)            :: unit, N
+        double precision,intent(in)   :: dh, xmax
+        double precision,intent(in)   :: f(0:N)
+        double precision x
+        integer i
+        do i = 0, N
+            x = -xmax + dh * i
+            write (unit, '(*(F10.5, X))') x, f(i)
+        end do
+        write (unit, *)
+    end subroutine output_real
+
     ! Output probability current to a file
     subroutine output_current(unit, f, N, dh, xmax)
         integer,intent(in)            :: unit, N

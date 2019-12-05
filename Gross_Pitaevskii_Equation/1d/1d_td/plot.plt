@@ -29,7 +29,7 @@ do for [i=0: data_num-1] {
     set title sprintf("Time development of Non-Linear Schroedinger Equation\n( T = %.3f )", dt*i)
     #plot "data.txt" every :::i::i using 1:2 with lines title "REAL","data.txt" every :::i::i using 1:3 with lines title "IMAG", "data.txt" every :::i::i using 1:4 with lines title "ABSL", 0.5*x*x title "V(x)"
     #plot "data.txt" every :::i::i using 1:2 with lines title "REAL"
-    plot "data.txt" every :::i::i using 1:4 with lines title "PROB", 0.5*x*x title "V(x)", "data_shifted.txt" using 1:4 with lines title "INITIAL"
+    plot "data.txt" every :::i::i using 1:4 with lines title "PROB", "data_potential.txt" every :::i::i with lines title "V(x)", "data_shifted.txt" using 1:4 with lines title "INITIAL"
 }
 unset output
 set terminal wxt
