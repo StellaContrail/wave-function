@@ -46,7 +46,7 @@ contains
         integer                          :: LWORK                   ! The dimension of the array work
         integer                          :: INFO                    ! Success/Error indicator
         double precision                 :: A_(1:N, 1:N)            ! Workspace
-        double precision                 :: Z(1:N)                  ! Eigenvector
+        double precision,intent(out)     :: Z(1:N)                  ! Eigenvector
         double precision,intent(out)     :: lambda                  ! Eigenvalue
 
         ! As the input matrix A_ would be partly overwritten, we don't want A to be changed.
@@ -95,5 +95,17 @@ contains
         complex(kind(0d0)),intent(out) :: f_result(0:N)
         
         f_result(:) = exp(-iu*Phase)*f(:)
+    end subroutine
+
+
+    subroutine calc_asymmetry_degree(Phi, N, Degree)
+        integer,intent(in)           :: N
+        double precision,intent(in)  :: Phi(0:N)
+        double precision,intent(out) :: Degree
+        integer                      :: i
+        Degree = 0d0
+        do i = 0, floor(N/2d0)
+            Degree = Degree + abs(Phi(ceiling(N/2d0) + i) - Phi(floor(N/2d0) - i))
+        end do
     end subroutine
 end module mathf

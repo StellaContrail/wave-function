@@ -10,33 +10,20 @@ contains
     ! xmax     : Max x position
   subroutine initialize(Phi_next, Phi_prev, Pot, N, dh, xmax)
       integer,intent(in)              :: N
-      double precision,intent(out)  :: Phi_next(0:N), Phi_prev(0:N)
+      double precision,intent(out)    :: Phi_next(0:N), Phi_prev(0:N)
       double precision,intent(out)    :: Pot(0:N)
       double precision,intent(in)     :: dh, xmax
       integer                         :: i
       double precision                :: x
       double precision,parameter      :: sigma = 0.8d0
-      !double precision                :: dummy, real_part, imag_part
       Phi_next(:) = 0d0
-      !open(10, file="data_shifted_.txt")
       do i = 0, N
          x = -xmax + dh*i
-         ! Harmonic potential
+         ! Potential
          Pot(i) = 0.5d0*x*x
-         ! Add a wall to split into two wave functions
-         !Pot(i) = Pot(i) + 5d0*exp(-0.5d0*x*x/(sigma**2d0))
-         !if (abs(x) < 2d0) then
-         !   Pot(i) = -5d0
-         !else
-         !   Pot(i) = 0d0
-         !end if
-         ! Assume the form of the initial wave function
+         ! Initial Trial Wave function
          Phi_prev(i) = exp(-0.5d0*x*x)
-         ! Read wave function data from a file
-         !read (10, *) dummy, real_part, imag_part, dummy, dummy
-         !Phi_prev(i) = dcmplx(real_part, imag_part)
       end do
-      !close(10)
   end subroutine initialize
 
   ! Construct the hamiltonian
@@ -59,33 +46,28 @@ contains
             H(i, i+1) = 8064d0 * coe
          end if
          if (i > 1) then
-         H(i, i-2)  = -1008d0 * coe
-      end if
-      if (i < N-1) then
-         H(i, i+2)  = -1008d0 * coe
-      end if
-      if (i > 2) then
-         H(i, i-3)  = 128d0 * coe
-      end if
-      if (i < N-2) then
-         H(i, i+3)  = 128d0 * coe
-      end if
-      if (i > 3) then
-         H(i, i-4)  = -9d0 * coe
-      end if
-      if (i < N-3) then
-         H(i, i+4)  = -9d0 * coe
-      end if
+            H(i, i-2)  = -1008d0 * coe
+         end if
+         if (i < N-1) then
+            H(i, i+2)  = -1008d0 * coe
+         end if
+         if (i > 2) then
+            H(i, i-3)  = 128d0 * coe
+         end if
+         if (i < N-2) then
+            H(i, i+3)  = 128d0 * coe
+         end if
+         if (i > 3) then
+            H(i, i-4)  = -9d0 * coe
+         end if
+         if (i < N-3) then
+            H(i, i+4)  = -9d0 * coe
+         end if
       end do
 
       ! Potential and Nonlinear part
       do i = 0, N
          H(i, i) = H(i, i) + Pot(i) + kappa*density(i)
       end do
-
-      do i = 0, N
-         write (13, *) -10d0+dh*i, density(i)
-      end do
-      write (13, *)
   end subroutine hamiltonian
 end module

@@ -11,10 +11,11 @@ program main
     ! Physical values
     integer                        :: N                ! Number of division in space
     integer                        :: DIM              ! Dimension of discretized wave function array
-    double precision,allocatable :: Phi_temp(:)        ! Temporary wave function used by zhbev
-    double precision,allocatable :: Phi_next(:)        ! Wave function at next step
-    double precision,allocatable :: Phi_prev(:)        ! Wave function at previous step
+    double precision,allocatable   :: Phi_temp(:)      ! Temporary wave function used by zhbev
+    double precision,allocatable   :: Phi_next(:)      ! Wave function at next step
+    double precision,allocatable   :: Phi_prev(:)      ! Wave function at previous step
     double precision,allocatable   :: Pot(:)           ! Potential
+    double precision,allocatable   :: Pot_TD(:)        ! Time-Dependent Potential
     double precision,allocatable   :: H(:,:)           ! Hamiltonian
     double precision,allocatable   :: H_temp(:,:)      ! Temporary Hamiltonian used by zhbev
     double precision               :: dh               ! Step of distance in the x-direction
@@ -32,6 +33,7 @@ program main
     double precision               :: mu0              ! chemical potential returned by zhbev
     integer                        :: i,j,k            ! Loop variable
     logical                        :: loop_end_flag    ! Loop end flag
+    double precision               :: Degree
     ! Definition of physical values (this could be replaced with I/O)
     ! These values are referenced from
     ! 'Numerical Solution of the Gross-Pitaevskii Equation for Bose-Einstein Condensation'
@@ -42,10 +44,10 @@ program main
     ScatteringLength = 5.1d-9
     N                = 2**8 - 1!129   ! N must be an odd number
     DIM              = N + 1 ! Include n=0 point
-    allocate (Phi_next(0:N), Phi_prev(0:N), Pot(0:N), H(0:N,0:N))
+    allocate (Phi_next(0:N), Phi_prev(0:N), Pot(0:N), H(0:N,0:N), Pot_TD(0:N))
     allocate (Phi_temp(1:DIM), H_temp(1:DIM,1:DIM))
     ! Calculation of coefficients and variables using defined physical values
-    xmax    = 20d0
+    xmax    = 10d0
     Azero   = sqrt(hbar/(omega*mass))
     Xs      = Azero   ! Usually chosen to be Azero for a weak/moderate interaction
     epsilon = (Azero/Xs)**2d0
@@ -77,23 +79,31 @@ program main
     call initialize(Phi_next, Phi_prev, Pot, N, dh, xmax)
     write (*, *) "- Initialized the wave function and potential function"
 
+    Pot_TD(:) = Pot(:)
+
+    ! For development usefulness (TO BE DELETED)
+    open(20, file="data_asymmetry_degree.txt")
+
+    open(30, file="data_potential.txt")
+    call output_potential(30, Pot, N, dh, xmax)
+    close(30)
+
     ! Normalization of wave function
     call normalize(Phi_prev, N, dh)
     
     ! Output the initial wave function to file
     open(10, file="data_initial.txt")
-    call output(10, Phi_prev, N, dh, xmax)
+    call output_real(10, Phi_prev, N, dh, xmax)
     close(10)
     write (*, *) "- Initial wave function has been saved into ", "data_initial.txt"
     print *, ""
 
     ! Start I/O Procedure
     open(10, file="data.txt")
+    open(30, file="data_td_potential.txt")
     ! Set the loop exit flag to be false
     loop_end_flag = .false.
-    ! Solve the inconsistent equation until the chemical potential converges
-    open(13, file="density.txt")
-    do i = 1, 300
+    do i = 1, 1000
         write (*, '(A, I4, A)') "#", i, " step calculation began -------------------------------------------"
         ! Construct the hamiltonian using present wave function data
         call hamiltonian(H, Pot, abs(Phi_prev)**2d0, N, dh, epsilon, kappa)
@@ -104,6 +114,10 @@ program main
                 H_temp(j+1, k+1) = H(j,k)
             end do
         end do
+
+        Pot_TD(:) =  Pot(:) + kappa*abs(Phi_prev(:))**2d0
+        call output_potential(30, Pot_TD, N, dh, xmax)
+
         ! Solve Nonlinear Schroedinger Equation Using the Assumed Wave function
         call solve_eigen(H_temp(1:DIM, 1:DIM), Phi_temp(1:DIM), mu0, DIM)
         print *, "- NLSE has been successfully calculated with initial assumed density  |"
@@ -130,25 +144,28 @@ program main
         Phi_prev(0:N) = Phi_next(0:N)
         print *, "- Finished                                                            |"
 
+        ! For development usefulness : TO BE DELETED
+        call calc_asymmetry_degree(Phi_prev, N, Degree)
+        write (20, *) i, Degree
+        write (20, *)
+
+
         if (loop_end_flag) then
-            exit
+            !exit
         end if
     end do
-    close(13)
+    close(20)
     print *, "-----------------------------------------------------------------------"
     print *, ""
     write (*, *) "- All calculation procedures have been finished"
-    call output(10, Phi_prev, N, dh, xmax)
+    call output_real(10, Phi_prev, N, dh, xmax)
     close (10)
+    call calc_asymmetry_degree(Phi_prev, N, Degree)
+    write (*, *) Degree
     write (*, *) "- Calculation result has been saved into ", "data.txt"
     print *, "----------------------------------------------------------"
     write (*, *)
     print *, "Result of the calculation ----------------------------------------"
     print '(X, A, F9.5)', "mu (Chemical Potential)     = ", mu
     write (*, *)
-    !print *, "Wave function half of whose phase is changed by pi is saved into a file => ", "data_shifted.txt"
-    !call apply_phase_shift(Phi_prev(floor(N/2d0):N), N-floor(N/2d0)+1, iu, pi, Phi_prev(floor(N/2d0):N))
-    !open(11, file="data_shifted.txt")
-    !call output(11, Phi_prev, N, dh, xmax)
-    !close(11)
 end program 
