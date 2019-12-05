@@ -18,11 +18,11 @@ contains
       double precision,parameter      :: sigma = 0.8d0
       Phi_next(:) = 0d0
       do i = 0, N
-         x = -xmax + dh*i
+         x = dh*i -0.5d0*dh*N
          ! Potential
          Pot(i) = 0.5d0*x*x
          ! Initial Trial Wave function
-         Phi_prev(i) = exp(-0.5d0*x*x)
+         Phi_prev(i) = exp(-0.5d0*x*x/9d0)
       end do
   end subroutine initialize
 
@@ -46,22 +46,22 @@ contains
             H(i, i+1) = 8064d0 * coe
          end if
          if (i > 1) then
-            H(i, i-2)  = -1008d0 * coe
+            H(i, i-2) = -1008d0 * coe
          end if
          if (i < N-1) then
-            H(i, i+2)  = -1008d0 * coe
+            H(i, i+2) = -1008d0 * coe
          end if
          if (i > 2) then
-            H(i, i-3)  = 128d0 * coe
+            H(i, i-3) = 128d0 * coe
          end if
          if (i < N-2) then
-            H(i, i+3)  = 128d0 * coe
+            H(i, i+3) = 128d0 * coe
          end if
          if (i > 3) then
-            H(i, i-4)  = -9d0 * coe
+            H(i, i-4) = -9d0 * coe
          end if
          if (i < N-3) then
-            H(i, i+4)  = -9d0 * coe
+            H(i, i+4) = -9d0 * coe
          end if
       end do
 

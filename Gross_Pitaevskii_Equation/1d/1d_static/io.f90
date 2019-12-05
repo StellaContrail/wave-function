@@ -8,7 +8,7 @@ contains
         double precision x
         integer i
         do i = 0, N
-            x = -xmax + dh * i
+            x = dh * i -0.5d0*dh*N
             write (unit, '(*(F10.5, X))') x, abs(f(i))**2d0
         end do
         write (unit, *)
@@ -21,7 +21,7 @@ contains
         double precision x
         integer i
         do i = 0, N
-            x = -xmax + dh * i
+            x = dh * i -0.5d0*dh*N
             write (unit, '(*(F10.5, X))') x, f(i)
         end do
         write (unit, *)

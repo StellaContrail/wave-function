@@ -33,26 +33,32 @@ program main
     double precision               :: mu0              ! chemical potential returned by zhbev
     integer                        :: i,j,k            ! Loop variable
     logical                        :: loop_end_flag    ! Loop end flag
-    double precision               :: Degree
+    double precision               :: Degree           ! Degree of asymmetry of wave function
     ! Definition of physical values (this could be replaced with I/O)
     ! These values are referenced from
     ! 'Numerical Solution of the Gross-Pitaevskii Equation for Bose-Einstein Condensation'
     ! by Weizhu Bao et al. (2003)
     mass             = 1.44d-25
     omega            = 20d0 * pi
-    ParticleCount    = 1000
+    ParticleCount    = 1000 ! Until 120 or so is the threshold for precise calculation
     ScatteringLength = 5.1d-9
-    N                = 2**8 - 1!129   ! N must be an odd number
+    !N                = 2**4 - 1!129   ! N must be an odd number
+    ! Calculation of coefficients and variables using defined physical values
+    xmax    = 5d0
+    Azero   = sqrt(hbar/(omega*mass))
+    Xs      = 2d0*Azero   ! Usually chosen to be Azero for a weak/moderate interaction
+    epsilon = (Azero/Xs)**2d0
+    kappa   = (4d0*pi*ScatteringLength*ParticleCount/Azero)*(Azero/Xs)**5d0
+    !dh      = xmax / (n/2 + 0.5d0)
+    dh      = 0.8d0
+    !xmax    = (N+0.5d0)*dh
+    N       = int(2d0*xmax/dh)
+    if (mod(N, 2) == 0) then
+        N = N + 1
+    end if
     DIM              = N + 1 ! Include n=0 point
     allocate (Phi_next(0:N), Phi_prev(0:N), Pot(0:N), H(0:N,0:N), Pot_TD(0:N))
     allocate (Phi_temp(1:DIM), H_temp(1:DIM,1:DIM))
-    ! Calculation of coefficients and variables using defined physical values
-    xmax    = 10d0
-    Azero   = sqrt(hbar/(omega*mass))
-    Xs      = Azero   ! Usually chosen to be Azero for a weak/moderate interaction
-    epsilon = (Azero/Xs)**2d0
-    kappa   = (4d0*pi*ScatteringLength*ParticleCount/Azero)*(Azero/Xs)**5d0
-    dh      = xmax / (n/2 + 0.5d0)
 
     ! Show configuration of fundamental physical constants
     print *, "Physical constants of the system----------------------------------"
@@ -96,7 +102,6 @@ program main
     call output_real(10, Phi_prev, N, dh, xmax)
     close(10)
     write (*, *) "- Initial wave function has been saved into ", "data_initial.txt"
-    print *, ""
 
     ! Start I/O Procedure
     open(10, file="data.txt")
@@ -104,11 +109,11 @@ program main
     ! Set the loop exit flag to be false
     loop_end_flag = .false.
     do i = 1, 1000
-        write (*, '(A, I4, A)') "#", i, " step calculation began -------------------------------------------"
-        ! Construct the hamiltonian using present wave function data
+        if (mod(i, 50) == 0) then
+            write (*, *) "ITERATION COUNT = ", i
+        end if
+
         call hamiltonian(H, Pot, abs(Phi_prev)**2d0, N, dh, epsilon, kappa)
-        print *, "- New hamiltonian has been reconstructed with initial assumed density |"
-        ! Substitute values into temporary arrays so the subrotutine can receieve them smoothly
         do j = 0, N
             do k = 0, N
                 H_temp(j+1, k+1) = H(j,k)
@@ -118,50 +123,34 @@ program main
         Pot_TD(:) =  Pot(:) + kappa*abs(Phi_prev(:))**2d0
         call output_potential(30, Pot_TD, N, dh, xmax)
 
-        ! Solve Nonlinear Schroedinger Equation Using the Assumed Wave function
         call solve_eigen(H_temp(1:DIM, 1:DIM), Phi_temp(1:DIM), mu0, DIM)
-        print *, "- NLSE has been successfully calculated with initial assumed density  |"
-        ! Take out the first (lowest energy) eigenvector
         do j = 0, N
             Phi_next(j) = Phi_temp(j+1)
         end do
-
-        ! Normalize the wave function
         call normalize(Phi_next, N, dh)
-        print *, "- Wave function has been normalized                                   |"
-
-        ! Check if chemical potential has been converged or not
-        if (abs(mu0 - mu) < 1d-6) then
-            print *, "* Chemical potential has been converged!                              |"
-            loop_end_flag = .true.
-        end if
-
-        ! Substitute chemical potential
-        mu = mu0
-        print '(X, A, F9.5, A)', "- New Chemical potential : ", mu, "                                  |"
-        print *, "- Chemical potential has been updated                                 |"
-
         Phi_prev(0:N) = Phi_next(0:N)
-        print *, "- Finished                                                            |"
 
         ! For development usefulness : TO BE DELETED
         call calc_asymmetry_degree(Phi_prev, N, Degree)
         write (20, *) i, Degree
         write (20, *)
 
+        if (abs(mu0 - mu) < 1d-6) then
+            loop_end_flag = .true.
+        end if
+
+        mu = mu0
 
         if (loop_end_flag) then
-            !exit
+            exit
         end if
     end do
     close(20)
-    print *, "-----------------------------------------------------------------------"
-    print *, ""
     write (*, *) "- All calculation procedures have been finished"
     call output_real(10, Phi_prev, N, dh, xmax)
     close (10)
     call calc_asymmetry_degree(Phi_prev, N, Degree)
-    write (*, *) Degree
+    write (*, '(X, A, F15.10)') "- Degree of system's asymmetry = ", Degree
     write (*, *) "- Calculation result has been saved into ", "data.txt"
     print *, "----------------------------------------------------------"
     write (*, *)
