@@ -33,8 +33,34 @@ contains
                 x = -xmax + dh*i
 
                 ! External potential
-                Pot(i, j) = 0.5d0*(x*x+gamma*gamma*y*y)
+                !Pot(i, j) = 0.5d0*(x*x+gamma*gamma*y*y)
+                if (abs(x) < 10d0 .and. abs(y) < 10d0) then
+                    Pot(i, j) = -5d0
+                else
+                    Pot(i, j) = 0d0
+                end if
             end do
         end do
   end subroutine initialize
+
+  subroutine vary_potential(Pot, Pot_TD, N, dh, iter, xmax)
+    integer,intent(in)             :: N, iter
+    double precision,intent(in)    :: Pot(0:N, 0:N), dh, xmax
+    double precision,intent(inout) :: Pot_TD(0:N, 0:N)
+    integer                        :: i, j
+    double precision               :: R_0 = 2d0
+    double precision               :: OMEGA = 2d0*acos(-1d0)/2000
+    double precision               :: x_s, y_s, x, y
+    double precision               :: sigma = 0.5d0
+
+    do j = 0, N
+        y_s = R_0*sin(OMEGA*iter)
+        y = -xmax + dh*j
+        do i = 0, N
+            x_s = R_0*cos(OMEGA*iter)
+            x = -xmax + dh*i
+            Pot_TD(i, j) = Pot(i, j) + 10d0*exp(-0.5d0*((x-x_s)**2d0+(y-y_s)**2d0)/sigma**2d0)
+        end do
+    end do
+  end subroutine vary_potential
 end module

@@ -17,6 +17,7 @@ program main
     complex(kind(0d0)),allocatable :: Phi_next(:, :)   ! Wave function at next step
     complex(kind(0d0)),allocatable :: Phi_prev(:, :)   ! Wave function at previous step
     double precision,allocatable   :: Pot(:, :)        ! Potential
+    double precision,allocatable   :: Pot_TD(:, :)     ! Time-dependent Potential
     double precision               :: dh               ! Step of distance in the x-direction
     double precision               :: dt               ! Step of time     in the t-direction
     double precision               :: xmax             ! largest x position (Boundary position)
@@ -48,13 +49,13 @@ program main
     omega_x          = 20d0 * pi
     omega_y          = omega_x
     gamma            = omega_y / omega_x
-    ParticleCount    = 100
+    ParticleCount    = 1000
     ScatteringLength = 5.1d-9
     N                = 50 - 1
-    allocate (Phi_next(0:N,0:N), Phi_prev(0:N,0:N), Pot(0:N,0:N), j(0:N,0:N))
+    allocate (Phi_next(0:N,0:N), Phi_prev(0:N,0:N), Pot(0:N,0:N), j(0:N,0:N), Pot_TD(0:N,0:N))
     allocate (Phi_temp(0:N, 0:N))
     ! Calculation of coefficients and variables using defined physical values
-    xmax    = 10d0
+    xmax    = 15d0
     Azero   = sqrt(hbar/(omega_x*mass))
     Xs      = Azero   ! Usually chosen to be Azero for a weak/moderate interaction
     epsilon = (Azero/Xs)**2d0
@@ -90,6 +91,7 @@ program main
     ! Initialization of wave functions and potential
     call initialize(Phi_next, Phi_prev, Pot, N, dh, xmax, gamma)
     write (*, *) "- Initialized the wave function and potential function"
+    Pot_TD(:, :) = Pot(:, :)
 
     ! Output the initial wave function to file
     open(10, file="data_initial.txt")
@@ -99,6 +101,7 @@ program main
 
     ! Start I/O Procedure
     open(10, file="data.txt")
+    open(30, file="data_potential.txt")
     !open(11, file="data_current.txt")
     allocate(character(len=80) :: string)
     enable = .true.
@@ -109,8 +112,8 @@ program main
         call print_ex(string, enable, 'E', iter_interval, i)
 
         ! Evolve the system
-        call evolve(Phi_prev, N, dt, dh, epsilon, kappa, iu, abs(Phi_prev)**2d0, Pot, Phi_next)
-        write (string, '(X, A)') "- The imaginary time evolution has been carried out                 |"
+        call evolve(Phi_prev, N, dt, dh, epsilon, kappa, iu, abs(Phi_prev)**2d0, Pot_TD, Phi_next)
+        write (string, '(X, A)') "- The real time evolution has been carried out                      |"
         call print_ex(string, enable, 'E', iter_interval, i)
 
         ! Check if the probability is conserved
@@ -120,7 +123,7 @@ program main
 
         ! Calculate chemical potential
         mu0 = mu
-        call solve_energy(Phi_next, Pot, N, epsilon, kappa, mu, dh)
+        call solve_energy(Phi_next, Pot_TD, N, epsilon, kappa, mu, dh)
         write (string, '(X, A, F10.5, A)') "- Chemical Potential = ", mu, "                                   |"
         call print_ex(string, enable, 'E', iter_interval, i)
 
@@ -128,6 +131,8 @@ program main
             call output(10, Phi_next, N, dh, xmax)
             write (string, '(X, A)') "- Wave function has been saved into file                            |"
             call print_ex(string, enable, 'E', iter_interval, i)
+
+            call output_potential(30, Pot_TD, N, dh, xmax)
 
             ! Probability current calculation and output
             !call calc_current(Phi_next, N, dh, hbar, mass, j)
@@ -142,6 +147,8 @@ program main
         write (string, '(X, A)') "- Finished                                                          |"
         call print_ex(string, enable, 'E', iter_interval, i)
 
+        call vary_potential(Pot, Pot_TD, N, dh, i, xmax)
+
         if (loop_end_flag) then
             exit
         end if
@@ -149,7 +156,9 @@ program main
     print *, "---------------------------------------------------------------------"
     print *, ""
     write (*, *) "- All calculation procedures have been finished"
+    close(10)
     !close (11)
+    close(30)
     write (*, *) "- Calculation result has been saved into ", "data.txt"
     print *, "----------------------------------------------------------"
     write (*, *)

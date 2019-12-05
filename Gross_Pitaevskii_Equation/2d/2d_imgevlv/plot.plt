@@ -1,10 +1,9 @@
 set pm3d
 set multiplot layout 1,3
-set xrange [-10:10]
-set yrange [-10:10]
+set xrange [-15:15]
+set yrange [-15:15]
 set zrange [0:1]
-sigma = 0.1
-GAMMA = 1.0
+#set cbrange [0:0.3]
 set xlabel "x (unit:Xs)"
 set ylabel "y (unit:Xs)"
 set zlabel "Intensity"
@@ -17,6 +16,7 @@ splot "data.txt" using 1:2:3 with pm3d title "final"
 #splot "data_shifted.txt" using 1:2:4 with pm3d title "shifted (real)"
 #splot "data_shifted.txt" using 1:2:5 with pm3d title "shifted (imag)"
 unset zrange
+#unset cbrange
 set title "External Potential"
 splot "data_pot.txt" using 1:2:3 with pm3d title "potential"
 unset multiplot
