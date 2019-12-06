@@ -56,32 +56,36 @@ contains
     double precision               :: v_x, v_y
     double precision               :: x_s, y_s, x, y
     double precision               :: sigma = 0.5d0
+    integer,parameter              :: mode = 1
 
     v_x = 2d0*xmax/10000d0
     v_y = v_x
 
-    ! Linear Stirring
-    !do j = 0, N
-    !    y_s = v_y * iter - xmax
-    !    y = -xmax + dh*j
-    !    do i = 0, N
-    !        x_s = v_x * iter - xmax
-    !        x = -xmax + dh*i
-    !
-    !        Pot_TD(i, j) = Pot(i, j) + 10d0*exp(-0.5d0*((x-x_s)**2d0+(y-y_s)**2d0)/sigma**2d0)
-    !    end do
-    !end do
-
-
-    ! Circular Stirring
-    do j = 0, N
-        y_s = R_0*sin(OMEGA*iter)
-        y = -xmax + dh*j
-        do i = 0, N
-            x_s = R_0*cos(OMEGA*iter)
-            x = -xmax + dh*i
-            Pot_TD(i, j) = Pot(i, j) + 10d0*exp(-0.5d0*((x-x_s)**2d0+(y-y_s)**2d0)/sigma**2d0)
+    if (mode == 1) then
+        ! Linear Stirring
+        do j = 0, N
+            y_s = v_y * iter - xmax
+            y = -xmax + dh*j
+            do i = 0, N
+                x_s = v_x * iter - xmax
+                x = -xmax + dh*i
+        
+                Pot_TD(i, j) = Pot(i, j) + 10d0*exp(-0.5d0*((x-x_s)**2d0+(y-y_s)**2d0)/sigma**2d0)
+            end do
         end do
-    end do
+    else if (mode == 0) then
+        ! Circular Stirring
+        do j = 0, N
+            y_s = R_0*sin(OMEGA*iter)
+            y = -xmax + dh*j
+            do i = 0, N
+                x_s = R_0*cos(OMEGA*iter)
+                x = -xmax + dh*i
+                Pot_TD(i, j) = Pot(i, j) + 10d0*exp(-0.5d0*((x-x_s)**2d0+(y-y_s)**2d0)/sigma**2d0)
+            end do
+        end do
+    else
+        stop "Invalid mode was given"
+    end if
   end subroutine vary_potential
 end module
