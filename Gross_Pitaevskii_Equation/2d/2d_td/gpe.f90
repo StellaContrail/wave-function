@@ -41,6 +41,7 @@ program main
     logical                        :: loop_end_flag
     double precision               :: mu0
     double precision               :: prob
+    double precision,allocatable   :: Flux(:,:,:)
     ! Definition of physical values (this could be replaced with I/O)
     ! These values are referenced from
     ! 'Numerical Solution of the Gross-Pitaevskii Equation for Bose-Einstein Condensation'
@@ -53,7 +54,8 @@ program main
     ScatteringLength = 5.1d-9
     N                = 50 - 1
     allocate (Phi_next(0:N,0:N), Phi_prev(0:N,0:N), Pot(0:N,0:N), j(0:N,0:N), Pot_TD(0:N,0:N))
-    allocate (Phi_temp(0:N, 0:N))
+    allocate (Phi_temp(0:N,0:N))
+    allocate (Flux(0:N,0:N,1:2))
     ! Calculation of coefficients and variables using defined physical values
     xmax    = 15d0
     Azero   = sqrt(hbar/(omega_x*mass))
@@ -102,6 +104,7 @@ program main
     ! Start I/O Procedure
     open(10, file="data.txt")
     open(30, file="data_potential.txt")
+    open(40, file="data_flux.txt")
     !open(11, file="data_current.txt")
     allocate(character(len=80) :: string)
     enable = .true.
@@ -132,7 +135,12 @@ program main
             write (string, '(X, A)') "- Wave function has been saved into file                            |"
             call print_ex(string, enable, 'E', iter_interval, i)
 
+            ! Output the present potential form into a file
             call output_potential(30, Pot_TD, N, dh, xmax)
+
+            ! Calculate the flux of every discretized point
+            call calc_flux(Phi_next, N, mass, dh, hbar, Flux)
+            call output_flux(40, Flux, N, dh, xmax)
 
             ! Probability current calculation and output
             !call calc_current(Phi_next, N, dh, hbar, mass, j)
@@ -156,9 +164,10 @@ program main
     print *, "---------------------------------------------------------------------"
     print *, ""
     write (*, *) "- All calculation procedures have been finished"
-    close(10)
+    close (10)
     !close (11)
-    close(30)
+    close (30)
+    close (40)
     write (*, *) "- Calculation result has been saved into ", "data.txt"
     print *, "----------------------------------------------------------"
     write (*, *)

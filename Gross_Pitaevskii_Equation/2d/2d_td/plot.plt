@@ -23,7 +23,7 @@ do for [i=0: data_num-1] {
         time_old = time_new
         print sprintf("%5d / %5d    SPD : %5.2f lines/s   ETA : %5.2f sec", i, data_num, speed, (data_num-i+1)/speed)
     }
-    set multiplot layout 1,2
+    set multiplot layout 1,2 scale 1,1
         set zrange [0:1]
         set cbrange [0:0.006]
         set title sprintf("Time development of Non-Linear Schroedinger Equation\n( T = %.3f )", dt*i)

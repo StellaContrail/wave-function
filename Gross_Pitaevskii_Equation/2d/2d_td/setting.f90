@@ -17,6 +17,9 @@ contains
         integer                         :: i, j
         Phi_next(:, :) = dcmplx(0d0, 0d0)
 
+        if (access("data_input.txt", "") > 0) then
+            stop "Input file 'data_input.txt' cannot be found"
+        end if
         open(30, file="data_input.txt")
         do j = 0, N
             do i = 0, N
