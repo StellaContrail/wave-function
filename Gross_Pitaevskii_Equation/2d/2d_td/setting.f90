@@ -61,27 +61,27 @@ contains
     v_y = v_x
 
     ! Linear Stirring
-    do j = 0, N
-        y_s = v_y * iter - xmax
-        y = -xmax + dh*j
-        do i = 0, N
-            x_s = v_x * iter - xmax
-            x = -xmax + dh*i
-
-            Pot_TD(i, j) = Pot(i, j) + 10d0*exp(-0.5d0*((x-x_s)**2d0+(y-y_s)**2d0)/sigma**2d0)
-        end do
-    end do
-
-
-    ! Circular Stirring
     !do j = 0, N
-    !    y_s = R_0*sin(OMEGA*iter)
+    !    y_s = v_y * iter - xmax
     !    y = -xmax + dh*j
     !    do i = 0, N
-    !        x_s = R_0*cos(OMEGA*iter)
+    !        x_s = v_x * iter - xmax
     !        x = -xmax + dh*i
+    !
     !        Pot_TD(i, j) = Pot(i, j) + 10d0*exp(-0.5d0*((x-x_s)**2d0+(y-y_s)**2d0)/sigma**2d0)
     !    end do
     !end do
+
+
+    ! Circular Stirring
+    do j = 0, N
+        y_s = R_0*sin(OMEGA*iter)
+        y = -xmax + dh*j
+        do i = 0, N
+            x_s = R_0*cos(OMEGA*iter)
+            x = -xmax + dh*i
+            Pot_TD(i, j) = Pot(i, j) + 10d0*exp(-0.5d0*((x-x_s)**2d0+(y-y_s)**2d0)/sigma**2d0)
+        end do
+    end do
   end subroutine vary_potential
 end module

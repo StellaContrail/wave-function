@@ -198,4 +198,35 @@ contains
 
         Flux(:,:,:) = Flux(:,:,:)!*(hbar/mass)
     end subroutine
+
+    subroutine calc_rotation(Flux, N, dh, xmax, Rot)
+        integer,intent(in)           :: N
+        double precision,intent(in)  :: Flux(0:N,0:N,1:2), dh, xmax
+        double precision,intent(out) :: Rot(0:N,0:N)
+        integer                      :: i, j
+        double precision             :: x, y
+
+        Rot(0,0) = (Flux(1,0,2)-Flux(0,0,2))/dh - (Flux(0,1,1)-Flux(0,0,1))/dh
+        Rot(0,N) = (Flux(1,N,2)-Flux(0,N,2))/dh - (Flux(0,N,1)-Flux(0,N-1,1))/dh
+        Rot(N,0) = (Flux(N,0,2)-Flux(N-1,0,2))/dh - (Flux(N,1,1)-Flux(N,0,1))/dh
+        Rot(N,N) = (Flux(N,N,2)-Flux(N-1,N,2))/dh - (Flux(N,N,1)-Flux(N,N-1,1))/dh
+
+        do j = 1, N-1
+            Rot(0,j) = (Flux(1,j,2)-Flux(0,j,2))/dh - (Flux(0,j+1,1)-Flux(0,j-1,1))/(2d0*dh)
+            Rot(N,j) = (Flux(N,j,2)-Flux(N-1,j,2))/dh - (Flux(N,j+1,1)-Flux(N,j-1,1))/(2d0*dh)
+        end do
+
+        do i = 1, N-1
+            Rot(i,0) = (Flux(i+1,0,2)-Flux(i-1,0,2))/(2d0*dh) - (Flux(i,1,1)-Flux(i,0,1))/dh
+            Rot(i,N) = (Flux(i+1,N,2)-Flux(i-1,N,2))/(2d0*dh) - (Flux(i,N,1)-Flux(i,N-1,1))/dh
+        end do
+
+        do j = 1, N-1
+            y = -xmax + dh*j
+            do i = 1, N-1
+                x = -xmax + dh*i
+                Rot(i,j) = (Flux(i+1,j,2)-Flux(i-1,j,2))/(2d0*dh) - (Flux(i,j+1,1)-Flux(i,j-1,1))/(2d0*dh)
+            end do
+        end do
+    end subroutine
 end module mathf

@@ -55,6 +55,34 @@ contains
         end do
     end subroutine
 
+    subroutine output_rotation(unit, Rot, N, dh, xmax)
+        integer,intent(in)          :: unit, N
+        double precision,intent(in) :: dh, xmax
+        double precision,intent(in) :: Rot(0:N,0:N)
+        double precision            :: x, y, z
+        integer                     :: i, j, k
+        double precision,parameter  :: SCALE = 1000d0
+        
+        do k = 0, 1
+            z = -xmax + dh * k
+            do j = 0, N, 10
+                y = -xmax + dh * j
+                do i = 0, N, 10
+                    x = -xmax + dh * i
+
+                    ! X Y Z ROT_X ROT_Y ROT_Z
+                    if (k == 0) then
+                        write (unit, '(*(F10.5,X))') x, y, 0d0, 0d0, 0d0, SCALE*Rot(i,j)
+                    else
+                        write (unit, '(*(F10.5,X))') x, y, z, 0d0, 0d0, 0d0
+                    end if
+                end do
+                write (unit, *)
+            end do
+            write (unit, *)
+        end do
+    end subroutine
+
     ! Print string to display
     ! string : content to print
     ! enable : whether to enable print feature

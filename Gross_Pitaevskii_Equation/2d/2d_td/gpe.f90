@@ -42,6 +42,7 @@ program main
     double precision               :: mu0
     double precision               :: prob
     double precision,allocatable   :: Flux(:,:,:)
+    double precision,allocatable   :: Rot(:,:)
     ! Definition of physical values (this could be replaced with I/O)
     ! These values are referenced from
     ! 'Numerical Solution of the Gross-Pitaevskii Equation for Bose-Einstein Condensation'
@@ -55,7 +56,7 @@ program main
     N                = 50 - 1
     allocate (Phi_next(0:N,0:N), Phi_prev(0:N,0:N), Pot(0:N,0:N), j(0:N,0:N), Pot_TD(0:N,0:N))
     allocate (Phi_temp(0:N,0:N))
-    allocate (Flux(0:N,0:N,1:2))
+    allocate (Flux(0:N,0:N,1:2), Rot(0:N,0:N))
     ! Calculation of coefficients and variables using defined physical values
     xmax    = 15d0
     Azero   = sqrt(hbar/(omega_x*mass))
@@ -105,6 +106,7 @@ program main
     open(10, file="data.txt")
     open(30, file="data_potential.txt")
     open(40, file="data_flux.txt")
+    open(50, file="data_rotation.txt")
     !open(11, file="data_current.txt")
     allocate(character(len=80) :: string)
     enable = .true.
@@ -142,6 +144,11 @@ program main
             call calc_flux(Phi_next, N, mass, dh, hbar, Flux)
             call output_flux(40, Flux, N, dh, xmax)
 
+            ! Calculate the rotation of every discretized point
+            if (i == 5000) then
+                call calc_rotation(Flux, N, dh, xmax, Rot)
+                call output_rotation(50, Rot, N, dh, xmax)
+            end if
             ! Probability current calculation and output
             !call calc_current(Phi_next, N, dh, hbar, mass, j)
             !call output_current(11, j, N, dh, xmax)
@@ -168,6 +175,7 @@ program main
     !close (11)
     close (30)
     close (40)
+    close (50)
     write (*, *) "- Calculation result has been saved into ", "data.txt"
     print *, "----------------------------------------------------------"
     write (*, *)
