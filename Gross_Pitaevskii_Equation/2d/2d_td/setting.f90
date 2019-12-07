@@ -16,7 +16,7 @@ contains
         double precision                :: x, y, dummy, real_part, imag_part
         integer                         :: i, j
         double precision                :: SCALE = 0.1d0
-        integer,parameter               :: mode = 3
+        integer,parameter               :: mode = 4
         Phi_next(:, :) = dcmplx(0d0, 0d0)
 
         if (access("data_input.txt", "") > 0) then
@@ -52,6 +52,8 @@ contains
                     else
                         Pot(i, j) = 0d0
                     end if
+                else if (mode == 4) then
+                    Pot(i, j) = 0.5d0*(x*x*2d0+gamma*gamma*y*y*0.06d0)*SCALE
                 end if
             end do
         end do
@@ -67,12 +69,14 @@ contains
     double precision               :: R_0 = 2d0
     double precision               :: OMEGA = 2d0*acos(-1d0)/2000
     double precision               :: sigma = 0.5d0
-    integer,parameter              :: mode = 1
+    integer,parameter              :: mode = 0
 
     v_x = 2d0*xmax/10000d0
     v_y = v_x
 
-    if (mode == 1) then
+    if (mode == 0) then
+        Pot_TD(:, :) = Pot(:, :)
+    else if (mode == 1) then
         ! Linear Stirring
         do j = 0, N
             y_s = v_y * iter - xmax
@@ -84,7 +88,7 @@ contains
                 Pot_TD(i, j) = Pot(i, j) + 10d0*exp(-0.5d0*((x-x_s)**2d0+(y-y_s)**2d0)/sigma**2d0)
             end do
         end do
-    else if (mode == 0) then
+    else if (mode == 2) then
         ! Circular Stirring
         do j = 0, N
             y_s = R_0*sin(OMEGA*iter)

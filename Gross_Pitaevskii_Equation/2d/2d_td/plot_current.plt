@@ -1,6 +1,6 @@
 set terminal gif animate delay 10 optimize size 800,800
 set size ratio 1
-set output "data_current.gif"
+set output "current.gif"
 set pm3d  # set pm3d map if you want to see projection of the contour
 # SETTINGS
 xmax        = 15     # BOUNDARY OF X

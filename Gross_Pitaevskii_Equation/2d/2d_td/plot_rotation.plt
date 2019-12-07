@@ -1,6 +1,6 @@
 set terminal gif animate delay 10 optimize size 800,800
 set size ratio 1
-set output "data_rotation.gif"
+set output "rotation.gif"
 unset pm3d
 # SETTINGS
 xmax        = 15     # BOUNDARY OF X
@@ -16,7 +16,7 @@ time_new    = 0.0
 time_old    = 0.0
 set xrange [-xmax:xmax]
 set yrange [-xmax:xmax]
-set zrange[-2:2]
+set zrange [-2:2]
 set xlabel "X (Unit:Xs)"
 set ylabel "Y (Unit:Xs)"
 set zlabel "rot(j)"
@@ -28,8 +28,8 @@ do for [i=0: data_num-1] {
         time_old = time_new
         print sprintf("%5d / %5d    SPD : %5.2f lines/s   ETA : %5.2f sec", i, data_num, speed, (data_num-i+1)/speed)
     }
-    set title sprintf("Rotation of Probability current\n( T = %.3f )", dt*i)
-    splot "data_rotation.txt" using 1:2:3:4:5:6 every :::100*i::100*(i+1)-1 title "" with vectors
+    set title sprintf("Rotation of Probability Current\n( T = %.3f )", dt*i)
+    splot "data_rotation.txt" every :::100*i::100*(i+1)-1 title "" with vectors
 }
 unset output
 set terminal wxt

@@ -1,4 +1,4 @@
-set terminal gif animate delay 10 optimize size 1600,800
+set terminal gif animate delay 10 optimize size 1600,1600
 set output "data.gif"
 set pm3d  # set pm3d map if you want to see projection of the contour
 # SETTINGS
@@ -23,7 +23,15 @@ do for [i=0: data_num-1] {
         time_old = time_new
         print sprintf("%5d / %5d    SPD : %5.2f lines/s   ETA : %5.2f sec", i, data_num, speed, (data_num-i+1)/speed)
     }
-    set multiplot layout 1,2 scale 1,1
+    set multiplot layout 2,2 scale 1,1
+        set zrange [0:1]
+        set cbrange [0:0.006]
+        set title sprintf("Probability Profile of Initial Wave Function", dt*i)
+        splot "data_input.txt" using 1:2:3 title "" with pm3d
+        set zrange [-0.15:0.15]
+        set cbrange [-0.15:0.15]
+        set title sprintf("Real Part Profile of Initial Wave Function", dt*i)
+        splot "data_input.txt" using 1:2:4 title "" with pm3d
         set zrange [0:1]
         set cbrange [0:0.006]
         set title sprintf("Time development of Non-Linear Schroedinger Equation\n( T = %.3f )", dt*i)

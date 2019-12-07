@@ -153,12 +153,11 @@ program main
     print *, "----------------------------------------------------------"
     write (*, *)
     print *, "Result of the calculation ----------------------------------------"
-    !call expected_value_symm(Phi_prev, H, N, mu)
     print '(X, A, F10.5)', "mu (Chemical Potential) = ", mu
     write (*, *)
     print *, "Wave function half of whose phase is changed by pi is saved into a file => ", "data_shifted.txt"
-    !call apply_phase_shift(Phi_prev(floor(N/2d0):N), N-floor(N/2d0)+1, iu, pi, Phi_prev(floor(N/2d0):N))
+    call shift_phase(Phi_prev, N, 0, N, ceiling(N/2d0), N, Phi_temp, iu, pi)
     open(11, file="data_shifted.txt")
-    call output(11, Phi_prev, N, dh, xmax)
+    call output(11, Phi_temp, N, dh, xmax)
     close(11)
 end program 

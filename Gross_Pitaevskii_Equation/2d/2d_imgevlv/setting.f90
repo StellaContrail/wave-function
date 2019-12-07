@@ -17,7 +17,7 @@ contains
       double precision,parameter      :: sigma = 0.5d0
       integer                         :: i,j
       double precision                :: SCALE = 0.1d0
-      integer,parameter               :: mode = 3
+      integer,parameter               :: mode = 4
       Phi_next(:, :) = dcmplx(0d0, 0d0)
 
       do j = 0, N
@@ -39,6 +39,11 @@ contains
                     Pot(i, j) = -5d0
                 else
                     Pot(i, j) = 0d0
+                end if
+            else if (mode == 4) then
+                Pot(i, j) = 0.5d0*(x*x*2d0+gamma*gamma*y*y*0.06d0)*SCALE
+                if (abs(y) < 0.4d0 .and. abs(x) < 5d0) then
+                    Pot(i, j) = 100d0
                 end if
             end if
 

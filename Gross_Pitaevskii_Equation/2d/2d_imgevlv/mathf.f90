@@ -153,4 +153,19 @@ contains
 
         mu = dble(sum)
     end subroutine
+
+    subroutine shift_phase(Phi_IN, N, x_start, x_end, y_start, y_end, Phi_OUT, iu, angle)
+        integer,intent(in)             :: x_start, x_end, y_start, y_end, N
+        double precision,intent(in)    :: angle
+        complex(kind(0d0)),intent(in)  :: Phi_IN(0:N,0:N), iu
+        complex(kind(0d0)),intent(out) :: Phi_OUT(0:N,0:N)
+        integer                        :: i, j
+        Phi_OUT(:,:) = Phi_IN(:,:)
+
+        do j = y_start, y_end
+            do i = x_start, x_end
+                Phi_OUT(i,j) = exp(iu*angle) * Phi_IN(i,j)
+            end do
+        end do
+    end subroutine
 end module mathf
