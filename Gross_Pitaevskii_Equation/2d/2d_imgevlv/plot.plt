@@ -1,22 +1,30 @@
+set size ratio 1
+set terminal jpeg size 1600,1600
+set output "data.jpg"
 set pm3d
-set multiplot layout 1,3
 set xrange [-15:15]
 set yrange [-15:15]
-set zrange [0:1]
-#set cbrange [0:0.3]
-set xlabel "x (unit:Xs)"
-set ylabel "y (unit:Xs)"
-set zlabel "Intensity"
+set xlabel "X (unit:Xs)"
+set ylabel "Y (unit:Xs)"
 set zlabel rotate by 90
-set title "Initial trial wave function"
-splot "data_initial.txt" using 1:2:3 with pm3d title "initial"
-set title "Result wave function"
-splot "data.txt" using 1:2:3 with pm3d title "final"
-#set title "Result wave function half of whose phase shifted by PI"
-#splot "data_shifted.txt" using 1:2:4 with pm3d title "shifted (real)"
-#splot "data_shifted.txt" using 1:2:5 with pm3d title "shifted (imag)"
-unset zrange
-#unset cbrange
-set title "External Potential"
-splot "data_pot.txt" using 1:2:3 with pm3d title "potential"
+set multiplot layout 2,2
+    set zrange [0:1]
+    set zlabel "Probability"
+    set title "Result wave function"
+    splot "data.txt" using 1:2:3 with pm3d title ""
+    unset zrange
+    set zlabel "Intensity"
+    set title "External Potential"
+    splot "data_potential.txt" using 1:2:4 with pm3d title ""
+    set zlabel "Probability"
+    set style fill transparent solid 0.8
+    set title "Real part of phased wave function"
+    splot "data_phased.txt" using 1:2:4 with pm3d title ""
+    set title "Imaginary part of phased wave function"
+    splot "data_phased.txt" using 1:2:5 with pm3d title ""
+    unset style
 unset multiplot
+unset pm3d
+unset output
+unset size
+set terminal wxt

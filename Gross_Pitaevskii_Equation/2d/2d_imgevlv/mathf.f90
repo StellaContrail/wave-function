@@ -2,6 +2,7 @@
 module mathf
     implicit none
 contains
+    ! Integration
     subroutine integrate(f, N, dh, sum)
         integer,intent(in)           :: N
         double precision,intent(in)  :: f(0:N, 0:N), dh
@@ -10,7 +11,6 @@ contains
         integer                      :: i
         sum = 0d0
         sum_temp(:) = 0d0
-
         do i = 0, N
             if (i == 0 .or. i == N) then
                 sum_temp(:) = sum_temp(:) + 0.5d0*f(i,:)*dh
@@ -18,7 +18,6 @@ contains
                 sum_temp(:) = sum_temp(:) + f(i,:)*dh
             end if
         end do
-
         do i = 0, N
             if (i == 0 .or. i == N) then
                 sum = sum + 0.5d0*sum_temp(i)*dh
@@ -28,45 +27,44 @@ contains
         end do
     end subroutine
 
+    ! Normalize
     subroutine normalize(f, N, dh)
-        integer,intent(in)                :: N
-        double precision,intent(in)       :: dh
-        complex(kind(0d0)),intent(inout)  :: f(0:N, 0:N)
-        double precision                  :: sum
-        call integrate(abs(f(:, :))**2d0, N, dh, sum)
+        integer,intent(in)             :: N
+        double precision,intent(in)    :: dh
+        double precision,intent(inout) :: f(0:N, 0:N)
+        double precision               :: sum
+        call integrate(f(:, :)**2d0, N, dh, sum)
         f(:, :) = f(:, :) / sqrt(sum)
     end subroutine normalize
 
+    ! Imaginary-time propagation
     subroutine evolve(Phi_old, N, dt, dh, epsilon, kappa, density, Pot, Phi_next)
-        integer,intent(in)             :: N
-        double precision,intent(in)    :: dt, dh, epsilon, kappa, density(0:N,0:N), Pot(0:N,0:N)
-        complex(kind(0d0)),intent(in)  :: Phi_old(0:N,0:N)
-        complex(kind(0d0)),intent(out) :: Phi_next(0:N,0:N)
-        integer                        :: i
-        complex(kind(0d0))             :: temp(0:N,0:N), Atemp(0:N,0:N)
-
+        integer,intent(in)           :: N
+        double precision,intent(in)  :: dt, dh, epsilon, kappa, density(0:N,0:N), Pot(0:N,0:N)
+        double precision,intent(in)  :: Phi_old(0:N,0:N)
+        double precision,intent(out) :: Phi_next(0:N,0:N)
+        double precision             :: temp(0:N,0:N), Atemp(0:N,0:N)
+        integer                      :: i
         ! First term of Taylor expansion
         temp(:,:)     = Phi_old(:,:)
         Phi_next(:,:) = temp(:,:)
-
         ! Other terms of Taylor expansion
         do i = 1, 10
             call apply_hamiltonian(temp, N, dh, epsilon, kappa, density, Pot, Atemp)
-            ! Atemp = H*LastTerm
-            temp(:,:)   = -Atemp(:,:)*dt/(epsilon*i)
+            temp(:,:)     = -Atemp(:,:)*dt/(epsilon*i)
             Phi_next(:,:) = Phi_next(:,:) + temp(:,:)
         end do
     end subroutine evolve
 
+    ! Calculate HPhi (H:Hamiltonian, Phi:Wave function)
     subroutine apply_hamiltonian(Phi, N, dh, epsilon, kappa, density, Pot, HPhi)
-        integer,intent(in)             :: N
-        complex(kind(0d0)),intent(in)  :: Phi(0:N,0:N)
-        complex(kind(0d0)),intent(out) :: HPhi(0:N,0:N)
-        integer                        :: i, j
-        double precision,intent(in)    :: dh, epsilon, kappa
-        double precision,intent(in)    :: Pot(0:N,0:N), density(0:N,0:N)
-        
-        HPhi(:,:) = dcmplx(0d0, 0d0)
+        integer,intent(in)           :: N
+        double precision,intent(in)  :: Phi(0:N,0:N)
+        double precision,intent(out) :: HPhi(0:N,0:N)
+        double precision,intent(in)  :: dh, epsilon, kappa
+        double precision,intent(in)  :: Pot(0:N,0:N), density(0:N,0:N)
+        integer                      :: i, j
+        HPhi(:,:) = 0d0
         ! Laplacian part (Five Point Stencil)
         do j = 0, N
             do i = 0, N
@@ -116,29 +114,24 @@ contains
 
     ! Solve Energy Expected Value
     subroutine solve_energy(Phi, Pot, N, epsilon, kappa, mu, dh)
-        integer,intent(in)             :: N
-        double precision,intent(in)    :: dh, epsilon, kappa
-        double precision,intent(in)    :: Pot(0:N,0:N)
-        complex(kind(0d0)),intent(in)  :: Phi(0:N,0:N)
-        double precision,intent(out)   :: mu
-        complex(kind(0d0))             :: HPhi(0:N,0:N), sum_temp(0:N), sum
-        integer                        :: i, j
+        integer,intent(in)           :: N
+        double precision,intent(in)  :: dh, epsilon, kappa
+        double precision,intent(in)  :: Pot(0:N,0:N)
+        double precision,intent(in)  :: Phi(0:N,0:N)
+        double precision,intent(out) :: mu
+        double precision             :: HPhi(0:N,0:N), sum_temp(0:N), sum
+        integer                      :: i
         mu = 0d0
-
-        call apply_hamiltonian(Phi, N, dh, epsilon, kappa, abs(Phi)**2d0, Pot, HPhi)
-
-        sum_temp(:) = dcmplx(0d0, 0d0)
-        do j = 0, N
-            do i = 0, N
-                if (i == 0 .or. i == N) then
-                    sum_temp(j) = sum_temp(j) + 0.5d0*conjg(Phi(i,j))*HPhi(i,j)*dh
-                else 
-                    sum_temp(j) = sum_temp(j) + conjg(Phi(i,j))*HPhi(i,j)*dh
-                end if
-            end do
+        call apply_hamiltonian(Phi, N, dh, epsilon, kappa, Phi**2d0, Pot, HPhi)
+        sum_temp(:) = 0d0
+        do i = 0, N
+            if (i == 0 .or. i == N) then
+                sum_temp(:) = sum_temp(:) + 0.5d0*Phi(i,:)*HPhi(i,:)*dh
+            else 
+                sum_temp(:) = sum_temp(:) + Phi(i,:)*HPhi(i,:)*dh
+            end if
         end do
-
-        sum = dcmplx(0d0, 0d0)
+        sum = 0d0
         do i = 0, N
             if (i == 0 .or. i == N) then
                 sum = sum + 0.5d0*sum_temp(i)*dh
@@ -146,26 +139,20 @@ contains
                 sum = sum + sum_temp(i)*dh
             end if
         end do
-
-        if (aimag(sum) > 1d-15) then
-            write (*, *) "There may be an error when calculating energy in solve_energy()"
-        end if
-
-        mu = dble(sum)
+        mu = sum
     end subroutine
 
+    ! Shift wave fuction's phase partially
     subroutine shift_phase(Phi_IN, N, x_start, x_end, y_start, y_end, Phi_OUT, iu, angle)
         integer,intent(in)             :: x_start, x_end, y_start, y_end, N
         double precision,intent(in)    :: angle
-        complex(kind(0d0)),intent(in)  :: Phi_IN(0:N,0:N), iu
+        double precision,intent(in)    :: Phi_IN(0:N,0:N)
+        complex(kind(0d0)),intent(in)  :: iu
         complex(kind(0d0)),intent(out) :: Phi_OUT(0:N,0:N)
-        integer                        :: i, j
+        integer                        :: i
         Phi_OUT(:,:) = Phi_IN(:,:)
-
-        do j = y_start, y_end
-            do i = x_start, x_end
-                Phi_OUT(i,j) = exp(iu*angle) * Phi_IN(i,j)
-            end do
+        do i = x_start, x_end
+            Phi_OUT(i,y_start:y_end) = exp(iu*angle) * Phi_IN(i,y_start:y_end)
         end do
     end subroutine
 end module mathf
