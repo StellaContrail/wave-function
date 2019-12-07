@@ -145,15 +145,8 @@ program main
             call output_flux(40, Flux, N, dh, xmax)
 
             ! Calculate the rotation of every discretized point
-            if (i == 5000) then
-                call calc_rotation(Flux, N, dh, xmax, Rot)
-                call output_rotation(50, Rot, N, dh, xmax)
-            end if
-            ! Probability current calculation and output
-            !call calc_current(Phi_next, N, dh, hbar, mass, j)
-            !call output_current(11, j, N, dh, xmax)
-            !write (string, '(X, A)') "- Flux has been saved into file                                     |"
-            !call print_ex(string, enable, 'E', iter_interval, i)
+            call calc_rotation(Flux, N, dh, xmax, Rot)
+            call output_rotation(50, Rot, N, dh, xmax)
         end if
 
         ! Substitute Phi_next into Phi_prev to calculate the TDGPE

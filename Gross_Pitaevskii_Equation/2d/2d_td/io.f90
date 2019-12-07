@@ -63,11 +63,12 @@ contains
         integer                     :: i, j, k
         double precision,parameter  :: SCALE = 1000d0
         
+        ! Be careful of putting two blank lines. Gnuplot behaves wrongly when specifying every keyword.
         do k = 0, 1
             z = -xmax + dh * k
-            do j = 0, N, 10
+            do j = 0, N
                 y = -xmax + dh * j
-                do i = 0, N, 10
+                do i = 0, N
                     x = -xmax + dh * i
 
                     ! X Y Z ROT_X ROT_Y ROT_Z
@@ -79,7 +80,6 @@ contains
                 end do
                 write (unit, *)
             end do
-            write (unit, *)
         end do
     end subroutine
 
