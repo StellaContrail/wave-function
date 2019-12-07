@@ -1,7 +1,6 @@
 set terminal gif animate delay 10 optimize size 800,800
 set size ratio 1
 set output "current.gif"
-set pm3d  # set pm3d map if you want to see projection of the contour
 # SETTINGS
 xmax        = 15     # BOUNDARY OF X
 N           = 50-1   # STEP COUNT
@@ -16,6 +15,8 @@ time_new    = 0.0
 time_old    = 0.0
 set xrange [-xmax:xmax]
 set yrange [-xmax:xmax]
+set xlabel "X (Unit:Xs)"
+set ylabel "Y (Unit:Xs)"
 do for [i=0: data_num-1] {
     if (i%skip_output == 0) {
         time_new = time(0.0)

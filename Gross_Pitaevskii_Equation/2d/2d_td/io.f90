@@ -1,8 +1,8 @@
 module io
     implicit none
 contains
-    ! Output to a file
-    subroutine output(unit, f, N, dh, xmax)
+    ! Save double precision complex wave function
+    subroutine output_complex(unit, f, N, dh, xmax)
         integer,intent(in)            :: unit, N
         double precision,intent(in)   :: dh, xmax
         complex(kind(0d0)),intent(in) :: f(0:N, 0:N)
@@ -17,9 +17,9 @@ contains
             end do
             write (unit, *)
         end do
-    end subroutine output
+    end subroutine output_complex
 
-    ! Output to a file
+    ! Save potential forms
     subroutine output_potential(unit, f, N, dh, xmax)
         integer,intent(in)            :: unit, N
         double precision,intent(in)   :: dh, xmax
@@ -37,6 +37,7 @@ contains
         end do
     end subroutine output_potential
 
+    ! Save probability current
     subroutine output_flux(unit, Flux, N, dh, xmax)
         integer,intent(in)          :: unit, N
         double precision,intent(in) :: dh, xmax
@@ -49,12 +50,13 @@ contains
             y = -xmax + dh * j
             do i = 0, N
                 x = -xmax + dh * i
-                write (unit, '(*(F10.5,X))') x, y, SCALE*Flux(i,j,1), SCALE*Flux(i,j,2)
+                write (unit, *) x, y, SCALE*Flux(i,j,1), SCALE*Flux(i,j,2)
             end do
             write (unit, *)
         end do
     end subroutine
 
+    ! Save rotation of flux vectors
     subroutine output_rotation(unit, Rot, N, dh, xmax)
         integer,intent(in)          :: unit, N
         double precision,intent(in) :: dh, xmax
@@ -73,37 +75,13 @@ contains
 
                     ! X Y Z ROT_X ROT_Y ROT_Z
                     if (k == 0) then
-                        write (unit, '(*(F10.5,X))') x, y, 0d0, 0d0, 0d0, SCALE*Rot(i,j)
+                        write (unit, *) x, y, 0d0, 0d0, 0d0, SCALE*Rot(i,j)
                     else
-                        write (unit, '(*(F10.5,X))') x, y, z, 0d0, 0d0, 0d0
+                        write (unit, *) x, y, z, 0d0, 0d0, 0d0
                     end if
                 end do
                 write (unit, *)
             end do
         end do
     end subroutine
-
-    ! Print string to display
-    ! string : content to print
-    ! enable : whether to enable print feature
-    ! mode   : print mode 'A'lways or 'E'very some iterations
-    ! every  : (necessary when mode is 'E')
-    ! iter   : (necessary when mode is 'E')
-    ! When mode is set to be 'E', print every "every" with present "iter"ation
-    subroutine print_ex(string, enable, mode, every, iter)
-        character(:),allocatable,intent(in)     :: string
-        character(len=1),intent(in)             :: mode
-        logical,intent(in)                      :: enable
-        integer,optional,intent(in)             :: every, iter
-        if (enable) then
-            select case(mode)
-                case ('a', 'A')
-                    print '(A)', string
-                case ('e', 'E')
-                    if (mod(iter, every) == 0) then
-                        print '(A)', string
-                    end if
-            end select
-        end if
-    end subroutine print_ex
 end module io

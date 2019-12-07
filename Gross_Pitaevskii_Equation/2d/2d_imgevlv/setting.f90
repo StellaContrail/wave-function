@@ -29,7 +29,7 @@ contains
                     Pot(i, j) = 0.5d0*(x*x+gamma*gamma*y*y)
                 case (1)
                     ! Harmonic Oscillator Trap and Very Narrow Gaussian-shaped Wall at the center
-                    Pot(i, j) = 0.5d0*(x*x+gamma*gamma*y*y) + 100d0*exp(-0.5d0*(x*x+y*y)/(0.5d0*sigma))
+                    Pot(i, j) = 0.5d0*(x*x+gamma*gamma*y*y) + 100d0*exp(-0.5d0*(x*x+y*y)/(0.5d0*sigma**2d0))
                 case (2)
                     ! Box Trap
                     if (abs(x) < 10d0 .and. abs(y) < 10d0) then
@@ -46,9 +46,9 @@ contains
                     end if
                 case (4)
                     ! Axially-symmetry Harmonic Oscillator Potential and Split Wall
-                    Pot(i, j) = 0.5d0*(x*x*2d0+gamma*gamma*y*y*0.06d0)
-                    if (abs(y) < 0.2d0) then
-                        Pot(i, j) = 250d0
+                    Pot(i, j) = 0.5d0*(x*x*2d0+gamma*gamma*y*y*0.06d0)*0.1d0
+                    if (abs(y) < 1d0) then
+                        Pot(i, j) = 30d0
                     end if
                 case default
                     stop "Invalid mode of external potential"

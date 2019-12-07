@@ -1,13 +1,7 @@
 module setting
     implicit none
 contains
-    ! Initialize the wave functions
-    ! Phi_next : Wave function of next space
-    ! Phi_prev : Wave function of previous space
-    ! Pot      : Potential function
-    ! N        : Dimension of space exclusing the first element
-    ! dh       : Step distance of space
-    ! xmax     : Max x position
+    ! Initialize wave functions and potential
   subroutine initialize(Phi_next, Phi_prev, Pot, N, dh, xmax, gamma)
         integer,intent(in)              :: N
         complex(kind(0d0)),intent(out)  :: Phi_next(0:N, 0:N), Phi_prev(0:N, 0:N)
@@ -15,22 +9,28 @@ contains
         double precision,intent(in)     :: dh, xmax, gamma
         double precision                :: x, y, dummy, real_part, imag_part
         integer                         :: i, j
-        double precision                :: SCALE = 0.1d0
+        ! Input wave function data file
+        character(*),parameter          :: fn_input = "data_input.txt"
+        ! sigma : Width of Gaussian's wave packet formed potential
+        double precision,parameter      :: sigma = 0.5d0
+        ! mode  : Specify type of potential forms
         integer,parameter               :: mode = 4
         Phi_next(:, :) = dcmplx(0d0, 0d0)
 
-        if (access("data_input.txt", "") > 0) then
-            stop "Input file 'data_input.txt' cannot be found"
+        if (access(fn_input, "") > 0) then
+            print *, "Input file '", fn_input, "' cannot be found"
+            stop
         end if
-        open(30, file="data_input.txt")
+
+        open(15, file=fn_input)
         do j = 0, N
             do i = 0, N
-                read (30, *) dummy, dummy, dummy, real_part, imag_part
+                read (15, *) dummy, dummy, dummy, real_part, imag_part
                 Phi_prev(i,j) = dcmplx(real_part, imag_part)
             end do
-            read (30, *) 
+            read (15, *) 
         end do
-        close(30)
+        close(15)
 
         do j = 0, N
             y = -xmax + dh*j
@@ -38,45 +38,66 @@ contains
                 x = -xmax + dh*i
 
                 ! External potential
-                if (mode == 1) then
-                    Pot(i, j) = 0.5d0*(x*x+gamma*gamma*y*y)*SCALE! + 100d0*exp(-0.5d0*(x*x+y*y)/(sigma*sigma))
-                else if (mode == 2) then
+                select case (mode)
+                case (0)
+                    ! Harmonic Oscillator Trap
+                    Pot(i, j) = 0.5d0*(x*x+gamma*gamma*y*y)
+                case (1)
+                    ! Harmonic Oscillator Trap and Very Narrow Gaussian-shaped Wall at the center
+                    Pot(i, j) = 0.5d0*(x*x+gamma*gamma*y*y) + 100d0*exp(-0.5d0*(x*x+y*y)/(sigma*sigma))
+                case (2)
+                    ! Box Trap
                     if (abs(x) < 10d0 .and. abs(y) < 10d0) then
                         Pot(i, j) = -5d0
                     else
                         Pot(i, j) = 0d0
                     end if
-                else if (mode == 3) then
+                case (3)
+                    ! Circle Trap
                     if (sqrt(x**2d0+y**2d0) < 10d0) then
                         Pot(i, j) = -5d0
                     else
                         Pot(i, j) = 0d0
                     end if
-                else if (mode == 4) then
-                    Pot(i, j) = 0.5d0*(x*x*2d0+gamma*gamma*y*y*0.06d0)*SCALE
-                end if
+                case (4)
+                    ! Axially-symmetry Harmonic Oscillator Potential
+                    Pot(i, j) = 0.5d0*(x*x*2d0+gamma*gamma*y*y*0.06d0)*0.1d0
+                case default
+                    stop "Invalid mode of external potential"
+                end select
             end do
         end do
   end subroutine initialize
 
-  subroutine vary_potential(Pot, Pot_TD, N, dh, iter, xmax)
+  ! Vary potential form depending on time
+  subroutine vary_potential(Pot, Pot_TD, N, dh, pi, iter, xmax)
     integer,intent(in)             :: N, iter
-    double precision,intent(in)    :: Pot(0:N, 0:N), dh, xmax
+    double precision,intent(in)    :: Pot(0:N, 0:N), dh, xmax, pi
     double precision,intent(inout) :: Pot_TD(0:N, 0:N)
     integer                        :: i, j
-    double precision               :: v_x, v_y
     double precision               :: x_s, y_s, x, y
-    double precision               :: R_0 = 2d0
-    double precision               :: OMEGA = 2d0*acos(-1d0)/2000
+    ! < Circular Stirring Options >
+    ! R_0   : Radius of circular stirring
+    double precision,parameter     :: R_0 = 2d0
+    ! OMEGA : Angular velocity of circular stirring (defined later)
+    double precision               :: OMEGA
+    ! < Linear Stirring Option >
+    ! v_x, v_y : Velocity of stirring (defined later)
+    double precision               :: v_x, v_y
+    ! < Common Options >
+    ! sigma : Stirring potential width
     double precision               :: sigma = 0.5d0
+    ! mode  : Specify type of stirring
     integer,parameter              :: mode = 0
-
+    OMEGA = 2d0*pi/2000
     v_x = 2d0*xmax/10000d0
     v_y = v_x
 
-    if (mode == 0) then
+    select case (mode)
+    case (0)
+        ! Non Stirring
         Pot_TD(:, :) = Pot(:, :)
-    else if (mode == 1) then
+    case (1)
         ! Linear Stirring
         do j = 0, N
             y_s = v_y * iter - xmax
@@ -84,11 +105,10 @@ contains
             do i = 0, N
                 x_s = v_x * iter - xmax
                 x = -xmax + dh*i
-        
                 Pot_TD(i, j) = Pot(i, j) + 10d0*exp(-0.5d0*((x-x_s)**2d0+(y-y_s)**2d0)/sigma**2d0)
             end do
         end do
-    else if (mode == 2) then
+    case (2)
         ! Circular Stirring
         do j = 0, N
             y_s = R_0*sin(OMEGA*iter)
@@ -99,8 +119,8 @@ contains
                 Pot_TD(i, j) = Pot(i, j) + 10d0*exp(-0.5d0*((x-x_s)**2d0+(y-y_s)**2d0)/sigma**2d0)
             end do
         end do
-    else
-        stop "Invalid mode was given"
-    end if
+    case default
+        stop "Invalid mode of stirring"
+    end select
   end subroutine vary_potential
 end module

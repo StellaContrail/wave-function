@@ -57,7 +57,7 @@ program main
     ScatteringLength = 5.1d-9
     
     ! Number of steps in a direction
-    N                = 100 - 1
+    N                = 50 - 1
     ! Allocation of variables
     allocate (Phi_next(0:N,0:N), Phi_prev(0:N,0:N))
     allocate (Phi_phased(0:N, 0:N))
@@ -110,7 +110,7 @@ program main
 
     ! Save potential form
     open(10, file=fn_potential)
-    call output_real(10, Pot, N, dh, xmax)
+    call output_potential(10, Pot, N, dh, xmax)
     close(10)
     write (*, *) "- Given Potential Form => ", fn_potential
 

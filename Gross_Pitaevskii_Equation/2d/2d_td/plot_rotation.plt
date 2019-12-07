@@ -16,7 +16,7 @@ time_new    = 0.0
 time_old    = 0.0
 set xrange [-xmax:xmax]
 set yrange [-xmax:xmax]
-set zrange [-2:2]
+set zrange [-1:1]
 set xlabel "X (Unit:Xs)"
 set ylabel "Y (Unit:Xs)"
 set zlabel "rot(j)"

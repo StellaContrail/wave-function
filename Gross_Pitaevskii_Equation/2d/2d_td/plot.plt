@@ -1,6 +1,6 @@
 set terminal gif animate delay 10 optimize size 1600,1600
 set output "data.gif"
-set pm3d  # set pm3d map if you want to see projection of the contour
+set pm3d
 # SETTINGS
 xmax        = 15     # BOUNDARY OF X
 N           = 50-1   # STEP COUNT
@@ -24,20 +24,24 @@ do for [i=0: data_num-1] {
         print sprintf("%5d / %5d    SPD : %5.2f lines/s   ETA : %5.2f sec", i, data_num, speed, (data_num-i+1)/speed)
     }
     set multiplot layout 2,2 scale 1,1
-        set zrange [0:1]
-        set cbrange [0:0.006]
-        set title sprintf("Probability Profile of Initial Wave Function", dt*i)
-        splot "data_input.txt" using 1:2:3 title "" with pm3d
-        set zrange [-0.15:0.15]
-        set cbrange [-0.15:0.15]
+        set zrange [-1:1]
+        set cbrange [-0.2:0.2]
         set title sprintf("Real Part Profile of Initial Wave Function", dt*i)
         splot "data_input.txt" using 1:2:4 title "" with pm3d
-        set zrange [0:1]
-        set cbrange [0:0.006]
+
+        set zrange  [0:1]
+        set cbrange [0:0.01]
         set title sprintf("Time development of Non-Linear Schroedinger Equation\n( T = %.3f )", dt*i)
         splot "data.txt" using 1:2:3 every :::50*i::50*(i+1)-1 title "" with pm3d
-        set zrange [-5:5]
-        set cbrange [-5:5]
+
+
+        set zrange [0:1]
+        set cbrange [0:0.01]
+        set title sprintf("Probability Profile of Initial Wave Function", dt*i)
+        splot "data_input.txt" using 1:2:3 title "" with pm3d
+
+        unset zrange
+        unset cbrange
         set title sprintf("External Potential")
         splot "data_potential.txt" using 1:2:3 every :::50*i::50*(i+1)-1 title "" with pm3d
     unset multiplot

@@ -2,6 +2,7 @@
 module mathf
     implicit none
 contains
+    ! Integration
     subroutine integrate(f, N, dh, sum)
         integer,intent(in)           :: N
         double precision,intent(in)  :: f(0:N, 0:N), dh
@@ -10,7 +11,6 @@ contains
         integer                      :: i
         sum = 0d0
         sum_temp(:) = 0d0
-
         do i = 0, N
             if (i == 0 .or. i == N) then
                 sum_temp(:) = sum_temp(:) + 0.5d0*f(i,:)*dh
@@ -18,7 +18,6 @@ contains
                 sum_temp(:) = sum_temp(:) + f(i,:)*dh
             end if
         end do
-
         do i = 0, N
             if (i == 0 .or. i == N) then
                 sum = sum + 0.5d0*sum_temp(i)*dh
@@ -28,6 +27,7 @@ contains
         end do
     end subroutine
 
+    ! Normalization
     subroutine normalize(f, N, dh)
         integer,intent(in)                :: N
         double precision,intent(in)       :: dh
@@ -37,6 +37,7 @@ contains
         f(:, :) = f(:, :) / sqrt(sum)
     end subroutine normalize
 
+    ! Real-time propagation
     subroutine evolve(Phi_old, N, dt, dh, epsilon, kappa, iu, density, Pot, Phi_next)
         integer,intent(in)             :: N
         double precision,intent(in)    :: dt, dh, epsilon, kappa, density(0:N,0:N), Pot(0:N,0:N)
@@ -44,20 +45,18 @@ contains
         complex(kind(0d0)),intent(out) :: Phi_next(0:N,0:N)
         integer                        :: i
         complex(kind(0d0))             :: temp(0:N,0:N), Atemp(0:N,0:N)
-
         ! First term of Taylor expansion
         temp(:,:)     = Phi_old(:,:)
         Phi_next(:,:) = temp(:,:)
-
         ! Other terms of Taylor expansion
         do i = 1, 20
             call apply_hamiltonian(temp, N, dh, epsilon, kappa, density, Pot, Atemp)
-            ! Atemp = H*LastTerm
             temp(:,:)   = -iu*Atemp(:,:)*dt/(epsilon*i)
             Phi_next(:,:) = Phi_next(:,:) + temp(:,:)
         end do
     end subroutine evolve
 
+    ! Calculate HPhi (H:Hamiltonian, Phi:Wave function)
     subroutine apply_hamiltonian(Phi, N, dh, epsilon, kappa, density, Pot, HPhi)
         integer,intent(in)             :: N
         complex(kind(0d0)),intent(in)  :: Phi(0:N,0:N)
@@ -65,7 +64,6 @@ contains
         integer                        :: i, j
         double precision,intent(in)    :: dh, epsilon, kappa
         double precision,intent(in)    :: Pot(0:N,0:N), density(0:N,0:N)
-        
         HPhi(:,:) = dcmplx(0d0, 0d0)
         ! Laplacian part (Five Point Stencil)
         do j = 0, N
@@ -99,7 +97,6 @@ contains
             end do
         end do
         HPhi(:,:) = HPhi(:,:) / (12d0*dh*dh)
-        
         do j = 0, N
             do i = 0, N
                 ! Kinetic energy
@@ -122,22 +119,17 @@ contains
         complex(kind(0d0)),intent(in)  :: Phi(0:N,0:N)
         double precision,intent(out)   :: mu
         complex(kind(0d0))             :: HPhi(0:N,0:N), sum_temp(0:N), sum
-        integer                        :: i, j
-        mu = 0d0
-
+        integer                        :: i
         call apply_hamiltonian(Phi, N, dh, epsilon, kappa, abs(Phi)**2d0, Pot, HPhi)
 
         sum_temp(:) = dcmplx(0d0, 0d0)
-        do j = 0, N
-            do i = 0, N
-                if (i == 0 .or. i == N) then
-                    sum_temp(j) = sum_temp(j) + 0.5d0*conjg(Phi(i,j))*HPhi(i,j)*dh
-                else 
-                    sum_temp(j) = sum_temp(j) + conjg(Phi(i,j))*HPhi(i,j)*dh
-                end if
-            end do
+        do i = 0, N
+            if (i == 0 .or. i == N) then
+                sum_temp(:) = sum_temp(:) + 0.5d0*conjg(Phi(i,:))*HPhi(i,:)*dh
+            else 
+                sum_temp(:) = sum_temp(:) + conjg(Phi(i,:))*HPhi(i,:)*dh
+            end if
         end do
-
         sum = dcmplx(0d0, 0d0)
         do i = 0, N
             if (i == 0 .or. i == N) then
@@ -147,14 +139,10 @@ contains
             end if
         end do
 
-        if (aimag(sum) > 1d-5) then
-            write (*, *) "There may be an error when calculating energy in solve_energy()"
-        end if
-
         mu = dble(sum)
     end subroutine
 
-    ! Calculate Probability current from Wave function data
+    ! Calculate Probability Current
     subroutine calc_flux(Phi, N, mass, dh, hbar, Flux)
         integer,intent(in)            :: N
         complex(kind(0d0)),intent(in) :: Phi(0:N,0:N)
@@ -196,9 +184,10 @@ contains
             end do
         end do
 
-        Flux(:,:,:) = Flux(:,:,:)!*(hbar/mass)
+        !Flux(:,:,:) = Flux(:,:,:)*(hbar/mass)
     end subroutine
 
+    ! Calculate rotation of flux vectors
     subroutine calc_rotation(Flux, N, dh, xmax, Rot)
         integer,intent(in)           :: N
         double precision,intent(in)  :: Flux(0:N,0:N,1:2), dh, xmax
