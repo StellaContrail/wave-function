@@ -17,6 +17,7 @@ contains
       double precision,parameter      :: sigma = 0.5d0
       integer                         :: i,j
       double precision                :: SCALE = 0.1d0
+      integer,parameter               :: mode = 3
       Phi_next(:, :) = dcmplx(0d0, 0d0)
 
       do j = 0, N
@@ -25,13 +26,21 @@ contains
             x = -xmax + dh*i
 
             ! External potential
-            !Pot(i, j) = 0.5d0*(x*x+gamma*gamma*y*y)*SCALE! + 100d0*exp(-0.5d0*(x*x+y*y)/(sigma*sigma))
-            if (abs(x) < 10d0 .and. abs(y) < 10d0) then
-                Pot(i, j) = -5d0
-            else
-                Pot(i, j) = 0d0
+            if (mode == 1) then
+                Pot(i, j) = 0.5d0*(x*x+gamma*gamma*y*y)*SCALE! + 100d0*exp(-0.5d0*(x*x+y*y)/(sigma*sigma))
+            else if (mode == 2) then
+                if (abs(x) < 10d0 .and. abs(y) < 10d0) then
+                    Pot(i, j) = -5d0
+                else
+                    Pot(i, j) = 0d0
+                end if
+            else if (mode == 3) then
+                if (sqrt(x**2d0+y**2d0) < 10d0) then
+                    Pot(i, j) = -5d0
+                else
+                    Pot(i, j) = 0d0
+                end if
             end if
-
 
             ! Initial trial wave function
             Phi_prev(i, j) = dcmplx(exp(-0.5d0*(x*x+y*y)), 0d0)
