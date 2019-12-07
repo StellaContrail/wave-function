@@ -15,6 +15,8 @@ contains
         double precision,intent(in)     :: dh, xmax, gamma
         double precision                :: x, y, dummy, real_part, imag_part
         integer                         :: i, j
+        double precision                :: SCALE = 0.1d0
+        integer,parameter               :: mode = 3
         Phi_next(:, :) = dcmplx(0d0, 0d0)
 
         if (access("data_input.txt", "") > 0) then
@@ -36,11 +38,20 @@ contains
                 x = -xmax + dh*i
 
                 ! External potential
-                !Pot(i, j) = 0.5d0*(x*x+gamma*gamma*y*y)
-                if (abs(x) < 10d0 .and. abs(y) < 10d0) then
-                    Pot(i, j) = -5d0
-                else
-                    Pot(i, j) = 0d0
+                if (mode == 1) then
+                    Pot(i, j) = 0.5d0*(x*x+gamma*gamma*y*y)*SCALE! + 100d0*exp(-0.5d0*(x*x+y*y)/(sigma*sigma))
+                else if (mode == 2) then
+                    if (abs(x) < 10d0 .and. abs(y) < 10d0) then
+                        Pot(i, j) = -5d0
+                    else
+                        Pot(i, j) = 0d0
+                    end if
+                else if (mode == 3) then
+                    if (sqrt(x**2d0+y**2d0) < 10d0) then
+                        Pot(i, j) = -5d0
+                    else
+                        Pot(i, j) = 0d0
+                    end if
                 end if
             end do
         end do
@@ -51,10 +62,10 @@ contains
     double precision,intent(in)    :: Pot(0:N, 0:N), dh, xmax
     double precision,intent(inout) :: Pot_TD(0:N, 0:N)
     integer                        :: i, j
-    double precision               :: R_0 = 2d0
-    double precision               :: OMEGA = 2d0*acos(-1d0)/2000
     double precision               :: v_x, v_y
     double precision               :: x_s, y_s, x, y
+    double precision               :: R_0 = 2d0
+    double precision               :: OMEGA = 2d0*acos(-1d0)/2000
     double precision               :: sigma = 0.5d0
 
     v_x = 2d0*xmax/10000d0
