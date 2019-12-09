@@ -41,14 +41,17 @@ program main
     integer                        :: i                ! Loop variable
     double precision               :: prob             ! Probability
     double precision               :: prob_old         ! Probability of previous step
+    integer(kind=8)                :: t1, t2, delta_t  ! Processed time
+    integer(kind=8)                :: tr               ! Time ticks rate
+    double precision               :: time_left        ! Estimated time left
     
     ! Output File Path
-    character(*),parameter         :: fn_initial   = "data_initial.txt"
-    character(*),parameter         :: fn_potential = "data_potential.txt"
-    character(*),parameter         :: fn_result    = "data.txt"
-    character(*),parameter         :: fn_flux      = "data_flux.txt"
-    character(*),parameter         :: fn_rotation  = "data_rotation.txt"
-    character(*),parameter         :: fn_phased    = "data_phased.txt"
+    character(*),parameter         :: fn_initial     = "data_initial.txt"
+    character(*),parameter         :: fn_potential   = "data_potential.txt"
+    character(*),parameter         :: fn_result_proj = "data_projection.txt"
+    character(*),parameter         :: fn_flux        = "data_flux.txt"
+    character(*),parameter         :: fn_rotation    = "data_rotation.txt"
+    character(*),parameter         :: fn_phased      = "data_phased.txt"
 
     ! Definition of physical values (this could be replaced with I/O)
     ! These values are referenced from
@@ -60,7 +63,7 @@ program main
     omega_z          = omega_x
     gamma_y          = omega_y / omega_x
     gamma_z          = omega_z / omega_x
-    ParticleCount    = 100
+    ParticleCount    = 1000
     ScatteringLength = 5.1d-9
 
     ! Number of steps in a direction
@@ -121,17 +124,18 @@ program main
     call solve_energy(Phi_prev, Pot, N, epsilon, kappa, mu, dh)
     write (*, *) "- Initial chemical potential : ", mu
 
-    open(10, file=fn_result)
+    open(10, file=fn_result_proj)
     open(20, file=fn_potential)
     open(30, file=fn_flux)
     open(40, file=fn_rotation)
+    call system_clock(t1)
     do i = 1, 10000
         ! Evolve the system
         call evolve(Phi_prev, N, dt, dh, epsilon, kappa, iu, abs(Phi_prev)**2d0, Pot, Phi_next)
 
         if (mod(i, 50) == 0) then
             ! Save wave function
-            call output_complex(10, Phi_next, N, dh, xmax)
+            call output_projection(10, Phi_next, N, dh, xmax)
             ! Save potential form
             call output_potential(20, Pot_TD, N, dh, xmax, 25, 25, 25)
             ! Save flux distribution
@@ -146,7 +150,12 @@ program main
             if (i > 500) then
                 write (*, '(A)', advance='no') char(13)
             end if
-            write (*, '(X, A, I5, A, I5, A)', advance='no') "- ", i, "/", 10000, " completed"
+            call system_clock(t2, tr)
+            delta_t = (t2 - t1)/dble(tr)
+            time_left = delta_t*((10000d0-i)/500d0)
+            write (*, '(X, A, I5, A, I5, A, F10.0, A)', advance='no') "- ", i, "/", 10000, &
+                                                            " completed (", time_left," seconds left)"
+            t1 = t2
         end if
 
         ! Substitution to step forward in time
@@ -166,5 +175,5 @@ program main
     close (20)
     close (30)
     close (40)
-    write (*, *) "- Result Wave Function => ", fn_result
+    write (*, *) "- Result Wave Function (PROJECTION) => ", fn_result_proj
 end program 

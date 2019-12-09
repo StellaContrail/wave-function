@@ -2,7 +2,7 @@ module io
     implicit none
 contains
     ! Save double precision complex wave function
-    subroutine output_complex(unit, f, N, dh, xmax)
+    subroutine output_raw_complex(unit, f, N, dh, xmax)
         integer,intent(in)            :: unit, N
         double precision,intent(in)   :: dh, xmax
         complex(kind(0d0)),intent(in) :: f(0:N,0:N,0:N)
@@ -22,8 +22,32 @@ contains
             end do
             write (unit, *)
         end do
-    end subroutine output_complex
+    end subroutine output_raw_complex
 
+    ! Save double precision complex wave function
+    subroutine output_real_raw(unit, f, N, dh, xmax)
+        integer,intent(in)          :: unit, N
+        double precision,intent(in) :: dh, xmax
+        double precision,intent(in) :: f(0:N,0:N,0:N)
+        double precision            :: x, y, z
+        integer                     :: i, j, k
+
+        do k = 0, N
+            z = -xmax + dh * k
+            do j = 0, N
+                y = -xmax + dh * j
+                do i = 0, N
+                    x = -xmax + dh * i
+
+                    write (unit, '(*(F10.5, X))') x, y, z, f(i,j,k)**2d0, f(i,j,k), 0d0
+                end do
+                write (unit, *)
+            end do
+            write (unit, *)
+        end do
+    end subroutine output_real_raw
+
+    ! Save time-dependent potential form (cutouts)
     subroutine output_potential(unit, Pot, N, dh, xmax, x_cutout, y_cutout, z_cutout) 
         integer,intent(in)          :: unit, N, x_cutout, y_cutout, z_cutout
         double precision,intent(in) :: dh, Pot(0:N,0:N,0:N), xmax
@@ -64,38 +88,15 @@ contains
         end do
     end subroutine
 
-    ! Save double precision complex wave function
-    subroutine output_real(unit, f, N, dh, xmax)
-        integer,intent(in)          :: unit, N
-        double precision,intent(in) :: dh, xmax
-        double precision,intent(in) :: f(0:N,0:N,0:N)
-        double precision            :: x, y, z
-        integer                     :: i, j, k
-
-        do k = 0, N
-            z = -xmax + dh * k
-            do j = 0, N
-                y = -xmax + dh * j
-                do i = 0, N
-                    x = -xmax + dh * i
-
-                    write (unit, '(*(F10.5, X))') x, y, z, f(i,j,k)**2d0, f(i,j,k), 0d0
-                end do
-                write (unit, *)
-            end do
-            write (unit, *)
-        end do
-    end subroutine output_real
-
     ! Save projection of wave function
     subroutine output_projection(unit, f, N, dh, xmax)
-        integer,intent(in)          :: unit, N
-        double precision,intent(in) :: dh, xmax
+        integer,intent(in)            :: unit, N
+        double precision,intent(in)   :: dh, xmax
         complex(kind(0d0)),intent(in) :: f(0:N,0:N,0:N)
-        double precision            :: prob(0:N,0:N,0:N)
-        double precision            :: prob_proj(0:N,0:N)
-        double precision            :: x, y
-        integer                     :: i, j, k
+        double precision              :: prob(0:N,0:N,0:N)
+        double precision              :: prob_proj(0:N,0:N)
+        double precision              :: x, y
+        integer                       :: i, j, k
         prob(:,:,:) = abs(f(:,:,:))**2d0
 
         prob_proj(:,:) = 0d0
@@ -122,25 +123,6 @@ contains
         end do
     end subroutine output_projection
 
-    ! Save cutout plane of wave function
-    subroutine output_cutout(unit, f, N, dh, xmax, index)
-        integer,intent(in)          :: unit, N, index
-        double precision,intent(in) :: dh, xmax
-        double precision,intent(in) :: f(0:N, 0:N, 0:N)
-        double precision            :: x, y
-        integer                     :: i, j
-
-        do j = 0, N
-            y = -xmax + dh * j
-            do i = 0, N
-                x = -xmax + dh * i
-
-                write (unit, '(*(F10.5, X))') x, y, f(i,j,index)
-            end do
-            write (unit, *)
-        end do
-    end subroutine output_cutout
-
     ! Save probability current
     subroutine output_flux(unit, Flux, N, dh, xmax)
         integer,intent(in)          :: unit, N
@@ -151,17 +133,16 @@ contains
         double precision,parameter  :: SCALE = 1000d0
         
         do k = 0, N
-            z = -xmax + dh*k
+            z = -xmax + dh * k
             do j = 0, N
                 y = -xmax + dh * j
                 do i = 0, N
                     x = -xmax + dh * i
 
-                    write (unit, *) x, y, SCALE*Flux(i,j,k,1), SCALE*Flux(i,j,k,2), SCALE*Flux(i,j,k,3)
+                    write (unit, *) x, y, z, SCALE*Flux(i,j,k,1), SCALE*Flux(i,j,k,2), SCALE*Flux(i,j,k,3)
                 end do
                 write (unit, *)
             end do
-            write (unit, *)
         end do
     end subroutine
 
@@ -185,7 +166,6 @@ contains
                 end do
                 write (unit, *)
             end do
-            write (unit, *)
         end do
     end subroutine
 end module io
