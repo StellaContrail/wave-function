@@ -113,7 +113,7 @@ program main
     open(10, file=fn_potential)
     call output_potential(10, Pot, N, dh, xmax, 25, 25, 25)
     close(10)
-    write (*, *) "- Given Potential Form => ", fn_potential
+    write (*, *) "- Given Potential Form        => ", fn_potential
 
     ! Calculate chemical potential of initial state
     call solve_energy(Phi_prev, Pot, N, epsilon, kappa, mu_old, dh)

@@ -16,6 +16,6 @@ gpe.mod gpe.o: gpe.f90
 
 a.out: gpe.o io.o setting.o mathf.o
 	gfortran -o a.out *.o $(options)
-
+	rm *.o *.mod
 clean:
 	rm *.o *.mod a.out
