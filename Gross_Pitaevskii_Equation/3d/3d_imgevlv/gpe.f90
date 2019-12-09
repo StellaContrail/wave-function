@@ -40,7 +40,8 @@ program main
     
     ! Output File Path
     character(*),parameter         :: fn_initial           = "data_initial.txt"
-    character(*),parameter         :: fn_potential         = "data_potential.txt"
+    character(*),parameter         :: fn_potential_raw     = "data_potential_raw.txt"
+    character(*),parameter         :: fn_potential_cutout  = "data_potential_cutout.txt"
     character(*),parameter         :: fn_result_raw        = "data_raw.txt"
     character(*),parameter         :: fn_result_projection = "data_projection.txt"
     character(*),parameter         :: fn_phased            = "data_phased.txt"
@@ -55,7 +56,7 @@ program main
     omega_z          = omega_x
     gamma_y          = omega_y / omega_x
     gamma_z          = omega_z / omega_x
-    ParticleCount    = 1000
+    ParticleCount    = 10000
     ScatteringLength = 5.1d-9
 
     ! Number of steps in a direction
@@ -107,13 +108,17 @@ program main
     open(10, file=fn_initial)
     call output_projection(10, Phi_prev, N, dh, xmax)
     close(10)
-    write (*, *) "- Initial Trial Wave Function => ", fn_initial
+    write (*, *) "- Initial Trial Wave Function    => ", fn_initial
 
     ! Save potential form
-    open(10, file=fn_potential)
-    call output_potential(10, Pot, N, dh, xmax, 25, 25, 25)
+    open(10, file=fn_potential_cutout)
+    call output_potential_cutout(10, Pot, N, dh, xmax, 25, 25, 25)
     close(10)
-    write (*, *) "- Given Potential Form        => ", fn_potential
+    open(10, file=fn_potential_raw)
+    call output_potential_raw(10, Pot, N, dh, xmax)
+    close(10)
+    write (*, *) "- Given Potential Form  (CUTOUT) => ", fn_potential_cutout
+    write (*, *) "- Given Potential Form     (RAW) => ", fn_potential_raw
 
     ! Calculate chemical potential of initial state
     call solve_energy(Phi_prev, Pot, N, epsilon, kappa, mu_old, dh)

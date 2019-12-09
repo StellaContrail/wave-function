@@ -10,7 +10,7 @@ contains
       double precision              :: x, y, z
       integer                       :: i, j, k
       double precision,parameter    :: sigma = 0.5d0
-      integer,parameter             :: mode = 4
+      integer,parameter             :: mode = 5
       Phi_next(:, :, :) = 0d0
 
       do k = 0, N
@@ -53,7 +53,7 @@ contains
                     end if
                 case (5)
                     ! Cylinder Trap
-                    if (sqrt(x**2d0+y**2d0) < 7d0) then
+                    if (sqrt(x**2d0+y**2d0) < 5d0 .and. abs(z) < 8d0) then
                         Pot(i,j,k) = -5d0
                     else
                         Pot(i,j,k) = 0d0

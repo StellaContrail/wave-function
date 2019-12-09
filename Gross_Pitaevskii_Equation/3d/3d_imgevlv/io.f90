@@ -20,11 +20,10 @@ contains
                 end do
                 write (unit, *)
             end do
-            write (unit, *)
         end do
     end subroutine output_complex
 
-    subroutine output_potential(unit, Pot, N, dh, xmax, x_cutout, y_cutout, z_cutout) 
+    subroutine output_potential_cutout(unit, Pot, N, dh, xmax, x_cutout, y_cutout, z_cutout) 
         integer,intent(in)          :: unit, N, x_cutout, y_cutout, z_cutout
         double precision,intent(in) :: dh, Pot(0:N,0:N,0:N), xmax
         integer                     :: i, j, k
@@ -64,6 +63,26 @@ contains
         end do
     end subroutine
 
+    subroutine output_potential_raw(unit, Pot, N, dh, xmax) 
+        integer,intent(in)          :: unit, N
+        double precision,intent(in) :: dh, Pot(0:N,0:N,0:N), xmax
+        integer                     :: i, j, k
+        double precision            :: x, y, z
+
+        do k = 0, N
+            z = -xmax + dh*k
+            do j = 0, N
+                y = -xmax + dh*j
+                do i = 0, N
+                    x = -xmax + dh*i
+
+                    write (unit, '(*(F10.5, X))') x, y, z, Pot(i,j,k)
+                end do
+                write (unit, *)
+            end do
+        end do
+    end subroutine
+
     ! Save double precision complex wave function
     subroutine output_real(unit, f, N, dh, xmax)
         integer,intent(in)          :: unit, N
@@ -83,7 +102,6 @@ contains
                 end do
                 write (unit, *)
             end do
-            write (unit, *)
         end do
     end subroutine output_real
 
