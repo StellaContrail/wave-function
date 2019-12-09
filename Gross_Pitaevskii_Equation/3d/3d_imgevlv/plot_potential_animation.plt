@@ -21,7 +21,7 @@ set xlabel "X (unit:Xs)"
 set ylabel "Y (unit:Xs)"
 set zlabel "Z (unit:Xs)"
 set zlabel rotate by 90
-set cbrange [-5:0]
+set cbrange [-5:10]
 do for [i=0: 2*N] {
     if (i%skip_output == 0) {
         time_new = time(0.0)
