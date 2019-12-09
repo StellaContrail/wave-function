@@ -1,19 +1,15 @@
-set terminal gif animate delay 10 optimize size 800,800
+set terminal gif animate delay 10 optimize size 1600,1600
 set output "data.gif"
-set yrange [-10:10]
-set xrange [-10:10]
-set zrange [0:1]
-set cbrange [0:1]
-set pm3d  # set pm3d map if you want to see projection of the contour
 # SETTINGS
 xmax        = 10     # BOUNDARY OF X
 N           = 50-1   # STEP COUNT
-iter        = 10000 # ITERATION COUNT OF TIME
-iter_output = 50    # SKIP COUNT IN THE ITERATION OF TIME
-skip_output = 25    # SKIP COUNT OF SHOWING SPEED AND ETA
+M           = N + 1
+iter        = 1000    # ITERATION COUNT OF TIME
+iter_output = 10    # SKIP COUNT IN THE ITERATION OF TIME
+skip_output = 5    # SKIP COUNT OF SHOWING SPEED AND ETA
 # OTHER VARIABLES USED BY SCRIPT
 dh          = xmax / real(N/2 + 0.5)
-dt          = 0.01*dh*dh
+dt          = 0.2*dh*dh
 data_num    = int(real(iter)/iter_output)
 time_new    = 0.0
 time_old    = 0.0
@@ -22,6 +18,7 @@ set yrange [-xmax:xmax]
 set xlabel "X (Unit:Xs)"
 set ylabel "Y (Unit:Xs)"
 set zlabel rotate by 90
+q = 2 # Specify which plane to show (q = 0:YZ, 1:ZX, 2:XY)
 do for [i=0: data_num-1] {
     if (i%skip_output == 0) {
         time_new = time(0.0)
@@ -32,19 +29,19 @@ do for [i=0: data_num-1] {
     }
     set multiplot layout 2, 2
         set zlabel "Probability"
-        set zrange [0:1]
-        set cbrange [0:0.2]
+        set zrange [0:0.1]
+        set cbrange [0:0.1]
         set title "Initial Wave Function"
-        splot "data_initial.txt" using 1:2:3 title "" with pm3d
+        splot "data_initial_projection.txt" using 1:2:3 title "" with pm3d
         
         set title sprintf("Time development of Wave Function\n( T = %.3f )", dt*i)
-        splot "data_projection.txt" using 1:2:3 every :::50*i::50*(i+1)-1 title "" with pm3d
+        splot "data_projection.txt" using 1:2:3 every :::M*i::M*(i+1)-1 title "" with pm3d
 
         set zlabel "Z (Unit:Xs)"
-        set zrange [-15:15]
-        unset cbrange
+        set zrange [-xmax:xmax]
+        set cbrange [-5:10]
         set title "External Potential"
-        splot "data_potential.txt" every :::(150*i+100)::(150*i+149) title "" with pm3d
+        splot "data_potential_cutout.txt" every :::3*M*i+M*q::3*M*i+M*q+M-1 title "" with pm3d
     unset multiplot
 }
 unset output

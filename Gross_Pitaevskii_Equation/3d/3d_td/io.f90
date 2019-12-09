@@ -2,7 +2,7 @@ module io
     implicit none
 contains
     ! Save double precision complex wave function
-    subroutine output_raw_complex(unit, f, N, dh, xmax)
+    subroutine output_complex_raw(unit, f, N, dh, xmax)
         integer,intent(in)            :: unit, N
         double precision,intent(in)   :: dh, xmax
         complex(kind(0d0)),intent(in) :: f(0:N,0:N,0:N)
@@ -20,9 +20,8 @@ contains
                 end do
                 write (unit, *)
             end do
-            write (unit, *)
         end do
-    end subroutine output_raw_complex
+    end subroutine output_complex_raw
 
     ! Save double precision complex wave function
     subroutine output_real_raw(unit, f, N, dh, xmax)
@@ -43,12 +42,11 @@ contains
                 end do
                 write (unit, *)
             end do
-            write (unit, *)
         end do
     end subroutine output_real_raw
 
     ! Save time-dependent potential form (cutouts)
-    subroutine output_potential(unit, Pot, N, dh, xmax, x_cutout, y_cutout, z_cutout) 
+    subroutine output_potential_cutout(unit, Pot, N, dh, xmax, x_cutout, y_cutout, z_cutout) 
         integer,intent(in)          :: unit, N, x_cutout, y_cutout, z_cutout
         double precision,intent(in) :: dh, Pot(0:N,0:N,0:N), xmax
         integer                     :: i, j, k

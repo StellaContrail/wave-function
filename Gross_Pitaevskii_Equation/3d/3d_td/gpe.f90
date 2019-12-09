@@ -41,17 +41,25 @@ program main
     integer                        :: i                ! Loop variable
     double precision               :: prob             ! Probability
     double precision               :: prob_old         ! Probability of previous step
-    integer(kind=8)                :: t1, t2, delta_t  ! Processed time
+    integer(kind=8)                :: t1, t2           ! Processed time
+    double precision               :: delta_t          ! delta_t := t2 - t1
     integer(kind=8)                :: tr               ! Time ticks rate
-    double precision               :: time_left        ! Estimated time left
+    integer                        :: time_left        ! Estimated time left
+    integer                        :: iterations       ! Count of Iterations
+    integer                        :: display_output_interval  ! Output progress after every display_output_interval iterations
     
     ! Output File Path
-    character(*),parameter         :: fn_initial     = "data_initial.txt"
-    character(*),parameter         :: fn_potential   = "data_potential.txt"
-    character(*),parameter         :: fn_result_proj = "data_projection.txt"
-    character(*),parameter         :: fn_flux        = "data_flux.txt"
-    character(*),parameter         :: fn_rotation    = "data_rotation.txt"
-    character(*),parameter         :: fn_phased      = "data_phased.txt"
+    character(*),parameter         :: fn_initial_proj     = "data_initial_projection.txt"
+    character(*),parameter         :: fn_initial_raw      = "data_initial_raw.txt"
+
+    character(*),parameter         :: fn_potential_cutout = "data_potential_cutout.txt"
+    character(*),parameter         :: fn_potential_raw    = "data_potential_raw.txt"
+
+    character(*),parameter         :: fn_result_proj      = "data_projection.txt"
+    character(*),parameter         :: fn_result_raw       = "data_raw.txt"
+
+    character(*),parameter         :: fn_flux             = "data_flux.txt"
+    character(*),parameter         :: fn_rotation         = "data_rotation.txt"
 
     ! Definition of physical values (this could be replaced with I/O)
     ! These values are referenced from
@@ -63,7 +71,7 @@ program main
     omega_z          = omega_x
     gamma_y          = omega_y / omega_x
     gamma_z          = omega_z / omega_x
-    ParticleCount    = 1000
+    ParticleCount    = 10000
     ScatteringLength = 5.1d-9
 
     ! Number of steps in a direction
@@ -79,7 +87,7 @@ program main
     epsilon = (Azero/Xs)**2d0
     kappa   = (4d0*pi*ScatteringLength*ParticleCount/Azero)*(Azero/Xs)**5d0
     dh      = xmax / (n/2 + 0.5d0)
-    dt      = 0.01d0*dh*dh
+    dt      = 0.1d0*dh*dh
 
     ! Display settings
     print *, "Physical constants of the system----------------------------------"
@@ -112,10 +120,14 @@ program main
     write (*, *) "- Initialized wave functions and potential"
 
     ! Save initial wave function
-    open(10, file=fn_initial)
+    open(10, file=fn_initial_proj)
     call output_projection(10, Phi_prev, N, dh, xmax)
     close(10)
-    write (*, *) "- Initial Wave Function => ", fn_initial
+    open(10, file=fn_initial_raw)
+    call output_complex_raw(10, Phi_prev, N, dh, xmax)
+    close(10)
+    write (*, *) "- Initial Wave Function (PROJECTION) => ", fn_initial_proj
+    write (*, *) "- Initial Wave Function        (RAW) => ", fn_initial_raw
 
     ! Calculate probability
     call integrate(abs(Phi_prev)**2d0, N, dh, prob)
@@ -125,19 +137,25 @@ program main
     write (*, *) "- Initial chemical potential : ", mu
 
     open(10, file=fn_result_proj)
-    open(20, file=fn_potential)
+    open(15, file=fn_result_raw)
+    open(20, file=fn_potential_cutout)
+    open(25, file=fn_potential_raw)
     open(30, file=fn_flux)
     open(40, file=fn_rotation)
     call system_clock(t1)
-    do i = 1, 10000
+    iterations = 1000
+    display_output_interval = 10
+    do i = 1, iterations
         ! Evolve the system
-        call evolve(Phi_prev, N, dt, dh, epsilon, kappa, iu, abs(Phi_prev)**2d0, Pot, Phi_next)
+        call evolve(Phi_prev, N, dt, dh, epsilon, kappa, iu, abs(Phi_prev)**2d0, Pot_TD, Phi_next)
 
-        if (mod(i, 50) == 0) then
+        if (mod(i, 10) == 0) then
             ! Save wave function
             call output_projection(10, Phi_next, N, dh, xmax)
+            call output_complex_raw(15, Phi_next, N, dh, xmax)
             ! Save potential form
-            call output_potential(20, Pot_TD, N, dh, xmax, 25, 25, 25)
+            call output_potential_cutout(20, Pot_TD, N, dh, xmax, 25, 25, 25)
+            call output_real_raw(25, Pot_TD, N, dh, xmax)
             ! Save flux distribution
             call calc_flux(Phi_next, N, mass, dh, hbar, Flux)
             call output_flux(30, Flux, N, dh, xmax)
@@ -146,14 +164,14 @@ program main
             call output_rotation(40, Rot, N, dh, xmax)
         end if
 
-        if (mod(i, 500) == 0) then
-            if (i > 500) then
+        if (mod(i, display_output_interval) == 0) then
+            if (i > display_output_interval) then
                 write (*, '(A)', advance='no') char(13)
             end if
             call system_clock(t2, tr)
             delta_t = (t2 - t1)/dble(tr)
-            time_left = delta_t*((10000d0-i)/500d0)
-            write (*, '(X, A, I5, A, I5, A, F10.0, A)', advance='no') "- ", i, "/", 10000, &
+            time_left = int(delta_t*((iterations-i)/dble(display_output_interval)))
+            write (*, '(X, A, I5, A, I5, A, I5, A)', advance='no') "* ", i, "/", iterations, &
                                                             " completed (", time_left," seconds left)"
             t1 = t2
         end if
@@ -161,15 +179,16 @@ program main
         ! Substitution to step forward in time
         Phi_prev(:,:,:) = Phi_next(:,:,:)
         ! Vary potential form depending on time
-        call vary_potential(Pot, Pot_TD, N, dh, pi, i, xmax)
+        call vary_potential(Pot, Pot_TD, N, dh, pi, i, iterations, xmax)
     end do
+    write (*, *)
     write (*, *)
     ! Calculate probability
     call integrate(abs(Phi_next)**2d0, N, dh, prob)
-    write (*, *) "- Final Probability : ", prob
+    write (*, *) "- Final Probability          : ", prob
     ! Calculate chemical potential
     call solve_energy(Phi_next, Pot_TD, N, epsilon, kappa, mu, dh)
-    write (*, *) "- Final chemical potential : ", mu
+    write (*, *) "- Final chemical potential   : ", mu
 
     close (10)
     close (20)

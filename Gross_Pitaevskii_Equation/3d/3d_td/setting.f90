@@ -26,7 +26,6 @@ contains
                 end do
                 read (30, *) 
             end do
-            read (30, *)
         end do
         close(30)
 
@@ -65,7 +64,7 @@ contains
                         Pot(i,j,k) = 0.5d0*(x*x*2d0+gamma_y*gamma_y*y*y*0.06d0+gamma_z*gamma_z*z*z*2d0)
                     case (5)
                         ! Cylinder Trap
-                        if (sqrt(x**2d0+y**2d0) < 7d0) then
+                        if (sqrt(x**2d0+y**2d0) < 5d0 .and. abs(z) < 8d0) then
                             Pot(i,j,k) = -5d0
                         else
                             Pot(i,j,k) = 0d0
@@ -79,8 +78,8 @@ contains
     end subroutine initialize
 
     ! Vary potential form depending on time
-    subroutine vary_potential(Pot, Pot_TD, N, dh, pi, iter, xmax)
-        integer,intent(in)             :: N, iter
+    subroutine vary_potential(Pot, Pot_TD, N, dh, pi, iter, total_iter, xmax)
+        integer,intent(in)             :: N, iter, total_iter
         double precision,intent(in)    :: Pot(0:N, 0:N, 0:N), dh, xmax, pi
         double precision,intent(inout) :: Pot_TD(0:N, 0:N, 0:N)
         integer                        :: i, j, k
@@ -90,6 +89,8 @@ contains
         double precision,parameter     :: R_0 = 2d0
         ! OMEGA : Angular velocity of circular stirring (defined later)
         double precision               :: OMEGA
+        ! count : How many times does it stir circulaly
+        integer                        :: count = 1
         ! < Linear Stirring Option >
         ! v_x, v_y : Velocity of stirring (defined later)
         double precision               :: v_x, v_y, v_z
@@ -98,8 +99,8 @@ contains
         double precision               :: sigma = 0.5d0
         ! mode  : Specify type of stirring
         integer,parameter              :: mode = 0
-        OMEGA = 2d0*pi/2000
-        v_x = 2d0*xmax/10000d0
+        OMEGA = 2d0*pi/(dble(total_iter)/count)
+        v_x = 2d0*xmax/total_iter
         v_y = v_x
         v_z = v_x
 
