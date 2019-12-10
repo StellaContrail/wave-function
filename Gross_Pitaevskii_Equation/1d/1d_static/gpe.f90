@@ -117,23 +117,21 @@ program main
         call solve_eigen(H, Phi_next, mu, DIM)
         ! Mix densities
         Phi_temp(:) = sqrt(0.7d0*abs(Phi_prev)**2d0+0.3d0*abs(Phi_next)**2d0)
-        ! Solve using mixed density
-        call hamiltonian(H, Pot, abs(Phi_temp)**2d0, N, dh, epsilon, kappa)
-        call solve_eigen(H, Phi_next, mu, DIM)
+        
         ! Normalization
-        call normalize(Phi_next, N, dh)
+        call normalize(Phi_temp, N, dh)
 
         ! For development usefulness : TO BE DELETED
-        call calc_asymmetry_degree(Phi_next, N, Degree)
+        call calc_asymmetry_degree(Phi_temp, N, Degree)
         write (20, *) i, Degree
 
-        call output_real(30, Phi_next, N, dh, xmax)
+        call output_real(30, Phi_temp, N, dh, xmax)
 
         if (abs(mu_old - mu) < 1d-6) then
             exit
         end if
         mu_old = mu
-        Phi_prev(0:N) = Phi_next(0:N)
+        Phi_prev(0:N) = Phi_temp(0:N)
     end do
     close(20)
     write (*, *) "- All calculation procedures have been finished"
