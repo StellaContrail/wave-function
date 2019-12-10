@@ -2,7 +2,7 @@ set terminal gif animate delay 10 optimize size 800,800
 set size ratio 1
 set output "current.gif"
 # SETTINGS
-xmax        = 15     # BOUNDARY OF X
+xmax        = 5     # BOUNDARY OF X
 N           = 50-1   # STEP COUNT
 iter        = 10000 # ITERATION COUNT OF TIME
 iter_output = 50    # SKIP COUNT IN THE ITERATION OF TIME
@@ -25,7 +25,7 @@ do for [i=0: data_num-1] {
         time_old = time_new
         print sprintf("%5d / %5d    SPD : %5.2f lines/s   ETA : %5.2f sec", i, data_num, speed, (data_num-i+1)/speed)
     }
-    set title sprintf("Probability current\n( T = %.3f )", dt*i)
+    set title sprintf("Probability current\n( T = %.3f )", dt*i*iter_output)
     plot "data_flux.txt" using 1:2:3:4 every :::50*i::50*(i+1)-1 title "" with vector
 }
 unset output

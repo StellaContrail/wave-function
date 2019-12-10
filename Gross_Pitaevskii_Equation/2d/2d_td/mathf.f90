@@ -218,4 +218,40 @@ contains
             end do
         end do
     end subroutine
+
+    subroutine calc_width_condensate(Phi, N, dh, xmax, width_x, width_y)
+        integer,intent(in)            :: N
+        complex(kind(0d0)),intent(in) :: Phi(0:N,0:N)
+        double precision,intent(in)   :: dh, xmax
+        double precision,intent(out)  :: width_x, width_y
+        integer                       :: i, j
+        double precision              :: x, y, height
+        logical                       :: flag
+        
+        flag = .true.
+        do j = 0, N
+            y = -xmax + dh * j
+
+            height = abs(Phi(floor(N/2d0),j))**2d0
+            if (height > 0.05d0 .and. flag) then
+                width_y = y
+                flag = .false.
+            else if (height < 0.05d0 .and. flag .eqv. .false.) then
+                width_y = y - width_y
+            end if
+        end do
+
+        flag = .true.
+        do i = 0, N
+            x = -xmax + dh * i
+
+            height = abs(Phi(i,floor(N/2d0)))**2d0
+            if (height > 0.05d0 .and. flag) then
+                width_x = x
+                flag = .false.
+            else if (height < 0.05d0 .and. flag .eqv. .false.) then
+                width_x = x - width_x
+            end if
+        end do
+    end subroutine
 end module mathf

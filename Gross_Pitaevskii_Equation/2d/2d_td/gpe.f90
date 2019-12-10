@@ -38,6 +38,7 @@ program main
     double precision               :: prob
     double precision,allocatable   :: Flux(:,:,:)
     double precision,allocatable   :: Rot(:,:)
+    double precision               :: width_x, width_y
 
     ! Output File Path
     character(*),parameter         :: fn_initial   = "data_initial.txt"
@@ -55,17 +56,17 @@ program main
     omega_x          = 20d0 * pi
     omega_y          = omega_x
     gamma            = omega_y / omega_x
-    ParticleCount    = 1000
+    ParticleCount    = 100
     ScatteringLength = 5.1d-9
 
     ! Number of steps in a direction
-    N                = 50 - 1
+    N                = 30 - 1
     allocate (Phi_next(0:N,0:N), Phi_prev(0:N,0:N), Pot(0:N,0:N), j(0:N,0:N), Pot_TD(0:N,0:N))
     allocate (Phi_temp(0:N,0:N))
     allocate (Flux(0:N,0:N,1:2), Rot(0:N,0:N))
 
     ! Other variables for setup
-    xmax    = 15d0
+    xmax    = 5d0
     Azero   = sqrt(hbar/(omega_x*mass))
     Xs      = Azero
     epsilon = (Azero/Xs)**2d0
@@ -113,11 +114,12 @@ program main
     open(20, file=fn_potential)
     open(30, file=fn_flux)
     open(40, file=fn_rotation)
+    open(50, file="widths.txt")
     do i = 1, 10000
         ! Evolve the system
         call evolve(Phi_prev, N, dt, dh, epsilon, kappa, iu, abs(Phi_prev)**2d0, Pot_TD, Phi_next)
-        ! Check if the probability is conserved
-        call integrate(abs(Phi_next)**2d0, N, dh, prob)
+        Phi_temp(:,:) = sqrt(0.7d0*abs(Phi_prev)**2d0 + 0.3d0*abs(Phi_next)**2d0)
+
         ! Calculate chemical potential
         call solve_energy(Phi_next, Pot_TD, N, epsilon, kappa, mu, dh)
 
@@ -132,6 +134,9 @@ program main
             ! Save rotation of flux
             call calc_rotation(Flux, N, dh, xmax, Rot)
             call output_rotation(40, Rot, N, dh, xmax)
+            ! Save width of the condensate
+            call calc_width_condensate(Phi_next, N, dh, xmax, width_x, width_y)
+            call output_widths(50, i, dt, width_x, width_y)
         end if
 
         if (mod(i, 500) == 0) then
@@ -144,13 +149,15 @@ program main
         ! Substitution to step forward in time
         Phi_prev = Phi_next
         ! Vary potential form depending on time
-        call vary_potential(Pot, Pot_TD, N, dh, pi, i, xmax)
+        call vary_potential(Pot, Pot_TD, N, dh, dt, pi, i, 10000, xmax)
     end do
     write (*, *)
-
+    ! Check if the probability is conserved
+    !call integrate(abs(Phi_next)**2d0, N, dh, prob)
     close (10)
     close (20)
     close (30)
     close (40)
+    close (50)
     write (*, *) "- Result Wave Function => ", fn_result
 end program 

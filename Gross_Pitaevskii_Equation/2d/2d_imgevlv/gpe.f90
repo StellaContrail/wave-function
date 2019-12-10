@@ -53,18 +53,18 @@ program main
     omega_x          = 20d0 * pi
     omega_y          = omega_x
     gamma            = omega_y / omega_x
-    ParticleCount    = 1000
+    ParticleCount    = 100
     ScatteringLength = 5.1d-9
     
     ! Number of steps in a direction
-    N                = 50 - 1
+    N                = 30 - 1
     ! Allocation of variables
     allocate (Phi_next(0:N,0:N), Phi_prev(0:N,0:N))
     allocate (Phi_phased(0:N, 0:N))
     allocate (Pot(0:N,0:N), j(0:N,0:N))
 
     ! Other variables for setup
-    xmax    = 15d0
+    xmax    = 5d0
     Azero   = sqrt(hbar/(omega_x*mass))
     Xs      = Azero
     epsilon = (Azero/Xs)**2d0

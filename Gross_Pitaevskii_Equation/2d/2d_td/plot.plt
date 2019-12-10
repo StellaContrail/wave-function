@@ -2,8 +2,9 @@ set terminal gif animate delay 10 optimize size 1600,1600
 set output "data.gif"
 set pm3d
 # SETTINGS
-xmax        = 15     # BOUNDARY OF X
-N           = 50-1   # STEP COUNT
+xmax        = 5     # BOUNDARY OF X
+N           = 30-1   # STEP COUNT
+M           = N + 1
 iter        = 10000 # ITERATION COUNT OF TIME
 iter_output = 50    # SKIP COUNT IN THE ITERATION OF TIME
 skip_output = 25    # SKIP COUNT OF SHOWING SPEED AND ETA
@@ -25,25 +26,25 @@ do for [i=0: data_num-1] {
     }
     set multiplot layout 2,2 scale 1,1
         set zrange [-1:1]
-        set cbrange [-0.2:0.2]
-        set title sprintf("Real Part Profile of Initial Wave Function", dt*i)
-        splot "data_input.txt" using 1:2:4 title "" with pm3d
+        set cbrange [-1:1]
+        set title "Real Part Profile of Initial Wave Function"
+        splot "data_initial.txt" using 1:2:4 title "" with pm3d
 
         set zrange  [0:1]
-        set cbrange [0:0.01]
-        set title sprintf("Time development of Non-Linear Schroedinger Equation\n( T = %.3f )", dt*i)
-        splot "data.txt" using 1:2:3 every :::50*i::50*(i+1)-1 title "" with pm3d
+        set cbrange [0:1]
+        set title sprintf("Time development of Non-Linear Schroedinger Equation\n( T = %.3f )", dt*i*iter_output)
+        splot "data.txt" using 1:2:3 every :::M*i::M*(i+1)-1 title "" with pm3d
 
 
         set zrange [0:1]
-        set cbrange [0:0.01]
-        set title sprintf("Probability Profile of Initial Wave Function", dt*i)
-        splot "data_input.txt" using 1:2:3 title "" with pm3d
+        set cbrange [0:1]
+        set title "Probability Profile of Initial Wave Function"
+        splot "data_initial.txt" using 1:2:3 title "" with pm3d
 
-        unset zrange
-        unset cbrange
+        set zrange  [-5:5]
+        set cbrange [-5:5]
         set title sprintf("External Potential")
-        splot "data_potential.txt" using 1:2:3 every :::50*i::50*(i+1)-1 title "" with pm3d
+        splot "data_potential.txt" using 1:2:3 every :::M*i::M*(i+1)-1 title "" with pm3d
     unset multiplot
 }
 unset output

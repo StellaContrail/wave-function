@@ -44,7 +44,7 @@ contains
         double precision,intent(in) :: Flux(0:N,0:N,1:2)
         double precision            :: x, y
         integer                     :: i, j
-        double precision,parameter  :: SCALE = 1000d0
+        double precision,parameter  :: SCALE = 1d0!1000d0
         
         do j = 0, N
             y = -xmax + dh * j
@@ -63,7 +63,7 @@ contains
         double precision,intent(in) :: Rot(0:N,0:N)
         double precision            :: x, y, z
         integer                     :: i, j, k
-        double precision,parameter  :: SCALE = 1000d0
+        double precision,parameter  :: SCALE = 10d0!1000d0
         
         ! Be careful of putting two blank lines. Gnuplot behaves wrongly when specifying every keyword.
         do k = 0, 1
@@ -83,5 +83,11 @@ contains
                 write (unit, *)
             end do
         end do
+    end subroutine
+
+    subroutine output_widths(unit, iter, dt, width_x, width_y)
+        integer,intent(in)          :: unit, iter
+        double precision,intent(in) :: dt, width_x, width_y
+        write (unit, *) dt*iter, width_x, width_y
     end subroutine
 end module io

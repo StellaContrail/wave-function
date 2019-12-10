@@ -2,8 +2,9 @@ set size ratio 1
 set terminal jpeg size 1600,1600
 set output "data.jpg"
 set pm3d
-set xrange  [-15:15]
-set yrange  [-15:15]
+xmax = 5
+set xrange  [-xmax:xmax]
+set yrange  [-xmax:xmax]
 set xlabel "X (unit:Xs)"
 set ylabel "Y (unit:Xs)"
 set zlabel rotate by 90
