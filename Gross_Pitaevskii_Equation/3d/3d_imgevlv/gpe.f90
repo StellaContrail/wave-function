@@ -16,6 +16,7 @@ program main
     complex(kind(0d0)),allocatable :: Phi_phased(:, :, :) ! Temporary wave function used by zhbev
     double precision,allocatable   :: Phi_next(:, :, :)   ! Wave function at next step
     double precision,allocatable   :: Phi_prev(:, :, :)   ! Wave function at previous step
+    double precision,allocatable   :: Phi_temp(:, :, :)
     double precision,allocatable   :: Pot(:, :, :)        ! Potential
     double precision               :: dh                  ! Step of distance in the x-direction
     double precision               :: dt                  ! Step of time     in the t-direction
@@ -37,6 +38,7 @@ program main
     double precision               :: kappa               ! coeffient of the nonlinear term
     integer                        :: i                   ! Loop variable
     double precision               :: mu_old              ! Chemical potential
+    double precision,allocatable   :: Phase_field(:,:,:)
     
     ! Output File Path
     character(*),parameter         :: fn_initial           = "data_initial.txt"
@@ -56,23 +58,23 @@ program main
     omega_z          = omega_x
     gamma_y          = omega_y / omega_x
     gamma_z          = omega_z / omega_x
-    ParticleCount    = 10000
+    ParticleCount    = 1000
     ScatteringLength = 5.1d-9
 
     ! Number of steps in a direction
-    N                = 50 - 1
+    N                = 30 - 1
     ! Allocation of variables
     allocate (Phi_next(0:N,0:N,0:N), Phi_prev(0:N,0:N,0:N), Pot(0:N,0:N,0:N), j(0:N,0:N,0:N))
-    allocate (Phi_phased(0:N, 0:N,0:N))
+    allocate (Phi_phased(0:N, 0:N,0:N), Phi_temp(0:N, 0:N, 0:N), Phase_field(0:N,0:N,0:N))
 
     ! Other variables for setup
-    xmax    = 10d0
+    xmax    = 5d0
     Azero   = sqrt(hbar/(omega_x*mass))
     Xs      = Azero
     epsilon = (Azero/Xs)**2d0
     kappa   = (4d0*pi*ScatteringLength*ParticleCount/Azero)*(Azero/Xs)**5d0
     dh      = xmax / (n/2 + 0.5d0)
-    dt      = 0.1d0*dh*dh
+    dt      = 0.01d0*dh*dh
 
     ! Display settings
     print *, "Physical constants of the system----------------------------------"
@@ -126,7 +128,8 @@ program main
     ! Start solving 2D GPE
     do i = 1, 50000
         ! Evolve the system
-        call evolve(Phi_prev, N, dt, dh, epsilon, kappa, abs(Phi_prev)**2d0, Pot, Phi_next)
+        call evolve(Phi_prev, N, dt, dh, epsilon, kappa, abs(Phi_prev)**2d0, Pot, Phi_temp)
+        Phi_next(:,:,:) = sqrt(0.7d0*abs(Phi_prev(:,:,:))**2d0 + 0.3d0*abs(Phi_next(:,:,:))**2d0)
         call normalize(Phi_next, N, dh)
 
         ! Calculate chemical potential
@@ -159,12 +162,18 @@ program main
     close (11)
     write (*, *) "- Result Wave Function (RAW)        => ", fn_result_raw
     
-    ! Shift wave function's phase partially
-    call shift_phase(Phi_prev, N, 0, N, ceiling(N/2d0), N, 0, N, Phi_phased, iu, pi)
-    open(11, file="data_shifted.txt")
+    ! Make a vortex
+    call make_vortex(Phi_prev, N, xmax, dh, iu, Phi_phased)
+    open(11, file=fn_phased)
     call output_complex(11, Phi_phased, N, dh, xmax)
     close(11)
     write (*, *) "- Phased Wave Function              => ", fn_phased
+
+    call get_phase_field(Phi_phased, N, Phase_field)
+    open(11, file="phase.txt")
+    call output_real(11, Phase_field, N, dh, xmax)
+    close(11)
+    write (*, *) "- Phase                             => ", "phase.txt"
 
     ! Free allocated variables from memory
     deallocate (Phi_next, Phi_prev, Phi_phased, Pot, j)

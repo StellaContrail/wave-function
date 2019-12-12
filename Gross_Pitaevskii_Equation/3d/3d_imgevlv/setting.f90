@@ -10,7 +10,7 @@ contains
       double precision              :: x, y, z
       integer                       :: i, j, k
       double precision,parameter    :: sigma = 0.5d0
-      integer,parameter             :: mode = 4
+      integer,parameter             :: mode = 0
       Phi_next(:, :, :) = 0d0
 
       do k = 0, N

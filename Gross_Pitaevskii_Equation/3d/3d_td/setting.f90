@@ -14,7 +14,7 @@ contains
         ! sigma : Width of Gaussian's wave packet formed potential
         double precision,parameter      :: sigma = 0.5d0
         ! mode  : Specify type of potential forms
-        integer,parameter               :: mode = 4
+        integer,parameter               :: mode = 0
         Phi_next(:, :, :) = dcmplx(0d0, 0d0)
 
         open(30, file=fn_input)

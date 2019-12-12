@@ -1,15 +1,15 @@
 set terminal gif animate delay 10 optimize size 1600,1600
 set output "data.gif"
 # SETTINGS
-xmax        = 10     # BOUNDARY OF X
-N           = 50-1   # STEP COUNT
+xmax        = 5     # BOUNDARY OF X
+N           = 30-1   # STEP COUNT
 M           = N + 1
-iter        = 1000    # ITERATION COUNT OF TIME
-iter_output = 10    # SKIP COUNT IN THE ITERATION OF TIME
+iter        = 15000    # ITERATION COUNT OF TIME
+iter_output = 50    # SKIP COUNT IN THE ITERATION OF TIME
 skip_output = 5    # SKIP COUNT OF SHOWING SPEED AND ETA
 # OTHER VARIABLES USED BY SCRIPT
 dh          = xmax / real(N/2 + 0.5)
-dt          = 0.2*dh*dh
+dt          = 0.01*dh*dh
 data_num    = int(real(iter)/iter_output)
 time_new    = 0.0
 time_old    = 0.0
@@ -29,12 +29,12 @@ do for [i=0: data_num-1] {
     }
     set multiplot layout 2, 2
         set zlabel "Probability"
-        set zrange [0:0.1]
-        set cbrange [0:0.1]
+        set zrange [0:1]
+        set cbrange [0:1]
         set title "Initial Wave Function"
         splot "data_initial_projection.txt" using 1:2:3 title "" with pm3d
         
-        set title sprintf("Time development of Wave Function\n( T = %.3f )", dt*i)
+        set title sprintf("Time development of Wave Function\n( T = %.3f )", dt*i*iter_output)
         splot "data_projection.txt" using 1:2:3 every :::M*i::M*(i+1)-1 title "" with pm3d
 
         set zlabel "Z (Unit:Xs)"
