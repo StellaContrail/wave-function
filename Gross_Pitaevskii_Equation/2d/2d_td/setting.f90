@@ -14,7 +14,7 @@ contains
         ! sigma : Width of Gaussian's wave packet formed potential
         double precision,parameter      :: sigma = 0.5d0
         ! mode  : Specify type of potential forms
-        integer,parameter               :: mode = 3
+        integer,parameter               :: mode = 0
         ! R_0   : Radius of circle or box half width
         double precision,parameter      :: R_0 = 4d0
         Phi_next(:, :) = dcmplx(0d0, 0d0)
@@ -107,7 +107,7 @@ contains
     ! sigma : Stirring potential width
     double precision               :: sigma = 0.35d0
     ! mode  : Specify type of stirring
-    integer,parameter              :: mode = 2
+    integer,parameter              :: mode = 0
     OMEGA = 2d0*pi/(((fade_out_start_clock-fade_in_end_clock)/dt)/0.5d0)
     v_x = 2d0*xmax/iter_max
     v_y = v_x

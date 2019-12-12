@@ -162,9 +162,9 @@ contains
         double precision,intent(in)    :: Phi(0:N,0:N), dh, xmax
         complex(kind(0d0)),intent(in)  :: iu
         complex(kind(0d0)),intent(out) :: Phi_phased(0:N,0:N)
-        double precision               :: R = 5d0
         integer                        :: i, j
         double precision               :: x, y, degree
+        double precision               :: R = 5d0
 
         do j = 0, N
             y = -xmax + dh*j
@@ -173,7 +173,7 @@ contains
                 
                 if (x**2d0 + y**2d0 < R**2d0) then
                     degree = atan2(y, x)
-                    Phi_phased(i,j) = exp(-iu*degree)*Phi(i,j)
+                    Phi_phased(i,j) = exp(iu*degree)*Phi(i,j)
                 else 
                     Phi_phased(i,j) = Phi(i,j)
                 end if

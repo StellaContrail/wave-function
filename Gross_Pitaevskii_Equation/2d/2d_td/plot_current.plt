@@ -18,6 +18,9 @@ set xrange [-xmax:xmax]
 set yrange [-xmax:xmax]
 set xlabel "X (Unit:Xs)"
 set ylabel "Y (Unit:Xs)"
+set view 0, 0, 1, 1
+set palette rgbformulae 22,13,10
+set cbrange [0:0.2]
 do for [i=0: data_num-1] {
     if (i%skip_output == 0) {
         time_new = time(0.0)
@@ -26,8 +29,12 @@ do for [i=0: data_num-1] {
         time_old = time_new
         print sprintf("%5d / %5d    SPD : %5.2f lines/s   ETA : %5.2f sec", i, data_num, speed, (data_num-i+1)/speed)
     }
+    set pm3d map
     set title sprintf("Probability current\n( T = %.3f )", dt*i*iter_output)
-    plot "data_flux.txt" using 1:2:($3*5):($4*5) every :::M*i::M*(i+1)-1 title "" with vector
+    splot "data.txt" using 1:2:3 every :::M*i::M*(i+1)-1 title "", "data_flux.txt" using 1:2:(0):($3*5):($4*5):(0) every :::M*i::M*(i+1)-1 title "" with vectors linecolor rgb "#000000"
+    unset pm3d
+    
+    #set title sprintf("Probability current\n( T = %.3f )", dt*i*iter_output)
 }
 unset output
 set terminal wxt

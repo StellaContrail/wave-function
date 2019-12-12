@@ -1,3 +1,5 @@
+! 不連続的な変化をするようなポテンシャルではPhaseがπだけ変わっている・・・？
+
 module setting
     implicit none
 contains
@@ -12,7 +14,7 @@ contains
         ! sigma : Width of Gaussian's wave packet formed potential
         double precision,parameter      :: sigma = 0.5d0
         ! mode  : Specify type of potential forms
-        integer,parameter               :: mode = 3
+        integer,parameter               :: mode = 0
         ! R_0   : Radius of circle or box half width
         double precision,parameter      :: R_0 = 4d0
         Phi_next(:, :) = 0d0

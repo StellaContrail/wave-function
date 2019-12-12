@@ -150,21 +150,19 @@ program main
     close (10)
     write (*, *) "- Result Wave Function => ", fn_result
 
-    ! Shift wave function's phase partially
+    ! Make a vortex by shifting phase by pi continually
     call make_vortex(Phi_prev, N, xmax, dh, iu, Phi_phased)
     open(11, file=fn_phased)
     call output_complex(11, Phi_phased, N, dh, xmax)
     close(11)
     print *, "- Phased Wave Function => ", fn_phased
     
-    call get_phase_field(dcmplx(Phi_prev, 0d0), N, Phase_field)
-    !call get_phase_field(Phi_phased, N, Phase_field)
+    call get_phase_field(Phi_phased, N, Phase_field)
     open(11, file="phase_field.txt")
     call output_real(11, Phase_field, N, dh, xmax)
     close(11)
     print *, "- Phase field          => ", fn_phased
     
-
     ! Free allocated variables from memory
     deallocate (Phi_next, Phi_prev, Phi_phased, Pot, j)
 end program 
