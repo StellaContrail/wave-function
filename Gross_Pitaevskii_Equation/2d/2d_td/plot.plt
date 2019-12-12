@@ -5,7 +5,7 @@ set pm3d
 xmax        = 5     # BOUNDARY OF X
 N           = 30-1   # STEP COUNT
 M           = N + 1
-iter        = 10000 # ITERATION COUNT OF TIME
+iter        = 15000 # ITERATION COUNT OF TIME
 iter_output = 50    # SKIP COUNT IN THE ITERATION OF TIME
 skip_output = 25    # SKIP COUNT OF SHOWING SPEED AND ETA
 # OTHER VARIABLES USED BY SCRIPT
@@ -31,18 +31,22 @@ do for [i=0: data_num-1] {
         splot "data_initial.txt" using 1:2:4 title "" with pm3d
 
         set zrange  [0:1]
-        set cbrange [0:1]
+        set cbrange [0:0.2]
+        #set nosurface
+        #set contour
         set title sprintf("Time development of Non-Linear Schroedinger Equation\n( T = %.3f )", dt*i*iter_output)
         splot "data.txt" using 1:2:3 every :::M*i::M*(i+1)-1 title "" with pm3d
+        #unset contour
+        #set surface
 
 
         set zrange [0:1]
-        set cbrange [0:1]
+        set cbrange [0:0.5]
         set title "Probability Profile of Initial Wave Function"
         splot "data_initial.txt" using 1:2:3 title "" with pm3d
 
-        set zrange  [-5:5]
-        set cbrange [-5:5]
+        set zrange  [-50:50]
+        set cbrange [-50:50]
         set title sprintf("External Potential")
         splot "data_potential.txt" using 1:2:3 every :::M*i::M*(i+1)-1 title "" with pm3d
     unset multiplot

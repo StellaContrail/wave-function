@@ -30,6 +30,7 @@ program main
     double precision               :: ScatteringLength ! s-wave scattering length
     double precision               :: mu               ! chemical potential
     double precision,allocatable   :: j(:, :)          ! probability current
+    double precision,allocatable   :: Phase_field(:,:) ! Phase field
 
     ! Coefficients and variables (not user defined)
     double precision               :: Azero            ! length of the harmonic oscillator ground state
@@ -53,7 +54,7 @@ program main
     omega_x          = 20d0 * pi
     omega_y          = omega_x
     gamma            = omega_y / omega_x
-    ParticleCount    = 100
+    ParticleCount    = 1000
     ScatteringLength = 5.1d-9
     
     ! Number of steps in a direction
@@ -61,7 +62,7 @@ program main
     ! Allocation of variables
     allocate (Phi_next(0:N,0:N), Phi_prev(0:N,0:N))
     allocate (Phi_phased(0:N, 0:N))
-    allocate (Pot(0:N,0:N), j(0:N,0:N))
+    allocate (Pot(0:N,0:N), j(0:N,0:N), Phase_field(0:N,0:N))
 
     ! Other variables for setup
     xmax    = 5d0
@@ -150,11 +151,19 @@ program main
     write (*, *) "- Result Wave Function => ", fn_result
 
     ! Shift wave function's phase partially
-    call shift_phase(Phi_prev, N, 0, N, ceiling(N/2d0), N, Phi_phased, iu, pi)
+    call make_vortex(Phi_prev, N, xmax, dh, iu, Phi_phased)
     open(11, file=fn_phased)
     call output_complex(11, Phi_phased, N, dh, xmax)
     close(11)
     print *, "- Phased Wave Function => ", fn_phased
+    
+    call get_phase_field(dcmplx(Phi_prev, 0d0), N, Phase_field)
+    !call get_phase_field(Phi_phased, N, Phase_field)
+    open(11, file="phase_field.txt")
+    call output_real(11, Phase_field, N, dh, xmax)
+    close(11)
+    print *, "- Phase field          => ", fn_phased
+    
 
     ! Free allocated variables from memory
     deallocate (Phi_next, Phi_prev, Phi_phased, Pot, j)

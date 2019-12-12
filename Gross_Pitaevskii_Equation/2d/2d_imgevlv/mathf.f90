@@ -155,4 +155,51 @@ contains
             Phi_OUT(i,y_start:y_end) = exp(iu*angle) * Phi_IN(i,y_start:y_end)
         end do
     end subroutine
+
+    ! Make Quantized Vortex by changing the phase
+    subroutine make_vortex(Phi, N, xmax, dh, iu, Phi_phased)
+        integer,intent(in)             :: N
+        double precision,intent(in)    :: Phi(0:N,0:N), dh, xmax
+        complex(kind(0d0)),intent(in)  :: iu
+        complex(kind(0d0)),intent(out) :: Phi_phased(0:N,0:N)
+        double precision               :: R = 5d0
+        integer                        :: i, j
+        double precision               :: x, y, degree
+
+        do j = 0, N
+            y = -xmax + dh*j
+            do i = 0, N
+                x = -xmax + dh*i
+                
+                if (x**2d0 + y**2d0 < R**2d0) then
+                    degree = atan2(y, x)
+                    Phi_phased(i,j) = exp(-iu*degree)*Phi(i,j)
+                else 
+                    Phi_phased(i,j) = Phi(i,j)
+                end if
+            end do
+        end do
+    end subroutine
+
+    ! Get phase of the complex number
+    function get_phase(Z) result(phase)
+        complex(kind(0d0)),intent(in) :: Z
+        double precision              :: phase
+        
+        phase = atan2(aimag(z), real(z))
+    end function
+
+    ! Get phase distribution of the field
+    subroutine get_phase_field(Phi, N, Phase)
+        integer,intent(in)            :: N
+        complex(kind(0d0)),intent(in) :: Phi(0:N,0:N)
+        double precision,intent(out)  :: Phase(0:N,0:N)
+        integer                       :: i, j
+
+        do j = 0, N
+            do i = 0, N
+                Phase(i,j) = get_phase(Phi(i,j))
+            end do
+        end do
+    end subroutine
 end module mathf

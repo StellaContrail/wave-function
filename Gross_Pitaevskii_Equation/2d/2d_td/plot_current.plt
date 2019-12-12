@@ -3,8 +3,9 @@ set size ratio 1
 set output "current.gif"
 # SETTINGS
 xmax        = 5     # BOUNDARY OF X
-N           = 50-1   # STEP COUNT
-iter        = 10000 # ITERATION COUNT OF TIME
+N           = 30-1   # STEP COUNT
+M           = N + 1
+iter        = 15000 # ITERATION COUNT OF TIME
 iter_output = 50    # SKIP COUNT IN THE ITERATION OF TIME
 skip_output = 25    # SKIP COUNT OF SHOWING SPEED AND ETA
 # OTHER VARIABLES USED BY SCRIPT
@@ -26,7 +27,7 @@ do for [i=0: data_num-1] {
         print sprintf("%5d / %5d    SPD : %5.2f lines/s   ETA : %5.2f sec", i, data_num, speed, (data_num-i+1)/speed)
     }
     set title sprintf("Probability current\n( T = %.3f )", dt*i*iter_output)
-    plot "data_flux.txt" using 1:2:3:4 every :::50*i::50*(i+1)-1 title "" with vector
+    plot "data_flux.txt" using 1:2:($3*5):($4*5) every :::M*i::M*(i+1)-1 title "" with vector
 }
 unset output
 set terminal wxt

@@ -35,14 +35,14 @@ contains
                 case (2)
                     ! Box Trap
                     if (abs(x) < R_0 .and. abs(y) < R_0) then
-                        Pot(i, j) = -5d0
+                        Pot(i, j) = -50d0
                     else
                         Pot(i, j) = 0d0
                     end if
                 case (3)
                     ! Circle Trap
                     if (sqrt(x**2d0+y**2d0) < R_0) then
-                        Pot(i, j) = -5d0
+                        Pot(i, j) = -50d0
                     else
                         Pot(i, j) = 0d0
                     end if

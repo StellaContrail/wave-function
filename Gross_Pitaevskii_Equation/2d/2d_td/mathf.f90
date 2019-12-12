@@ -218,40 +218,42 @@ contains
             end do
         end do
     end subroutine
-
-    subroutine calc_width_condensate(Phi, N, dh, xmax, width_x, width_y)
+    
+    subroutine calc_widths(Phi, N, dh, xmax, sigma_x, sigma_y)
         integer,intent(in)            :: N
-        complex(kind(0d0)),intent(in) :: Phi(0:N,0:N)
         double precision,intent(in)   :: dh, xmax
-        double precision,intent(out)  :: width_x, width_y
+        complex(kind(0d0)),intent(in) :: Phi(0:N,0:N)
+        double precision,intent(out)  :: sigma_x, sigma_y
+        double precision              :: x, y, density, EX, EY, EX2, EY2
         integer                       :: i, j
-        double precision              :: x, y, height
-        logical                       :: flag
-        
-        flag = .true.
+        EX  = 0d0
+        EY  = 0d0
+        EX2 = 0d0
+        EY2 = 0d0
         do j = 0, N
-            y = -xmax + dh * j
+            y = -xmax + dh*j
+            do i = 0, N
+                x = -xmax + dh*i
 
-            height = abs(Phi(floor(N/2d0),j))**2d0
-            if (height > 0.05d0 .and. flag) then
-                width_y = y
-                flag = .false.
-            else if (height < 0.05d0 .and. flag .eqv. .false.) then
-                width_y = y - width_y
-            end if
+                density = abs(Phi(i,j))**2d0
+                if (i == 0 .or. i == N) then
+                    EX  = EX + 0.5d0*x*density*dh
+                    EX2 = EX2 + 0.5d0*x*x*density*dh 
+                else
+                    EX  = EX + x*density*dh
+                    EX2 = EX2 + x*x*density*dh
+                end if
+                if (j == 0 .or. j == N) then
+                    EY  = EY + 0.5d0*y*density*dh
+                    EY2 = EY2 + 0.5d0*y*y*density*dh
+                else
+                    EY  = EY + y*density*dh
+                    EY2 = EY2 + y*y*density*dh
+                end if
+            end do
         end do
 
-        flag = .true.
-        do i = 0, N
-            x = -xmax + dh * i
-
-            height = abs(Phi(i,floor(N/2d0)))**2d0
-            if (height > 0.05d0 .and. flag) then
-                width_x = x
-                flag = .false.
-            else if (height < 0.05d0 .and. flag .eqv. .false.) then
-                width_x = x - width_x
-            end if
-        end do
+        sigma_x = sqrt(EX2 - EX**2d0)
+        sigma_y = sqrt(EY2 - EY**2d0)
     end subroutine
 end module mathf

@@ -68,7 +68,7 @@ contains
                 case (3)
                     ! Circle Trap
                     if (sqrt(x**2d0+y**2d0) < R_0) then
-                        Pot(i, j) = -5d0
+                        Pot(i, j) = -50d0
                     else
                         Pot(i, j) = 0d0
                     end if
@@ -89,10 +89,10 @@ contains
     double precision,intent(inout) :: Pot_TD(0:N, 0:N)
     integer                        :: i, j
     double precision               :: x_s, y_s, x, y, t
-    double precision               :: V_0 = 10d0, V
+    double precision               :: V_0 = 100d0, V
     ! < Circular Stirring Options >
     ! R_0   : Radius of circular stirring
-    double precision,parameter     :: R_0 = 2d0
+    double precision,parameter     :: R_0 = 1.8d0
     ! OMEGA : Angular velocity of circular stirring (defined later)
     double precision               :: OMEGA
     ! < Linear Stirring Option >
@@ -100,15 +100,15 @@ contains
     double precision               :: v_x, v_y
     ! gradually increase/descrease the intensity of the circularly stirring potential to avoid transient effects
     double precision               :: fade_in_start_clock  = 0d0
-    double precision               :: fade_in_end_clock    = 1d0
-    double precision               :: fade_out_start_clock = 4d0
-    double precision               :: fade_out_end_clock   = 5d0
+    double precision               :: fade_in_end_clock    = 3d0
+    double precision               :: fade_out_start_clock = 6d0
+    double precision               :: fade_out_end_clock   = 9d0
     ! < Common Options >
     ! sigma : Stirring potential width
     double precision               :: sigma = 0.35d0
     ! mode  : Specify type of stirring
     integer,parameter              :: mode = 2
-    OMEGA = 2d0*pi/(((fade_out_start_clock-fade_in_end_clock)/dt)/3)
+    OMEGA = 2d0*pi/(((fade_out_start_clock-fade_in_end_clock)/dt)/0.5d0)
     v_x = 2d0*xmax/iter_max
     v_y = v_x
 
@@ -117,7 +117,7 @@ contains
         V = 0d0
     end if
     if (fade_in_start_clock < t .and. t < fade_in_end_clock) then
-        V = V + V_0 * (t - fade_in_start_clock)/(fade_in_end_clock - fade_in_start_clock)
+        V = V_0 * (t - fade_in_start_clock)/(fade_in_end_clock - fade_in_start_clock)
         if (V > V_0) then
             V = V_0
         end if
@@ -126,7 +126,7 @@ contains
         V = V_0
     end if
     if (fade_out_start_clock < t .and. t < fade_out_end_clock) then
-        V = V - V_0 * (t - fade_out_start_clock)/(fade_out_end_clock - fade_out_start_clock)
+        V = V_0 - V_0 * (t - fade_out_start_clock)/(fade_out_end_clock - fade_out_start_clock)
         if (V < 0d0) then
             V = 0d0
         end if

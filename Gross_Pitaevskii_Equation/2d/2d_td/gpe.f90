@@ -39,6 +39,7 @@ program main
     double precision,allocatable   :: Flux(:,:,:)
     double precision,allocatable   :: Rot(:,:)
     double precision               :: width_x, width_y
+    integer                        :: total_iterations ! How many iterations to calculate real time propagation
 
     ! Output File Path
     character(*),parameter         :: fn_initial   = "data_initial.txt"
@@ -56,7 +57,7 @@ program main
     omega_x          = 20d0 * pi
     omega_y          = omega_x
     gamma            = omega_y / omega_x
-    ParticleCount    = 100
+    ParticleCount    = 1000
     ScatteringLength = 5.1d-9
 
     ! Number of steps in a direction
@@ -115,7 +116,8 @@ program main
     open(30, file=fn_flux)
     open(40, file=fn_rotation)
     open(50, file="widths.txt")
-    do i = 1, 10000
+    total_iterations = 15000
+    do i = 1, total_iterations
         ! Evolve the system
         call evolve(Phi_prev, N, dt, dh, epsilon, kappa, iu, abs(Phi_prev)**2d0, Pot_TD, Phi_next)
         Phi_temp(:,:) = sqrt(0.7d0*abs(Phi_prev)**2d0 + 0.3d0*abs(Phi_next)**2d0)
@@ -135,7 +137,7 @@ program main
             call calc_rotation(Flux, N, dh, xmax, Rot)
             call output_rotation(40, Rot, N, dh, xmax)
             ! Save width of the condensate
-            call calc_width_condensate(Phi_next, N, dh, xmax, width_x, width_y)
+            call calc_widths(Phi_next, N, dh, xmax, width_x, width_y)
             call output_widths(50, i, dt, width_x, width_y)
         end if
 
@@ -143,13 +145,13 @@ program main
             if (i > 500) then
                 write (*, '(A)', advance='no') char(13)
             end if
-            write (*, '(X, A, I5, A, I5, A)', advance='no') "- ", i, "/", 10000, " completed"
+            write (*, '(X, A, I5, A, I5, A)', advance='no') "- ", i, "/", total_iterations, " completed"
         end if
 
         ! Substitution to step forward in time
         Phi_prev = Phi_next
         ! Vary potential form depending on time
-        call vary_potential(Pot, Pot_TD, N, dh, dt, pi, i, 10000, xmax)
+        call vary_potential(Pot, Pot_TD, N, dh, dt, pi, i, total_iterations, xmax)
     end do
     write (*, *)
     ! Check if the probability is conserved
