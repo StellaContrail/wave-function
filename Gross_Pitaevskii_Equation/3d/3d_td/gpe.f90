@@ -148,7 +148,7 @@ program main
     do i = 1, iterations
         ! Evolve the system
         call evolve(Phi_prev, N, dt, dh, epsilon, kappa, iu, abs(Phi_prev)**2d0, Pot_TD, Phi_next)
-        Phi_next(:,:,:) = sqrt(0.7d0*abs(Phi_prev(:,:,:))**2d0 + 0.3d0*abs(Phi_next(:,:,:))**2d0)
+        Phi_next(:,:,:) = sqrt(0.5d0*abs(Phi_prev(:,:,:))**2d0 + 0.5d0*abs(Phi_next(:,:,:))**2d0)
 
         if (mod(i, 50) == 0) then
             ! Save wave function

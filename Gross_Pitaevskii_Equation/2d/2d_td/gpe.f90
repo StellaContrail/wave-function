@@ -120,7 +120,7 @@ program main
     do i = 1, total_iterations
         ! Evolve the system
         call evolve(Phi_prev, N, dt, dh, epsilon, kappa, iu, abs(Phi_prev)**2d0, Pot_TD, Phi_next)
-        Phi_temp(:,:) = sqrt(0.7d0*abs(Phi_prev)**2d0 + 0.3d0*abs(Phi_next)**2d0)
+        Phi_temp(:,:) = sqrt(0.5d0*abs(Phi_prev)**2d0 + 0.5d0*abs(Phi_next)**2d0)
 
         ! Calculate chemical potential
         call solve_energy(Phi_next, Pot_TD, N, epsilon, kappa, mu, dh)
