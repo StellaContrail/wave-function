@@ -1,5 +1,5 @@
-# wave-function
-This repository contains various programs used for calculating Schroedinger Equation
+# 量子力学数値計算 (Quantum Physics Simulations)
+### 主に原子核理論に関わる微視的な世界を数値計算で明確に可視化することが目的です<br>Visualization of every microscopic phenomenon is the goal of this repository
 * Electron_Energies_Wavefunctions  
 It is well known that electrons inside any atoms are orbiting around its nucleus with Coulomb potential. They have own energy levels so that they can obey the Pauli's principle.  
 This program calculates the energy levels by solving the proper Schroedinger Equation.  
