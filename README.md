@@ -1,19 +1,54 @@
-# 量子力学数値計算 (Quantum Physics Simulations)
-### 主に原子核理論に関わる微視的な世界を数値計算で明確に可視化することが目的です<br>Visualization of every microscopic phenomenon is the goal of this repository
-* Electron_Energies_Wavefunctions  
+<h1 style="text-align: center;">
+    Quantum Physics Simulations
+</h1>
+<div id="schroedinger_equation" style="text-align: center;">
+    <img src="images/schroedinger_equation.png">
+</div>
+<p style="text-align: center;">
+    <b>微視的世界の物質のダイナミクスについての第一原理計算</b>
+    <br>
+    <b>Visualization of every microscopic phenomena based on Schrödinger eq.</b>
+</p>
+
+---
+
+## About
+人間が肉眼で観察することが出来ない微視的な世界では様々な奇異な現象が発生する。
+そのような世界の物性・挙動は主に量子力学を用いて記述されるが、用いられる数学は非常に高度なものであり初学者にとっては難解なものである。
+本リポジトリでは微視的世界の摩訶不思議な現象をイメージ化することによって理解を助けるのが目的である。
+<br>
+Quantum physics is now well established, which led to great successful in multiple fields including Physics, Engineering, and the others.
+On the other hand, first learners are still struggling to understand how Quantum World actually behaves mainly because its strangeness and mathematical difficulties.
+This repository aims for visualizing the quantum phenomena, helping them to get the feeling of the microscopic world.
+
+## Programs
+<table>
+<tr><th style="text-align: left;"><h3 style="font-weight: bold;">
+    水素原子内における電子のエネルギー準位
+    <br>
+    Electrons' energies inside a Hydrogen Atom
+</h3></th></tr><tr><td><p>
 It is well known that electrons inside any atoms are orbiting around its nucleus with Coulomb potential. They have own energy levels so that they can obey the Pauli's principle.  
 This program calculates the energy levels by solving the proper Schroedinger Equation.  
 There are several ways to solve differential equation with some boundary conditions such as FDM(Finite-Difference Method), and Rungekutta + Bisection Method.  
-The picture below shows the wave functions of an electron orbiting around a hydrogen nucleus with orbital quantum number l=1.  
-![Electron Wave function](Electron_Energies_Wavefunctions/FDM_5Points/p_orbit.png)
+The picture below shows the wave functions of an electron orbiting around a hydrogen nucleus with orbital quantum number l=1.
+</p>
+<img src="Electron_Energies_Wavefunctions/FDM_5Points/p_orbit.png" style="width: 500px; margin-top: 5px;">
+</td></tr>
 
-* Harmonic_Energies_Wavefunctions  
+<tr><th style="text-align: left;"><h3 style="font-weight: bold;">
+    調和振動子のエネルギー準位
+    <br>
+    Harmonic Oscillator's Energy levels
+</h3></th></tr><tr><td><p>
 The harmonic oscillator is a system that has many practical uses in quantum and classical mechanics.  
 Its force is proportional to its displacement from its equilibrium position, F=-kx, where k is a constant chosen to satisfy this formulation.  
 This formula in general, is called Hooke's law.  
 In quantum mechanics, Schroedinger equation under this kind of potential gives specified wave function corresponding to its energy levels.  
 The sample image shows the case of the 3rd excited state.
-![Harmonic Potential Wave function](Harmonic_Energies_Wavefunctions/Rungekutta/wavefunction_n3.png)
+</p>
+<img src="Harmonic_Energies_Wavefunctions/Rungekutta/wavefunction_n3.png" style="width: 500px; margin-top: 5px;">
+</td></tr>
 
 * Harmonic_TimeEvolution_Wavefunctions (One Dimension)  
 The other program which solves harmonic oscillator schroedinger is not dependent on time.  
