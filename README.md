@@ -24,7 +24,7 @@ This repository aims for visualizing the quantum phenomena, helping them to get 
 ## Programs
 <table>
 <tr><th><h3 style="font-weight: bold;">
-    水素原子内における電子のエネルギー準位
+    水素原子内における電子の波動関数
     <br>
     Electrons' energies inside a Hydrogen Atom
 </h3></th></tr><tr><td><p>
@@ -39,9 +39,9 @@ The picture below shows the wave functions of an electron orbiting around a hydr
 </td></tr>
 
 <tr><th><h3 style="font-weight: bold;">
-    調和振動子のエネルギー準位
+    一次元調和振動子の波動関数
     <br>
-    Harmonic Oscillator's Energy levels
+    One dimensional Harmonic Oscillator's Wave function
 </h3></th></tr><tr><td><p>
 The harmonic oscillator is a system that has many practical uses in quantum and classical mechanics.  
 Its force is proportional to its displacement from its equilibrium position, F=-kx, where k is a constant chosen to satisfy this formulation.  
@@ -55,9 +55,9 @@ The sample image shows the case of the 3rd excited state.
 </td></tr>
 
 <tr><th><h3 style="font-weight: bold;">
-    一次元調和振動子の波動関数
+    一次元調和振動子の波動関数の時間発展
     <br>
-    One dimensional Harmonic Oscillator's Wave function
+    Time development of One dimensional Harmonic Oscillator's Wave function
 </h3></th></tr><tr><td><p>
 The other program which solves harmonic oscillator schroedinger is not dependent on time.  
 Therefore, we couldn't see how the system evolves and behaves.  
@@ -71,9 +71,9 @@ You can see that the form of Gaussian wave packet (which resembles to a classica
 </td></tr>
 
 <tr><th><h3 style="font-weight: bold;">
-    三次元調和振動子の波動関数
+    三次元調和振動子の波動関数の時間発展
     <br>
-    Three dimensional Harmonic Oscillator's Wave function
+    Time development of Three dimensional Harmonic Oscillator's Wave function
 </h3></th></tr><tr><td><p>
 Simulate how a wave packet behaves in any potential including harmonic oscillator in three dimensions.  
 In order to study how a microscopic particle behaves in real world, thinking in a three dimensional world is important.  
@@ -100,9 +100,9 @@ The ball (wave of a particle) bounces the finite wall, partially bounces back an
 </td></tr>
 
 <tr><th><h3 style="font-weight: bold;">
-    有限井戸型ポテンシャル内の波動関数
+    トンネル効果
     <br>
-    Wave function with Finite Wall
+    Tunnelling effect
 </h3></th></tr><tr><td><p>
 A particle which is acted on a finite wall potential, partially goes through the wall in quantum mechanics.  
 People may wonder why this happens and doubt if it makes sense.  
@@ -116,9 +116,9 @@ This phenomenon ("Quantum Tunneling Effect") was discovered by a Japanese Physic
 </td></tr>
 
 <tr><th><h3 style="font-weight: bold;">
-    原子核内の核子(中性子/陽子)密度
+    原子核内の核子(中性子/陽子)密度の再現
     <br>
-    Nucleons' density inside a nucleus
+    Reproduction of Nucleons' density inside a nucleus
 </h3></th></tr><tr><td><p>
 The students who seriously have studied Physics or Chemistry must have heard about nucleus.  
 It is the structure inside atoms, which consists of molecules like H2O, CO2, and etc.  
@@ -132,7 +132,7 @@ Woods-Saxon potential which well satisfies the experimental data phenomenologica
 </p>
 <table>
 <tr><th>
-The picture below shows all possible wave functions of 208Pb(Lead).  
+Wave functions of Nucleons in 208 Pb(Lead) Nucleus  
 </td></tr>
 <tr><td>
 <div align="center">
