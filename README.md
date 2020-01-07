@@ -26,7 +26,7 @@ This repository aims for visualizing the quantum phenomena, helping them to get 
 <tr><th><h3 style="font-weight: bold;">
     水素原子内における電子の波動関数
     <br>
-    Electrons' energies inside a Hydrogen Atom
+    Electrons' wave functions inside a Hydrogen Atom
 </h3></th></tr><tr><td><p>
 It is well known that electrons inside any atoms are orbiting around its nucleus with Coulomb potential. They have own energy levels so that they can obey the Pauli's principle.  
 This program calculates the energy levels by solving the proper Schroedinger Equation.  
