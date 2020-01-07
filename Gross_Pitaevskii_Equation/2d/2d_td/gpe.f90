@@ -62,6 +62,7 @@ program main
 
     ! Number of steps in a direction
     N                = 30 - 1
+    ! Allocation of variables
     allocate (Phi_next(0:N,0:N), Phi_prev(0:N,0:N), Pot(0:N,0:N), j(0:N,0:N), Pot_TD(0:N,0:N))
     allocate (Phi_temp(0:N,0:N))
     allocate (Flux(0:N,0:N,1:2), Rot(0:N,0:N))
@@ -103,13 +104,14 @@ program main
     ! Initialization
     call initialize(Phi_next, Phi_prev, Pot, N, dh, xmax, gamma)
     Pot_TD(:, :) = Pot(:, :)
+    write (*, *) "- Loaded Wave Function <= ", "data_input.txt"
     write (*, *) "- Initialized wave functions and potential"
 
     ! Save initial wave function
     open(10, file=fn_initial)
     call output_complex(10, Phi_prev, N, dh, xmax)
     close(10)
-    write (*, *) "- Initial Wave Function <= ", fn_initial
+    write (*, *) "- Initial Wave Function => ", fn_initial
 
     open(10, file=fn_result)
     open(20, file=fn_potential)

@@ -1,13 +1,11 @@
-! 不連続的な変化をするようなポテンシャルではPhaseがπだけ変わっている・・・？
-
 module setting
     implicit none
 contains
     ! Initialize wave functions and potential
     subroutine initialize(Phi_next, Phi_prev, Pot, N, dh, xmax, gamma)
         integer,intent(in)              :: N
-        double precision,intent(out)    :: Phi_next(0:N, 0:N), Phi_prev(0:N, 0:N)
-        double precision,intent(out)    :: Pot(0:N, 0:N)
+        complex(kind(0d0)),intent(out)  :: Phi_next(0:N, 0:N), Phi_prev(0:N, 0:N)
+        complex(kind(0d0)),intent(out)  :: Pot(0:N, 0:N)
         double precision,intent(in)     :: dh, xmax, gamma
         double precision                :: x, y
         integer                         :: i,j
@@ -17,20 +15,20 @@ contains
         integer,parameter               :: mode = 0
         ! R_0   : Radius of circle or box half width
         double precision,parameter      :: R_0 = 4d0
-        Phi_next(:, :) = 0d0
+        Phi_next(:, :) = dcmplx(0d0, 0d0)
 
         do j = 0, N
             y = -xmax + dh*j
             do i = 0, N
                 x = -xmax + dh*i
                 ! Initial trial wave function
-                Phi_prev(i, j) = exp(-0.5d0*(x*x+y*y))
+                Phi_prev(i, j) = dcmplx(exp(-0.5d0*(x*x+y*y)), 0d0)
 
                 ! External potential
                 select case (mode)
                 case (0)
                     ! Harmonic Oscillator Trap
-                    Pot(i, j) = 0.5d0*(x*x+gamma*gamma*y*y)
+                    Pot(i, j) = dcmplx(0.5d0*(x*x+gamma*gamma*y*y), 0d0)
                 case (1)
                     ! Harmonic Oscillator Trap and Very Narrow Gaussian-shaped Wall at the center
                     Pot(i, j) = 0.5d0*(x*x+gamma*gamma*y*y) + 100d0*exp(-0.5d0*(x*x+y*y)/(0.5d0*sigma**2d0))

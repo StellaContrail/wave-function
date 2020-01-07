@@ -24,11 +24,11 @@ do for [i=0: data_num-1] {
         time_old = time_new
         print sprintf("%5d / %5d    SPD : %5.2f lines/s   ETA : %5.2f sec", i, data_num, speed, (data_num-i+1)/speed)
     }
-    set multiplot layout 2,2 scale 1,1
-        set zrange [-1:1]
-        set cbrange [-1:1]
-        set title "Real Part Profile of Initial Wave Function"
-        splot "data_initial.txt" using 1:2:4 title "" with pm3d
+#    set multiplot layout 2,2 scale 1,1
+#        set zrange [-1:1]
+#        set cbrange [-1:1]
+#        set title "Real Part Profile of Initial Wave Function"
+#        splot "data_initial.txt" using 1:2:4 title "" with pm3d
 
         set zrange  [0:1]
         set cbrange [0:0.2]
@@ -40,16 +40,16 @@ do for [i=0: data_num-1] {
         #set surface
 
 
-        set zrange [0:1]
-        set cbrange [0:0.5]
-        set title "Probability Profile of Initial Wave Function"
-        splot "data_initial.txt" using 1:2:3 title "" with pm3d
+#        set zrange [0:1]
+#        set cbrange [0:0.5]
+#        set title "Probability Profile of Initial Wave Function"
+#        splot "data_initial.txt" using 1:2:3 title "" with pm3d
 
-        set zrange  [-50:50]
-        set cbrange [-50:50]
-        set title sprintf("External Potential")
-        splot "data_potential.txt" using 1:2:3 every :::M*i::M*(i+1)-1 title "" with pm3d
-    unset multiplot
+#        set zrange  [-50:50]
+#        set cbrange [-50:50]
+#        set title sprintf("External Potential")
+#        splot "data_potential.txt" using 1:2:3 every :::M*i::M*(i+1)-1 title "" with pm3d
+#    unset multiplot
 }
 unset output
 set terminal wxt
