@@ -55,7 +55,7 @@ program main
     mass             = 1.4d-25
     omega_x          = 20d0 * pi
     omega_y          = omega_x
-    gamma            = omega_y / omega_x
+    gamma            = 2d0 * omega_y / omega_x
     ParticleCount    = 1000
     ScatteringLength = 5.1d-9
     

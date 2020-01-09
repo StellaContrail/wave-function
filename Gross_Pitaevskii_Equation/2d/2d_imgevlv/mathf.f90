@@ -237,25 +237,24 @@ contains
         LzPhi(:,:) = hbar*LzPhi(:,:)
     end subroutine
 
-    subroutine calc_angular_momentum_expected_value(Phi, N, xmax, dh, hbar, iu, L)
+    subroutine calc_angular_momentum_expected_value(Phi, N, dh, LzPhi, L)
         integer,intent(in)             :: N
-        complex(kind(0d0)),intent(in)  :: Phi(0:N,0:N), iu
-        double precision,intent(in)    :: dh, xmax, hbar
+        complex(kind(0d0)),intent(in)  :: Phi(0:N,0:N)
+        double precision,intent(in)    :: dh
         complex(kind(0d0)),intent(out) :: LzPhi(0:N,0:N)
-        integer                        :: i, j
-        double precision               :: x, y
-        complex(kind(0d0))             :: sum_temp(:)
+        integer                        :: i
+        double precision               :: L
+        complex(kind(0d0))             :: sum_temp(0:N), sum_cmplx
 
         sum_temp(:) = dcmplx(0d0, 0d0)
         do i = 0, N
             if (i == 0 .or. i == N) then
-                sum_temp(:) = sum_temp(:) + 0.5d0*Phi(i,:)*LzPhi(i,:)*dh
+                sum_temp(:) = sum_temp(:) + 0.5d0*conjg(Phi(i,:))*LzPhi(i,:)*dh
             else 
-                sum_temp(:) = sum_temp(:) + Phi(i,:)*LzPhi(i,:)*dh
+                sum_temp(:) = sum_temp(:) + conjg(Phi(i,:))*LzPhi(i,:)*dh
             end if
         end do
         sum_cmplx = dcmplx(0d0, 0d0)
-        sum = 0d0
         do i = 0, N
             if (i == 0 .or. i == N) then
                 sum_cmplx = sum_cmplx + 0.5d0*sum_temp(i)*dh
@@ -264,9 +263,7 @@ contains
             end if
         end do
         ! Check wether sum is almost real here (Not implemented yet)
-        sum = dble(sum_cmplx)
-        mu = sum
-
+        L = dble(sum_cmplx)
 
     end subroutine  
 end module mathf
