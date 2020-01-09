@@ -66,7 +66,7 @@ contains
         integer                        :: i, j
         double precision               :: OMEGA
         ! Rotation rate of the cranking model
-        OMEGA = 2d0*pi / (dt*100d0)
+        OMEGA = 2d0*pi / (dt*5000d0)
         HPhi(:,:) = 0d0
         ! Laplacian part (Five Point Stencil)
         do j = 0, N
