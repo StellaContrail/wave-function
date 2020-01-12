@@ -1,17 +1,11 @@
 ! Imaginary time-development of Gross-Pitaevskii Equation in 2 dimensional space
 ! For a reason of Hamiltonian being not dense matrix, we will use just multiple dimensional array here
-
 program main
     use io
     use setting
     use mathf
+    use constants
     implicit none
-    ! Mathematical constants
-    double precision,parameter     :: pi   = acos(-1d0)       ! PI
-    complex(kind(0d0)),parameter   :: iu   = dcmplx(0d0, 1d0) ! Imaginary unit
-    
-    ! Physical constants
-    double precision,parameter     :: hbar = 1.05d-34         ! Reduced Plank constant
 
     ! Physical values
     integer                        :: N                ! Number of space steps in a direction
@@ -31,14 +25,15 @@ program main
     double precision               :: mu               ! chemical potential
     double precision,allocatable   :: j(:, :)          ! probability current
     double precision,allocatable   :: Phase_field(:,:) ! Phase field
-    complex(kind(0d0)),allocatable :: LzPhi(:,:)       ! Angular momentum in z-direction
+    complex(kind(0d0)),allocatable :: LzPhi(:,:)       ! Angular momentum operator on wave function
+    integer                        :: Lz               ! Angular momentum itself
 
     ! Coefficients and variables (not user defined)
     double precision               :: Azero            ! length of the harmonic oscillator ground state
     double precision               :: Xs               ! characteristic length of the condensate
     double precision               :: epsilon          ! squared ratio of Azero to Xs
     double precision               :: kappa            ! coeffient of the nonlinear term
-    integer                        :: i,k              ! Loop variable
+    integer                        :: i                ! Loop variable
     double precision               :: mu_old           ! Chemical potential at previous step
 
     ! Output File Path
@@ -55,12 +50,12 @@ program main
     mass             = 1.4d-25
     omega_x          = 20d0 * pi
     omega_y          = omega_x
-    gamma            = 2d0 * omega_y / omega_x
+    gamma            = omega_y / omega_x
     ParticleCount    = 1000
     ScatteringLength = 5.1d-9
     
     ! Number of steps in a direction
-    N                = 30 - 1
+    N                = 100 - 1
     ! Allocation of variables
     allocate (Phi_next(0:N,0:N), Phi_prev(0:N,0:N))
     allocate (Phi_phased(0:N, 0:N), LzPhi(0:N,0:N))
@@ -118,21 +113,26 @@ program main
     write (*, *) "- Given Potential Form => ", fn_potential
 
     ! Calculate chemical potential of initial state
-    call solve_energy(Phi_prev, Pot, LzPhi, N, epsilon, hbar, pi, kappa, mu, dh, dt)
+    call solve_energy(Phi_prev, Pot, LzPhi, N, epsilon, kappa, mu, dh, dt)
+
+    ! Calculate z-component angular momentum expected value
+    call calc_angular_momentum(Phi_prev, N, xmax, dh, LzPhi)
+    call calc_angular_momentum_expected_value(Phi_prev, N, dh, LzPhi, Lz)
+    write (*, '(X, A, I0, X, A)') "- Angular momentum <Lz> = ", Lz, "hbar"
 
     ! Start solving 2D GPE
     do i = 1, 50000
         ! Calculate angular momentum in z-direction
-        call calc_angular_momentum(Phi_prev, N, xmax, dh, hbar, iu, LzPhi)
+        call calc_angular_momentum(Phi_prev, N, xmax, dh, LzPhi)
         ! Evolve the system
-        call evolve(Phi_prev, N, dt, dh, epsilon, hbar, pi, kappa, abs(Phi_prev)**2d0, LzPhi, Pot, Phi_next)
+        call evolve(Phi_prev, N, dt, dh, epsilon, kappa, abs(Phi_prev)**2d0, LzPhi, Pot, Phi_next)
         ! Mix the previous density and calculated wave function's density
         Phi_next(:,:) = sqrt((0.7d0*abs(Phi_prev(:,:))**2d0 + 0.3d0*abs(Phi_next(:,:))**2d0))
         call normalize(Phi_next, N, dh)
 
         ! Calculate chemical potential
         mu_old = mu
-        call solve_energy(Phi_next, Pot, LzPhi, N, epsilon, hbar, pi, kappa, mu, dh, dt)
+        call solve_energy(Phi_next, Pot, LzPhi, N, epsilon, kappa, mu, dh, dt)
 
         if (mod(i, 100) == 0) then
             write (*, '(X, A, I0, A)') "* ", i, " calculations have done"
@@ -156,15 +156,8 @@ program main
     close (10)
     write (*, *) "- Result Wave Function => ", fn_result
 
-    ! Save angular momentum information
-    open(10, file="angular_momentum.txt")
-    ! Calculate angular momentum in z-direction
-    call calc_angular_momentum(Phi_prev, N, xmax, dh, hbar, iu, LzPhi)
-    call output_complex(10, LzPhi, N, dh, xmax)
-    close(10)
-
     ! Make a vortex by shifting phase by pi continually
-    call make_vortex(Phi_prev, N, xmax, dh, iu, Phi_phased)
+    call make_vortex(Phi_prev, N, xmax, dh, Phi_phased)
     open(11, file=fn_phased)
     call output_complex(11, Phi_phased, N, dh, xmax)
     close(11)
@@ -175,6 +168,16 @@ program main
     call output_real(11, Phase_field, N, dh, xmax)
     close(11)
     print *, "- Phase field          => ", fn_phase_field
+
+    ! Save angular momentum information
+    open(10, file="angular_momentum.txt")
+    ! Calculate angular momentum in z-direction
+    call calc_angular_momentum(Phi_prev, N, xmax, dh, LzPhi)
+    call output_complex(10, LzPhi, N, dh, xmax)
+    close(10)
+    ! Calculate z-component angular momentum expected value
+    call calc_angular_momentum_expected_value(Phi_prev, N, dh, LzPhi, Lz)
+    write (*, '(X, A, I0, X, A)') "- Angular momentum <Lz> = ", Lz, "hbar"
 
     ! Free allocated variables from memory
     deallocate (Phi_next, Phi_prev, Phi_phased, Pot, j)

@@ -218,6 +218,66 @@ contains
             end do
         end do
     end subroutine
+
+    ! Calculate LzPhi (Excluding Plank constant)
+    subroutine calc_angular_momentum(Phi, N, xmax, dh, iu, LzPhi)
+        integer,intent(in)             :: N
+        complex(kind(0d0)),intent(in)  :: Phi(0:N,0:N), iu
+        double precision,intent(in)    :: dh, xmax
+        complex(kind(0d0)),intent(out) :: LzPhi(0:N,0:N)
+        integer                        :: i, j
+        double precision               :: x, y
+        ! Assume the existence probability at the edge equals zero
+        LzPhi(0,0:N) = dcmplx(0d0, 0d0)
+        LzPhi(N,0:N) = dcmplx(0d0, 0d0)
+        LzPhi(0:N,0) = dcmplx(0d0, 0d0)
+        LzPhi(0:N,N) = dcmplx(0d0, 0d0)
+
+        do j = 1, N-1
+            y = -xmax + dh*j
+            do i = 1, N-1
+                x = -xmax + dh*i
+
+                LzPhi(i,j) = -iu*(x*(Phi(i,j+1)-Phi(i,j-1)) - y*(Phi(i+1,j)-Phi(i-1,j)))/(2d0*dh)
+            end do
+        end do
+        LzPhi(:,:) = LzPhi(:,:)
+    end subroutine
+
+    ! Calculate Expected Angular Momentum Value (Excluding Plank constant)
+    subroutine calc_angular_momentum_expected_value(Phi, N, dh, LzPhi, Lz)
+        integer,intent(in)             :: N
+        complex(kind(0d0)),intent(in)  :: Phi(0:N,0:N)
+        double precision,intent(in)    :: dh
+        complex(kind(0d0)),intent(out) :: LzPhi(0:N,0:N)
+        integer                        :: i
+        double precision               :: Lz_temp
+        integer,intent(out)            :: Lz
+        complex(kind(0d0))             :: sum_temp(0:N), sum_cmplx
+
+        sum_temp(:) = dcmplx(0d0, 0d0)
+        do i = 0, N
+            if (i == 0 .or. i == N) then
+                sum_temp(:) = sum_temp(:) + 0.5d0*conjg(Phi(i,:))*LzPhi(i,:)*dh
+            else 
+                sum_temp(:) = sum_temp(:) + conjg(Phi(i,:))*LzPhi(i,:)*dh
+            end if
+        end do
+        sum_cmplx = dcmplx(0d0, 0d0)
+        do i = 0, N
+            if (i == 0 .or. i == N) then
+                sum_cmplx = sum_cmplx + 0.5d0*sum_temp(i)*dh
+            else
+                sum_cmplx = sum_cmplx + sum_temp(i)*dh
+            end if
+        end do
+        ! Check wether sum is almost real here (Not implemented yet)
+        Lz_temp = dble(sum_cmplx)
+        if (Lz_temp > 1d-6) then
+            write (*, *) "Angular momentum is not properly calculated"
+        end if
+        Lz = int(Lz_temp)
+    end subroutine  
     
     subroutine calc_widths(Phi, N, dh, xmax, sigma_x, sigma_y)
         integer,intent(in)            :: N

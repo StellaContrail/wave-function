@@ -14,7 +14,7 @@ contains
         ! sigma : Width of Gaussian's wave packet formed potential
         double precision,parameter      :: sigma = 0.5d0
         ! mode  : Specify type of potential forms
-        integer,parameter               :: mode = 0
+        integer,parameter               :: mode = 5
         ! R_0   : Radius of circle or box half width
         double precision,parameter      :: R_0 = 4d0
         Phi_next(:, :) = dcmplx(0d0, 0d0)
@@ -75,6 +75,12 @@ contains
                 case (4)
                     ! Axially-symmetry Harmonic Oscillator Potential
                     Pot(i, j) = 0.5d0*(x*x*2d0+gamma*gamma*y*y*0.06d0)*0.1d0
+                case (5)
+                    ! Pinning Grid with circulary symmetric trap
+                    Pot(i, j) = 200d0*(1d0+tanh(2d0*(sqrt(x*x+y*y)-8.5d0)))
+                    if (1.4d0 < x .and. x < 2d0 .and. 1.4d0 < y .and. y < 2d0 .or. .true.) then
+                        Pot(i, j) = Pot(i, j) + 2d0*60d0*(1d0+tanh(sqrt((x-1.7d0)**2d0+(y-1.7d0)**2d0)))
+                    end if
                 case default
                     stop "Invalid mode of external potential"
                 end select

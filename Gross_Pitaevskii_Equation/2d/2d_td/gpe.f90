@@ -40,6 +40,8 @@ program main
     double precision,allocatable   :: Rot(:,:)
     double precision               :: width_x, width_y
     integer                        :: total_iterations ! How many iterations to calculate real time propagation
+    complex(kind(0d0)),allocatable :: LzPhi(:,:)       ! Angular momentum operator on wave function
+    integer                        :: Lz               ! Angular momentum itself
 
     ! Output File Path
     character(*),parameter         :: fn_initial   = "data_initial.txt"
@@ -61,11 +63,11 @@ program main
     ScatteringLength = 5.1d-9
 
     ! Number of steps in a direction
-    N                = 30 - 1
+    N                = 100 - 1
     ! Allocation of variables
     allocate (Phi_next(0:N,0:N), Phi_prev(0:N,0:N), Pot(0:N,0:N), j(0:N,0:N), Pot_TD(0:N,0:N))
     allocate (Phi_temp(0:N,0:N))
-    allocate (Flux(0:N,0:N,1:2), Rot(0:N,0:N))
+    allocate (Flux(0:N,0:N,1:2), Rot(0:N,0:N), LzPhi(0:N,0:N))
 
     ! Other variables for setup
     xmax    = 5d0
@@ -163,5 +165,9 @@ program main
     close (30)
     close (40)
     close (50)
+
+    call calc_angular_momentum(Phi_prev, N, xmax, dh, iu, LzPhi)
+    call calc_angular_momentum_expected_value(Phi_prev, N, dh, LzPhi, Lz)
+    write (*, *) "Angular Momentum = ", Lz, "hbar"
     write (*, *) "- Result Wave Function => ", fn_result
 end program 

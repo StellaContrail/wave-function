@@ -1,5 +1,6 @@
 ! Mathematical Procedures
 module mathf
+    use constants
     implicit none
 contains
     ! Integration of real function
@@ -38,9 +39,9 @@ contains
     end subroutine normalize
 
     ! Imaginary-time propagation
-    subroutine evolve(Phi_old, N, dt, dh, epsilon, hbar, pi, kappa, density, Lz, Pot, Phi_next)
+    subroutine evolve(Phi_old, N, dt, dh, epsilon, kappa, density, Lz, Pot, Phi_next)
         integer,intent(in)             :: N
-        double precision,intent(in)    :: dt, dh, epsilon, hbar, pi, kappa, density(0:N,0:N)
+        double precision,intent(in)    :: dt, dh, epsilon, kappa, density(0:N,0:N)
         complex(kind(0d0)),intent(in)  :: Phi_old(0:N,0:N), Lz(0:N, 0:N), Pot(0:N,0:N)
         complex(kind(0d0)),intent(out) :: Phi_next(0:N,0:N)
         complex(kind(0d0))             :: temp(0:N,0:N), Atemp(0:N,0:N)
@@ -50,18 +51,18 @@ contains
         Phi_next(:,:) = temp(:,:)
         ! Other terms of Taylor expansion
         do i = 1, 10
-            call apply_hamiltonian(temp, N, dh, dt, epsilon, hbar, pi, kappa, density, Lz, Pot, Atemp)
+            call apply_hamiltonian(temp, N, dh, dt, epsilon, kappa, density, Lz, Pot, Atemp)
             temp(:,:)     = -Atemp(:,:)*dt/(epsilon*i)
             Phi_next(:,:) = Phi_next(:,:) + temp(:,:)
         end do
     end subroutine evolve
 
     ! Calculate HPhi (H:Hamiltonian, Phi:Wave function)
-    subroutine apply_hamiltonian(Phi, N, dh, dt, epsilon, hbar, pi, kappa, density, LzPhi, Pot, HPhi)
+    subroutine apply_hamiltonian(Phi, N, dh, dt, epsilon, kappa, density, LzPhi, Pot, HPhi)
         integer,intent(in)             :: N
         complex(kind(0d0)),intent(in)  :: Phi(0:N,0:N), LzPhi(0:N,0:N), Pot(0:N,0:N)
         complex(kind(0d0)),intent(out) :: HPhi(0:N,0:N)
-        double precision,intent(in)    :: dh, epsilon, kappa, hbar, pi, dt
+        double precision,intent(in)    :: dh, epsilon, kappa, dt
         double precision,intent(in)    :: density(0:N,0:N)
         integer                        :: i, j
         double precision               :: OMEGA
@@ -113,23 +114,22 @@ contains
                 HPhi(i,j) = HPhi(i,j) + kappa*density(i,j)*Phi(i,j)
 
                 ! Cranking model
-                HPhi(i,j) = HPhi(i,j) - OMEGA*LzPhi(i,j)
+                HPhi(i,j) = HPhi(i,j) - OMEGA*LzPhi(i,j)/(20d0*pi)
             end do
         end do
     end subroutine
 
     ! Solve Energy Expected Value
-    subroutine solve_energy(Phi, Pot, Lz, N, epsilon, hbar, pi, kappa, mu, dh, dt)
+    subroutine solve_energy(Phi, Pot, Lz, N, epsilon, kappa, mu, dh, dt)
         integer,intent(in)            :: N
-        double precision,intent(in)   :: dh, epsilon, kappa, hbar, pi, dt
+        double precision,intent(in)   :: dh, epsilon, kappa, dt
         complex(kind(0d0)),intent(in) :: Pot(0:N,0:N)
         complex(kind(0d0)),intent(in) :: Phi(0:N,0:N), Lz(0:N,0:N)
         double precision,intent(out)  :: mu
         complex(kind(0d0))            :: HPhi(0:N,0:N), sum_temp(0:N), sum_cmplx
-        double precision              :: sum
         integer                       :: i
         mu = 0d0
-        call apply_hamiltonian(Phi, N, dh, dt, epsilon, hbar, pi, kappa, abs(Phi)**2d0, Lz, Pot, HPhi)
+        call apply_hamiltonian(Phi, N, dh, dt, epsilon, kappa, abs(Phi)**2d0, Lz, Pot, HPhi)
         sum_temp(:) = dcmplx(0d0, 0d0)
         do i = 0, N
             if (i == 0 .or. i == N) then
@@ -139,7 +139,6 @@ contains
             end if
         end do
         sum_cmplx = dcmplx(0d0, 0d0)
-        sum = 0d0
         do i = 0, N
             if (i == 0 .or. i == N) then
                 sum_cmplx = sum_cmplx + 0.5d0*sum_temp(i)*dh
@@ -148,16 +147,14 @@ contains
             end if
         end do
         ! Check wether sum is almost real here (Not implemented yet)
-        sum = dble(sum_cmplx)
-        mu = sum
+        mu = dble(sum_cmplx)
     end subroutine
 
     ! Shift wave fuction's phase partially
-    subroutine shift_phase(Phi_IN, N, x_start, x_end, y_start, y_end, Phi_OUT, iu, angle)
+    subroutine shift_phase(Phi_IN, N, x_start, x_end, y_start, y_end, Phi_OUT, angle)
         integer,intent(in)             :: x_start, x_end, y_start, y_end, N
         double precision,intent(in)    :: angle
         complex(kind(0d0)),intent(in)  :: Phi_IN(0:N,0:N)
-        complex(kind(0d0)),intent(in)  :: iu
         complex(kind(0d0)),intent(out) :: Phi_OUT(0:N,0:N)
         integer                        :: i
         Phi_OUT(:,:) = Phi_IN(:,:)
@@ -167,26 +164,21 @@ contains
     end subroutine
 
     ! Make Quantized Vortex by changing the phase
-    subroutine make_vortex(Phi, N, xmax, dh, iu, Phi_phased)
+    subroutine make_vortex(Phi, N, xmax, dh, Phi_phased)
         integer,intent(in)             :: N
         double precision,intent(in)    :: dh, xmax
-        complex(kind(0d0)),intent(in)  :: Phi(0:N,0:N), iu
+        complex(kind(0d0)),intent(in)  :: Phi(0:N,0:N)
         complex(kind(0d0)),intent(out) :: Phi_phased(0:N,0:N)
         integer                        :: i, j
         double precision               :: x, y, degree
-        double precision               :: R = 5d0
 
         do j = 0, N
             y = -xmax + dh*j
             do i = 0, N
                 x = -xmax + dh*i
                 
-                if (x**2d0 + y**2d0 < R**2d0) then
-                    degree = atan2(y, x)
-                    Phi_phased(i,j) = exp(iu*degree)*Phi(i,j)
-                else 
-                    Phi_phased(i,j) = Phi(i,j)
-                end if
+                degree = atan2(y, x)
+                Phi_phased(i,j) = exp(iu*degree)*Phi(i,j)
             end do
         end do
     end subroutine
@@ -213,10 +205,11 @@ contains
         end do
     end subroutine
 
-    subroutine calc_angular_momentum(Phi, N, xmax, dh, hbar, iu, LzPhi)
+    ! Calculate LzPhi (Excluding Plank constant)
+    subroutine calc_angular_momentum(Phi, N, xmax, dh, LzPhi)
         integer,intent(in)             :: N
-        complex(kind(0d0)),intent(in)  :: Phi(0:N,0:N), iu
-        double precision,intent(in)    :: dh, xmax, hbar
+        complex(kind(0d0)),intent(in)  :: Phi(0:N,0:N)
+        double precision,intent(in)    :: dh, xmax
         complex(kind(0d0)),intent(out) :: LzPhi(0:N,0:N)
         integer                        :: i, j
         double precision               :: x, y
@@ -234,16 +227,16 @@ contains
                 LzPhi(i,j) = -iu*(x*(Phi(i,j+1)-Phi(i,j-1)) - y*(Phi(i+1,j)-Phi(i-1,j)))/(2d0*dh)
             end do
         end do
-        LzPhi(:,:) = hbar*LzPhi(:,:)
     end subroutine
 
-    subroutine calc_angular_momentum_expected_value(Phi, N, dh, LzPhi, L)
+    ! Calculate Expected Angular Momentum Value (Excluding Plank constant)
+    subroutine calc_angular_momentum_expected_value(Phi, N, dh, LzPhi, Lz)
         integer,intent(in)             :: N
         complex(kind(0d0)),intent(in)  :: Phi(0:N,0:N)
         double precision,intent(in)    :: dh
         complex(kind(0d0)),intent(out) :: LzPhi(0:N,0:N)
         integer                        :: i
-        double precision               :: L
+        integer,intent(out)            :: Lz
         complex(kind(0d0))             :: sum_temp(0:N), sum_cmplx
 
         sum_temp(:) = dcmplx(0d0, 0d0)
@@ -262,8 +255,11 @@ contains
                 sum_cmplx = sum_cmplx + sum_temp(i)*dh
             end if
         end do
-        ! Check wether sum is almost real here (Not implemented yet)
-        L = dble(sum_cmplx)
 
+        Lz = int(dble(sum_cmplx))
+        if (aimag(sum_cmplx) > 1d-6 .or. abs(Lz - dble(sum_cmplx)) > 1d-6) then
+            write (*, '(X, A, 2F13.10, A)') "Angular momentum is not properly calculated <Lz> = (", sum_cmplx, ")"
+            stop
+        end if
     end subroutine  
 end module mathf
