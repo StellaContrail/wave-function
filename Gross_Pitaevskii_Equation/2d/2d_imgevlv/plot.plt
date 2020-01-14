@@ -2,7 +2,7 @@ set size ratio 1
 set terminal jpeg size 1600,1600
 set output "data.jpg"
 set pm3d
-xmax = 5
+xmax = 15
 set xrange  [-xmax:xmax]
 set yrange  [-xmax:xmax]
 set xlabel "X (unit:Xs)"

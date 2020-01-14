@@ -78,9 +78,7 @@ contains
                 case (5)
                     ! Pinning Grid with circulary symmetric trap
                     Pot(i, j) = 200d0*(1d0+tanh(2d0*(sqrt(x*x+y*y)-8.5d0)))
-                    if (1.4d0 < x .and. x < 2d0 .and. 1.4d0 < y .and. y < 2d0 .or. .true.) then
-                        Pot(i, j) = Pot(i, j) + 2d0*60d0*(1d0+tanh(sqrt((x-1.7d0)**2d0+(y-1.7d0)**2d0)))
-                    end if
+                    Pot(i, j) = Pot(i, j) + 2d0*60d0*(1d0+tanh(4d0*(sqrt((x-1.7d0)**2d0+(y-1.7d0)**2d0))))
                 case default
                     stop "Invalid mode of external potential"
                 end select

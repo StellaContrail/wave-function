@@ -2,7 +2,7 @@ set terminal gif animate delay 10 optimize size 1600,1600
 set output "data.gif"
 set pm3d
 # SETTINGS
-xmax        = 5     # BOUNDARY OF X
+xmax        = 15     # BOUNDARY OF X
 N           = 100-1   # STEP COUNT
 M           = N + 1
 iter        = 15000 # ITERATION COUNT OF TIME
@@ -23,7 +23,7 @@ do for [i=0: data_num-1] {
         interval = time_new - time_old
         speed    = real(skip_output) / interval
         time_old = time_new
-        print sprintf("%5d / %5d    SPD : %5.2f lines/s   ETA : %5.2f sec", i, data_num, speed, (data_num-i+1)/speed)
+        print sprintf("%5d / %5d    SPD : %5.2f lines/s   Estimated Time Remaining : %5.2f sec", i, data_num, speed, (data_num-i+1)/speed)
     }
 
     if (isdebug == 0) {

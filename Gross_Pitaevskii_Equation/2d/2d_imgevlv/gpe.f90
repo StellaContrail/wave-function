@@ -62,7 +62,7 @@ program main
     allocate (Pot(0:N,0:N), j(0:N,0:N), Phase_field(0:N,0:N))
 
     ! Other variables for setup
-    xmax    = 5d0
+    xmax    = 15d0
     Azero   = sqrt(hbar/(omega_x*mass))
     Xs      = Azero
     epsilon = (Azero/Xs)**2d0
@@ -78,7 +78,7 @@ program main
     print *, "omegay(Angular velocity of HO)[rad/s] = ", omega_y
     print *, "N (Particle Count)            [count] = ", ParticleCount
     print *, "a (ScatteringLength)              [m] = ", ScatteringLength
-    print *, "n (Dimension of the space)    [count] = ", N
+    print *, "n (Dimension of the space)    [count] = ", N + 1
     print *, "A0 (Length of the HO Ground State)[m] = ", Azero
     print *, "Xs (Characteristic Length)        [m] = ", Xs
     print *, "dh (Step of distance)                 = ", dh
@@ -134,8 +134,8 @@ program main
         mu_old = mu
         call solve_energy(Phi_next, Pot, LzPhi, N, epsilon, kappa, mu, dh, dt)
 
-        if (mod(i, 100) == 0) then
-            write (*, '(X, A, I0, A)') "* ", i, " calculations have done"
+        if (mod(i, 1000) == 0) then
+            write (*, '(X, A, I0, A)') "* ", i, " calculations have been done"
         end if
 
         ! Substitution to calculate self-consistent equation again
@@ -178,6 +178,9 @@ program main
     ! Calculate z-component angular momentum expected value
     call calc_angular_momentum_expected_value(Phi_prev, N, dh, LzPhi, Lz)
     write (*, '(X, A, I0, X, A)') "- Angular momentum <Lz> = ", Lz, "hbar"
+
+    open(10, file="total_potential.txt")
+    call output_potential(10, Pot+kappa*abs(Phi_prev)**2d0, N, dh, xmax)
 
     ! Free allocated variables from memory
     deallocate (Phi_next, Phi_prev, Phi_phased, Pot, j)

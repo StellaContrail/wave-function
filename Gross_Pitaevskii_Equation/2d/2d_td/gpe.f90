@@ -70,7 +70,7 @@ program main
     allocate (Flux(0:N,0:N,1:2), Rot(0:N,0:N), LzPhi(0:N,0:N))
 
     ! Other variables for setup
-    xmax    = 5d0
+    xmax    = 15d0
     Azero   = sqrt(hbar/(omega_x*mass))
     Xs      = Azero
     epsilon = (Azero/Xs)**2d0
@@ -117,9 +117,9 @@ program main
 
     open(10, file=fn_result)
     open(20, file=fn_potential)
-    open(30, file=fn_flux)
-    open(40, file=fn_rotation)
-    open(50, file="widths.txt")
+    !open(30, file=fn_flux)
+    !open(40, file=fn_rotation)
+    !open(50, file="widths.txt")
     total_iterations = 15000
     do i = 1, total_iterations
         ! Evolve the system
@@ -135,14 +135,14 @@ program main
             ! Save potential form
             call output_potential(20, Pot_TD, N, dh, xmax)
             ! Save flux distribution
-            call calc_flux(Phi_next, N, mass, dh, hbar, Flux)
-            call output_flux(30, Flux, N, dh, xmax)
+            !call calc_flux(Phi_next, N, mass, dh, hbar, Flux)
+            !call output_flux(30, Flux, N, dh, xmax)
             ! Save rotation of flux
-            call calc_rotation(Flux, N, dh, xmax, Rot)
-            call output_rotation(40, Rot, N, dh, xmax)
+            !call calc_rotation(Flux, N, dh, xmax, Rot)
+            !call output_rotation(40, Rot, N, dh, xmax)
             ! Save width of the condensate
-            call calc_widths(Phi_next, N, dh, xmax, width_x, width_y)
-            call output_widths(50, i, dt, width_x, width_y)
+            !call calc_widths(Phi_next, N, dh, xmax, width_x, width_y)
+            !call output_widths(50, i, dt, width_x, width_y)
         end if
 
         if (mod(i, 500) == 0) then
@@ -162,9 +162,9 @@ program main
     !call integrate(abs(Phi_next)**2d0, N, dh, prob)
     close (10)
     close (20)
-    close (30)
-    close (40)
-    close (50)
+    !close (30)
+    !close (40)
+    !close (50)
 
     call calc_angular_momentum(Phi_prev, N, xmax, dh, iu, LzPhi)
     call calc_angular_momentum_expected_value(Phi_prev, N, dh, LzPhi, Lz)

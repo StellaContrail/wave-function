@@ -257,6 +257,7 @@ contains
         end do
 
         Lz = int(dble(sum_cmplx))
+        ! Check if calculated Lz has improper imaginary value / real part doesn't have integer value (Not quantized)
         if (aimag(sum_cmplx) > 1d-6 .or. abs(Lz - dble(sum_cmplx)) > 1d-6) then
             write (*, '(X, A, 2F13.10, A)') "Angular momentum is not properly calculated <Lz> = (", sum_cmplx, ")"
             stop
