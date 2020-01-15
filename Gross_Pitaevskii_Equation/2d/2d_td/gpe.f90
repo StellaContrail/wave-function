@@ -41,7 +41,7 @@ program main
     double precision               :: width_x, width_y
     integer                        :: total_iterations ! How many iterations to calculate real time propagation
     complex(kind(0d0)),allocatable :: LzPhi(:,:)       ! Angular momentum operator on wave function
-    integer                        :: Lz               ! Angular momentum itself
+    double precision               :: Lz               ! Angular momentum itself
 
     ! Output File Path
     character(*),parameter         :: fn_initial   = "data_initial.txt"
@@ -117,8 +117,8 @@ program main
 
     open(10, file=fn_result)
     open(20, file=fn_potential)
-    !open(30, file=fn_flux)
-    !open(40, file=fn_rotation)
+    open(30, file=fn_flux)
+    open(40, file=fn_rotation)
     !open(50, file="widths.txt")
     total_iterations = 15000
     do i = 1, total_iterations
@@ -129,22 +129,24 @@ program main
         ! Calculate chemical potential
         call solve_energy(Phi_next, Pot_TD, N, epsilon, kappa, mu, dh)
 
+        ! Save wave function, potential, flux, rotation, and widths every 50th step
         if (mod(i, 50) == 0) then
             ! Save wave function
             call output_complex(10, Phi_next, N, dh, xmax)
             ! Save potential form
             call output_potential(20, Pot_TD, N, dh, xmax)
             ! Save flux distribution
-            !call calc_flux(Phi_next, N, mass, dh, hbar, Flux)
-            !call output_flux(30, Flux, N, dh, xmax)
+            call calc_flux(Phi_next, N, mass, dh, hbar, Flux)
+            call output_flux(30, Flux, N, dh, xmax)
             ! Save rotation of flux
-            !call calc_rotation(Flux, N, dh, xmax, Rot)
-            !call output_rotation(40, Rot, N, dh, xmax)
+            call calc_rotation(Flux, N, dh, xmax, Rot)
+            call output_rotation(40, Rot, N, dh, xmax)
             ! Save width of the condensate
             !call calc_widths(Phi_next, N, dh, xmax, width_x, width_y)
             !call output_widths(50, i, dt, width_x, width_y)
         end if
 
+        ! Refresh the iteration display every 500th step
         if (mod(i, 500) == 0) then
             if (i > 500) then
                 write (*, '(A)', advance='no') char(13)
@@ -162,8 +164,8 @@ program main
     !call integrate(abs(Phi_next)**2d0, N, dh, prob)
     close (10)
     close (20)
-    !close (30)
-    !close (40)
+    close (30)
+    close (40)
     !close (50)
 
     call calc_angular_momentum(Phi_prev, N, xmax, dh, iu, LzPhi)

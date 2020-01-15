@@ -3,8 +3,8 @@ set size ratio 1
 set output "rotation.gif"
 unset pm3d
 # SETTINGS
-xmax        = 5     # BOUNDARY OF X
-N           = 30-1   # STEP COUNT
+xmax        = 15     # BOUNDARY OF X
+N           = 100-1   # STEP COUNT
 M           = N + 1
 iter        = 15000 # ITERATION COUNT OF TIME
 iter_output = 50    # SKIP COUNT IN THE ITERATION OF TIME
@@ -27,7 +27,7 @@ do for [i=0: data_num-1] {
         interval = time_new - time_old
         speed    = real(skip_output) / interval
         time_old = time_new
-        print sprintf("%5d / %5d    SPD : %5.2f lines/s   ETA : %5.2f sec", i, data_num, speed, (data_num-i+1)/speed)
+        print sprintf("%5d / %5d    SPD : %5.2f lines/s   Estimated Time Remaining : %5.2f sec", i, data_num, speed, (data_num-i+1)/speed)
     }
     set title sprintf("Rotation of Probability Current\n( T = %.3f )", dt*i*iter_output)
     splot "data_rotation.txt" every :::2*M*i::2*M*(i+1)-1 title "" with vectors

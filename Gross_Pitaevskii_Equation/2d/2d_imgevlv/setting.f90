@@ -1,3 +1,4 @@
+! Set up wave functions and potential
 module setting
     use constants
     implicit none
@@ -23,7 +24,7 @@ contains
             do i = 0, N
                 x = -xmax + dh*i
                 ! Initial trial wave function
-                Phi_prev(i, j) = dcmplx(exp(-0.5d0*(x*x+y*y)), 0d0)
+                Phi_prev(i, j) = exp(-0.5d0*(x*x+y*y)/(1d0)**2d0) * exp(iu*(atan2(y, x) + pi))
 
                 ! External potential
                 select case (mode)
@@ -56,7 +57,8 @@ contains
                 case (5)
                     ! Pinning Grid with circulary symmetric trap
                     Pot(i, j) = 200d0*(1d0+tanh(2d0*(sqrt(x*x+y*y)-8.5d0)))
-                    Pot(i, j) = Pot(i, j) + 2d0*60d0*(1d0+tanh(4d0*(sqrt((x-1.7d0)**2d0+(y-1.7d0)**2d0))))
+                    ! Pinning site located at (1.7, 1.7)
+                    !Pot(i, j) = Pot(i, j) + 2d0*60d0*(1d0+tanh(4d0*(sqrt((x-1.7d0)**2d0+(y-1.7d0)**2d0))))
                 case default
                     stop "Invalid mode of external potential"
                 end select

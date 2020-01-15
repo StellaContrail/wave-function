@@ -1,5 +1,5 @@
 compiler=gfortran
-options=-O3 -fbounds-check -llapack95 -llapack -lblas
+options=-O3 -fbounds-check
 all:mathf.mod io.mod setting.mod gpe.mod a.out constants.mod
 
 constants.mod: constants.f90

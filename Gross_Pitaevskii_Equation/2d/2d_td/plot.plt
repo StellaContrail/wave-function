@@ -53,8 +53,8 @@ do for [i=0: data_num-1] {
             splot "data_potential.txt" using 1:2:3 every :::M*i::M*(i+1)-1 title "" with pm3d
         unset multiplot
     } else {
-        set zrange  [0:1]
-        set cbrange [0:0.2]
+        set zrange  [0:0.1]
+        set cbrange [0:0.1]
         #set nosurface
         #set contour
         set title sprintf("Time development of Non-Linear Schroedinger Equation\n( T = %.3f )", dt*i*iter_output)

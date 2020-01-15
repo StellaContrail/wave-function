@@ -1,3 +1,4 @@
+! I/O Procedures
 module io
     implicit none
 contains
@@ -57,4 +58,23 @@ contains
         end do
         write (unit, *)
     end subroutine output_potential
+    
+    ! Save probability current
+    subroutine output_flux(unit, Flux, N, dh, xmax)
+        integer,intent(in)          :: unit, N
+        double precision,intent(in) :: dh, xmax
+        double precision,intent(in) :: Flux(0:N,0:N,1:2)
+        double precision            :: x, y
+        integer                     :: i, j
+        double precision,parameter  :: SCALE = 1d0!1000d0
+        
+        do j = 0, N
+            y = -xmax + dh * j
+            do i = 0, N
+                x = -xmax + dh * i
+                write (unit, *) x, y, SCALE*Flux(i,j,1), SCALE*Flux(i,j,2)
+            end do
+            write (unit, *)
+        end do
+    end subroutine
 end module io

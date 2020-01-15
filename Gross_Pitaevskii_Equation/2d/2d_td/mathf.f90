@@ -252,7 +252,7 @@ contains
         complex(kind(0d0)),intent(out) :: LzPhi(0:N,0:N)
         integer                        :: i
         double precision               :: Lz_temp
-        integer,intent(out)            :: Lz
+        double precision,intent(out)   :: Lz
         complex(kind(0d0))             :: sum_temp(0:N), sum_cmplx
 
         sum_temp(:) = dcmplx(0d0, 0d0)
@@ -272,11 +272,10 @@ contains
             end if
         end do
         ! Check wether sum is almost real here (Not implemented yet)
-        Lz_temp = dble(sum_cmplx)
-        if (Lz_temp > 1d-6) then
+        Lz = dble(sum_cmplx)
+        if (Lz > 1d-6) then
             write (*, *) "Angular momentum is not properly calculated"
         end if
-        Lz = int(Lz_temp)
     end subroutine  
     
     subroutine calc_widths(Phi, N, dh, xmax, sigma_x, sigma_y)

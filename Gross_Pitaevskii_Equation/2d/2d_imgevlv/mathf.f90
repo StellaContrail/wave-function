@@ -39,9 +39,9 @@ contains
     end subroutine normalize
 
     ! Imaginary-time propagation
-    subroutine evolve(Phi_old, N, dt, dh, epsilon, kappa, density, Lz, Pot, Phi_next)
+    subroutine evolve(Phi_old, N, dt, dh, epsilon, kappa, density, Lz, Pot, Phi_next, OMEGA)
         integer,intent(in)             :: N
-        double precision,intent(in)    :: dt, dh, epsilon, kappa, density(0:N,0:N)
+        double precision,intent(in)    :: dt, dh, epsilon, kappa, density(0:N,0:N), OMEGA
         complex(kind(0d0)),intent(in)  :: Phi_old(0:N,0:N), Lz(0:N, 0:N), Pot(0:N,0:N)
         complex(kind(0d0)),intent(out) :: Phi_next(0:N,0:N)
         complex(kind(0d0))             :: temp(0:N,0:N), Atemp(0:N,0:N)
@@ -51,23 +51,21 @@ contains
         Phi_next(:,:) = temp(:,:)
         ! Other terms of Taylor expansion
         do i = 1, 10
-            call apply_hamiltonian(temp, N, dh, dt, epsilon, kappa, density, Lz, Pot, Atemp)
+            call apply_hamiltonian(temp, N, dh, dt, epsilon, kappa, density, Lz, Pot, Atemp, OMEGA)
             temp(:,:)     = -Atemp(:,:)*dt/(epsilon*i)
             Phi_next(:,:) = Phi_next(:,:) + temp(:,:)
         end do
     end subroutine evolve
 
     ! Calculate HPhi (H:Hamiltonian, Phi:Wave function)
-    subroutine apply_hamiltonian(Phi, N, dh, dt, epsilon, kappa, density, LzPhi, Pot, HPhi)
+    subroutine apply_hamiltonian(Phi, N, dh, dt, epsilon, kappa, density, LzPhi, Pot, HPhi, OMEGA)
         integer,intent(in)             :: N
         complex(kind(0d0)),intent(in)  :: Phi(0:N,0:N), LzPhi(0:N,0:N), Pot(0:N,0:N)
         complex(kind(0d0)),intent(out) :: HPhi(0:N,0:N)
         double precision,intent(in)    :: dh, epsilon, kappa, dt
+        double precision,intent(in)    :: OMEGA ! Rotation rate of the cranking model
         double precision,intent(in)    :: density(0:N,0:N)
         integer                        :: i, j
-        double precision               :: OMEGA
-        ! Rotation rate of the cranking model
-        OMEGA = 2d0*pi / (dt*5000d0)
         HPhi(:,:) = 0d0
         ! Laplacian part (Five Point Stencil)
         do j = 0, N
@@ -120,16 +118,16 @@ contains
     end subroutine
 
     ! Solve Energy Expected Value
-    subroutine solve_energy(Phi, Pot, Lz, N, epsilon, kappa, mu, dh, dt)
+    subroutine solve_energy(Phi, Pot, Lz, N, epsilon, kappa, mu, dh, dt, OMEGA)
         integer,intent(in)            :: N
-        double precision,intent(in)   :: dh, epsilon, kappa, dt
+        double precision,intent(in)   :: dh, epsilon, kappa, dt, OMEGA
         complex(kind(0d0)),intent(in) :: Pot(0:N,0:N)
         complex(kind(0d0)),intent(in) :: Phi(0:N,0:N), Lz(0:N,0:N)
         double precision,intent(out)  :: mu
         complex(kind(0d0))            :: HPhi(0:N,0:N), sum_temp(0:N), sum_cmplx
         integer                       :: i
         mu = 0d0
-        call apply_hamiltonian(Phi, N, dh, dt, epsilon, kappa, abs(Phi)**2d0, Lz, Pot, HPhi)
+        call apply_hamiltonian(Phi, N, dh, dt, epsilon, kappa, abs(Phi)**2d0, Lz, Pot, HPhi, OMEGA)
         sum_temp(:) = dcmplx(0d0, 0d0)
         do i = 0, N
             if (i == 0 .or. i == N) then
@@ -236,7 +234,7 @@ contains
         double precision,intent(in)    :: dh
         complex(kind(0d0)),intent(out) :: LzPhi(0:N,0:N)
         integer                        :: i
-        integer,intent(out)            :: Lz
+        double precision,intent(out)   :: Lz
         complex(kind(0d0))             :: sum_temp(0:N), sum_cmplx
 
         sum_temp(:) = dcmplx(0d0, 0d0)
@@ -256,11 +254,59 @@ contains
             end if
         end do
 
-        Lz = int(dble(sum_cmplx))
-        ! Check if calculated Lz has improper imaginary value / real part doesn't have integer value (Not quantized)
-        if (aimag(sum_cmplx) > 1d-6 .or. abs(Lz - dble(sum_cmplx)) > 1d-6) then
+        ! Check if calculated Lz doesn't have imaginary part since the operator is Hermitian
+        ! (<Lz> should be quantized, right? I don't have confidence so just leave it like this...)
+        if (aimag(sum_cmplx) > 1d-6) then
             write (*, '(X, A, 2F13.10, A)') "Angular momentum is not properly calculated <Lz> = (", sum_cmplx, ")"
             stop
         end if
+
+        ! ( If Lz should be quantized, check if it's integer and then store it into integer variable, Lz )
+        Lz = dble(sum_cmplx)
     end subroutine  
+
+    ! Calculate Probability Current
+    subroutine calc_flux(Phi, N, mass, dh, Flux)
+        integer,intent(in)            :: N
+        complex(kind(0d0)),intent(in) :: Phi(0:N,0:N)
+        double precision,intent(in)   :: dh, mass
+        double precision,intent(out)  :: Flux(0:N,0:N,1:2)
+        integer                       :: i, j
+
+        ! For point (0,0)
+        Flux(0,0,1) = aimag(conjg(Phi(0,0))*(Phi(1,0)-Phi(0,0))/dh)
+        Flux(0,0,2) = aimag(conjg(Phi(0,0))*(Phi(0,1)-Phi(0,0))/dh)
+        ! For point (0,N)
+        Flux(0,N,1) = aimag(conjg(Phi(0,N))*(Phi(1,N)-Phi(0,N))/dh)
+        Flux(0,N,2) = aimag(conjg(Phi(0,N))*(Phi(0,N)-Phi(0,N-1))/dh)
+        ! For point (N,0)
+        Flux(N,0,1) = aimag(conjg(Phi(N,0))*(Phi(N,0)-Phi(N-1,0))/dh)
+        Flux(N,0,2) = aimag(conjg(Phi(N,0))*(Phi(N,1)-Phi(N,0))/dh)
+        ! For point (N,N)
+        Flux(N,N,1) = aimag(conjg(Phi(N,N))*(Phi(N,N)-Phi(N-1,N))/dh)
+        Flux(N,N,2) = aimag(conjg(Phi(N,N))*(Phi(N,N)-Phi(N,N-1))/dh)
+
+        do j = 1, N-1
+            Flux(0,j,1) = aimag(conjg(Phi(0,j))*(Phi(1,j)-Phi(0,j))/dh)
+            Flux(0,j,2) = aimag(conjg(Phi(0,j))*(Phi(0,j+1)-Phi(0,j-1))/(2d0*dh))
+            Flux(N,j,1) = aimag(conjg(Phi(N,j))*(Phi(N,j)-Phi(N-1,j))/dh)
+            Flux(N,j,2) = aimag(conjg(Phi(N,j))*(Phi(N,j+1)-Phi(N,j-1))/(2d0*dh))
+        end do
+
+        do i = 1, N-1
+            Flux(i,0,1) = aimag(conjg(Phi(i,0))*(Phi(i+1,0)-Phi(i-1,0))/(2d0*dh))
+            Flux(i,0,2) = aimag(conjg(Phi(i,0))*(Phi(i,1)-Phi(i,0))/dh)
+            Flux(i,N,1) = aimag(conjg(Phi(i,N))*(Phi(i+1,N)-Phi(i-1,N))/(2d0*dh))
+            Flux(i,N,2) = aimag(conjg(Phi(i,N))*(Phi(i,N)-Phi(i,N-1))/dh)
+        end do
+
+        do j = 1, N-1
+            do i = 1, N-1
+                Flux(i,j,1) = aimag(conjg(Phi(i,j))*(Phi(i+1,j)-Phi(i-1,j))/(2d0*dh))
+                Flux(i,j,2) = aimag(conjg(Phi(i,j))*(Phi(i,j+1)-Phi(i,j-1))/(2d0*dh))
+            end do
+        end do
+
+        !Flux(:,:,:) = Flux(:,:,:)*(hbar/mass)
+    end subroutine
 end module mathf
