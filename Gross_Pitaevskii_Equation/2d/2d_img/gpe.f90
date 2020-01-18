@@ -45,7 +45,7 @@ program main
     character(*),parameter         :: fn_potential   = "data_potential.txt"       ! (Output) Potential
     character(*),parameter         :: fn_result      = "data.txt"                 ! (Output) Result wave function
     character(*),parameter         :: fn_phased      = "data_phased.txt"          ! (Output) Phased wave function
-    character(*),parameter         :: fn_phase_field = "data_phase_field.txt"   ! (Output) Phase distribution of wave function
+    character(*),parameter         :: fn_phase_field = "data_phase_field.txt"     ! (Output) Phase distribution of wave function
 
     ! Definition of physical values (this could be replaced with I/O)
     ! These values are referenced from
