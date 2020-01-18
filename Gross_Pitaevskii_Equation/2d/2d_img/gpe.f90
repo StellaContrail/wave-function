@@ -61,7 +61,7 @@ program main
     ! Number of steps in a direction
     N                = 100 - 1
     ! Angular velocity on Cranking model
-    OMEGA            = 1000d0
+    OMEGA            = 100d0
     ! Variable allocation
     allocate (Phi_next(0:N,0:N), Phi_prev(0:N,0:N))
     allocate (Phi_phased(0:N, 0:N), LzPhi(0:N,0:N))
@@ -157,7 +157,7 @@ program main
         Phi_prev(:,:) = Phi_next(:,:)
 
         ! Check if chemical potential has been converged or not
-        if (abs(mu_old - mu) < 1d-6) then
+        if (abs(mu_old - mu) < 1d-10) then
             print *, "- Chemical potential has been converged"
             write (*, '(X, A, I0, A)') "- Calculation successfully completed with ", i, " iterations"
             exit

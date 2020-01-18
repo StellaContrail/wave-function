@@ -131,9 +131,9 @@ contains
         sum_temp(:) = dcmplx(0d0, 0d0)
         do i = 0, N
             if (i == 0 .or. i == N) then
-                sum_temp(:) = sum_temp(:) + 0.5d0*Phi(i,:)*HPhi(i,:)*dh
+                sum_temp(:) = sum_temp(:) + 0.5d0*conjg(Phi(i,:))*HPhi(i,:)*dh
             else 
-                sum_temp(:) = sum_temp(:) + Phi(i,:)*HPhi(i,:)*dh
+                sum_temp(:) = sum_temp(:) + conjg(Phi(i,:))*HPhi(i,:)*dh
             end if
         end do
         sum_cmplx = dcmplx(0d0, 0d0)
