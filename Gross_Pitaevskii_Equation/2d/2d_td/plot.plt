@@ -2,21 +2,22 @@ set terminal gif animate delay 10 optimize size 1600,1600
 set output "data.gif"
 set pm3d
 # SETTINGS
-xmax        = 15     # BOUNDARY OF X
+dh          = 0.06
+dt          = 0.01
 N           = 100-1   # STEP COUNT
 M           = N + 1
-iter        = 15000 # ITERATION COUNT OF TIME
+iter        = 5000 # ITERATION COUNT OF TIME
 iter_output = 50    # SKIP COUNT IN THE ITERATION OF TIME
-skip_output = 25    # SKIP COUNT OF SHOWING SPEED AND ETA
+skip_output = 25    # SKIP COUNT OF SHOWING SPEED AND ESTIMATED TIME REMAINING
 # OTHER VARIABLES USED BY SCRIPT
-dh          = xmax / real(N/2 + 0.5)
-dt          = 0.01*dh*dh
+xmax        = real(N/2 + 0.5)*dh     # BOUNDARY OF X
 data_num    = int(real(iter)/iter_output)
 time_new    = 0.0
 time_old    = 0.0
 set xrange [-xmax:xmax]
 set yrange [-xmax:xmax]
 isdebug     = 1
+stats "data.txt" u 3 nooutput
 do for [i=0: data_num-1] {
     if (i%skip_output == 0) {
         time_new = time(0.0)
@@ -50,11 +51,15 @@ do for [i=0: data_num-1] {
             set zrange  [-50:50]
             set cbrange [-50:50]
             set title sprintf("External Potential")
-            splot "data_potential.txt" using 1:2:3 every :::M*i::M*(i+1)-1 title "" with pm3d
+            splot "data_potential.txt" using 1:2:4 every :::M*i::M*(i+1)-1 title "" with pm3d
         unset multiplot
     } else {
-        set zrange  [0:0.1]
-        set cbrange [0:0.1]
+        if (STATS_max > 1) {
+            set zrange  [0:STATS_max]
+        } else {
+            set zrange  [0:1]
+        }
+        set cbrange [0:STATS_max]
         #set nosurface
         #set contour
         set title sprintf("Time development of Non-Linear Schroedinger Equation\n( T = %.3f )", dt*i*iter_output)

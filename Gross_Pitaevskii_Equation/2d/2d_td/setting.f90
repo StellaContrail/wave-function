@@ -1,12 +1,11 @@
 module setting
+    use constants
     implicit none
 contains
     ! Initialize wave functions and potential
-  subroutine initialize(Phi_next, Phi_prev, Pot, N, dh, xmax, gamma)
-        integer,intent(in)              :: N
-        complex(kind(0d0)),intent(out)  :: Phi_next(0:N, 0:N), Phi_prev(0:N, 0:N)
+  subroutine initialize(Phi, Pot)
+        complex(kind(0d0)),intent(out)  :: Phi(0:N, 0:N)
         double precision,intent(out)    :: Pot(0:N, 0:N)
-        double precision,intent(in)     :: dh, xmax, gamma
         double precision                :: x, y, dummy, real_part, imag_part
         integer                         :: i, j
         ! Input wave function data file
@@ -14,10 +13,9 @@ contains
         ! sigma : Width of Gaussian's wave packet formed potential
         double precision,parameter      :: sigma = 0.5d0
         ! mode  : Specify type of potential forms
-        integer,parameter               :: mode = 5
+        integer,parameter               :: mode = 0
         ! R_0   : Radius of circle or box half width
-        double precision,parameter      :: R_0 = 4d0
-        Phi_next(:, :) = dcmplx(0d0, 0d0)
+        double precision,parameter      :: R_0 = 3d0
 
         if (.true.) then
             if (access(fn_input, "") > 0) then
@@ -29,7 +27,7 @@ contains
             do j = 0, N
                 do i = 0, N
                     read (15, *) dummy, dummy, dummy, real_part, imag_part
-                    Phi_prev(i,j) = dcmplx(real_part, imag_part)
+                    Phi(i,j) = dcmplx(real_part, imag_part)
                 end do
                 read (15, *) 
             end do
@@ -40,7 +38,7 @@ contains
                 do i = 0, N
                     x = -xmax + dh * i
 
-                    Phi_prev(i,j) = dcmplx(exp(-0.5*(x*x+gamma*gamma*y*y)), 0d0)
+                    Phi(i,j) = dcmplx(exp(-0.5*(x*x+gamma*gamma*y*y)), 0d0)
                 end do
             end do
         end if
@@ -77,9 +75,9 @@ contains
                     Pot(i, j) = 0.5d0*(x*x*2d0+gamma*gamma*y*y*0.06d0)*0.1d0
                 case (5)
                     ! Pinning Grid with circulary symmetric trap
-                    Pot(i, j) = 200d0*(1d0+tanh(2d0*(sqrt(x*x+y*y)-8.5d0)))
-                    ! Pinning site located at (1.7, 1.7)
-                    !Pot(i, j) = Pot(i, j) + 2d0*60d0*(1d0+tanh(4d0*(sqrt((x-1.7d0)**2d0+(y-1.7d0)**2d0))))
+                    Pot(i, j) = 200d0*(1d0+tanh(2d0*(sqrt(x*x+y*y)-R_0)))
+                    ! Pinning site
+                    !Pot(i, j) = Pot(i, j) + 2d0*60d0*(1d0+tanh(4d0*(sqrt((x-1.5d0)**2d0+(y-1.5d0)**2d0))))
                 case default
                     stop "Invalid mode of external potential"
                 end select
@@ -88,9 +86,9 @@ contains
   end subroutine initialize
 
   ! Vary potential form depending on time
-  subroutine vary_potential(Pot, Pot_TD, N, dh, dt, pi, iter, iter_max, xmax)
-    integer,intent(in)             :: N, iter, iter_max
-    double precision,intent(in)    :: Pot(0:N, 0:N), dh, dt, xmax, pi
+  subroutine vary_potential(Pot, Pot_TD, iter, iter_max)
+    integer,intent(in)             :: iter, iter_max
+    double precision,intent(in)    :: Pot(0:N, 0:N)
     double precision,intent(inout) :: Pot_TD(0:N, 0:N)
     integer                        :: i, j
     double precision               :: x_s, y_s, x, y, t
@@ -98,8 +96,7 @@ contains
     ! < Circular Stirring Options >
     ! R_0   : Radius of circular stirring
     double precision,parameter     :: R_0 = 1.8d0
-    ! OMEGA : Angular velocity of circular stirring (defined later)
-    double precision               :: OMEGA
+    double precision,parameter     :: OMEGA = 0d0
     ! < Linear Stirring Option >
     ! v_x, v_y : Velocity of stirring (defined later)
     double precision               :: v_x, v_y
@@ -113,7 +110,6 @@ contains
     double precision               :: sigma = 0.35d0
     ! mode  : Specify type of stirring
     integer,parameter              :: mode = 0
-    OMEGA = 2d0*pi/(((fade_out_start_clock-fade_in_end_clock)/dt)/0.5d0)
     v_x = 2d0*xmax/iter_max
     v_y = v_x
 

@@ -2,15 +2,15 @@ set terminal gif animate delay 10 optimize size 800,800
 set size ratio 1
 set output "current.gif"
 # SETTINGS
-xmax        = 15     # BOUNDARY OF X
+dh          = 0.06
+dt          = 0.0001
 N           = 100-1   # STEP COUNT
 M           = N + 1
-iter        = 15000 # ITERATION COUNT OF TIME
+iter        = 5000 # ITERATION COUNT OF TIME
 iter_output = 50    # SKIP COUNT IN THE ITERATION OF TIME
 skip_output = 25    # SKIP COUNT OF SHOWING SPEED AND ETA
 # OTHER VARIABLES USED BY SCRIPT
-dh          = xmax / real(N/2 + 0.5)
-dt          = 0.01*dh*dh
+xmax        = real(N/2 + 0.5)*dh     # BOUNDARY OF X
 data_num    = int(real(iter)/iter_output)
 time_new    = 0.0
 time_old    = 0.0
@@ -20,7 +20,6 @@ set xlabel "X (Unit:Xs)"
 set ylabel "Y (Unit:Xs)"
 set view 0, 0, 1, 1
 set palette rgbformulae 22,13,10
-set cbrange [0:0.02]
 do for [i=0: data_num-1] {
     if (i%skip_output == 0) {
         time_new = time(0.0)
@@ -38,3 +37,4 @@ do for [i=0: data_num-1] {
 }
 unset output
 set terminal wxt
+ set view 60, 30, 1, 1

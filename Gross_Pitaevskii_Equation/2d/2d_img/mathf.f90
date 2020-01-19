@@ -2,14 +2,21 @@
 module mathf
     use constants
     implicit none
+
+    interface integrate
+        module procedure integrate_real, integrate_complex
+    end interface
+    interface phase
+        module procedure phase_coordinates, phase_complex
+    end interface
 contains
     ! Integration of real function
-    subroutine integrate(f, N, dh, sum)
-        integer,intent(in)           :: N
-        double precision,intent(in)  :: f(0:N, 0:N), dh
-        double precision,intent(out) :: sum
+    function integrate_real(f) result(sum)
+        double precision,intent(in)  :: f(0:N, 0:N)
+        double precision             :: sum
         double precision             :: sum_temp(0:N)
         integer                      :: i
+
         sum = 0d0
         sum_temp(:) = 0d0
         do i = 0, N
@@ -26,44 +33,81 @@ contains
                 sum = sum + sum_temp(i)*dh
             end if
         end do
-    end subroutine
+    end function
+    ! Integration of complex function
+    function integrate_complex(f) result(sum)
+        complex(kind(0d0)),intent(in)  :: f(0:N, 0:N)
+        complex(kind(0d0))             :: sum
+        complex(kind(0d0))             :: sum_temp(0:N)
+        integer                        :: i
+
+        sum = 0d0
+        sum_temp(:) = 0d0
+        do i = 0, N
+            if (i == 0 .or. i == N) then
+                sum_temp(:) = sum_temp(:) + 0.5d0*f(i,:)*dh
+            else
+                sum_temp(:) = sum_temp(:) + f(i,:)*dh
+            end if
+        end do
+        do i = 0, N
+            if (i == 0 .or. i == N) then
+                sum = sum + 0.5d0*sum_temp(i)*dh
+            else
+                sum = sum + sum_temp(i)*dh
+            end if
+        end do
+    end function
 
     ! Normalize wave function
-    subroutine normalize(Phi, N, dh)
-        integer,intent(in)               :: N
-        double precision,intent(in)      :: dh
+    subroutine normalize(Phi)
         complex(kind(0d0)),intent(inout) :: Phi(0:N, 0:N)
-        double precision                 :: sum
-        call integrate(abs(Phi(:,:))**2d0, N, dh, sum)
-        Phi(:, :) = Phi(:, :) / sqrt(sum)
+        Phi(:, :) = Phi(:, :) / sqrt(integrate(abs(Phi(:,:))**2d0))
     end subroutine normalize
 
     ! Imaginary-time propagation
-    subroutine evolve(Phi_old, N, dt, dh, epsilon, kappa, density, Lz, Pot, Phi_next, OMEGA)
-        integer,intent(in)             :: N
-        double precision,intent(in)    :: dt, dh, epsilon, kappa, density(0:N,0:N), OMEGA
-        complex(kind(0d0)),intent(in)  :: Phi_old(0:N,0:N), Lz(0:N, 0:N), Pot(0:N,0:N)
-        complex(kind(0d0)),intent(out) :: Phi_next(0:N,0:N)
-        complex(kind(0d0))             :: temp(0:N,0:N), Atemp(0:N,0:N)
-        integer                        :: i
+    subroutine evolve(Phi, LzPhi, Pot)
+        complex(kind(0d0)),intent(inout) :: Phi(0:N,0:N)
+        complex(kind(0d0)),intent(in)    :: LzPhi(0:N, 0:N)
+        double precision,intent(in)      :: Pot(0:N,0:N)
+        complex(kind(0d0))               :: Phi_old(0:N,0:N), Phi_new(0:N,0:N)
+        complex(kind(0d0))               :: temp(0:N,0:N), Atemp(0:N,0:N)
+        double precision                 :: density(0:N,0:N)
+        integer                          :: i
+
+        Phi_old(:,:) = Phi(:,:)
         ! First term of Taylor expansion
-        temp(:,:)     = Phi_old(:,:)
-        Phi_next(:,:) = temp(:,:)
+        temp(:,:)    = Phi_old(:,:)
+        Phi_new(:,:) = temp(:,:)
         ! Other terms of Taylor expansion
         do i = 1, 10
-            call apply_hamiltonian(temp, N, dh, dt, epsilon, kappa, density, Lz, Pot, Atemp, OMEGA)
+            Atemp = apply_hamiltonian(temp, abs(Phi_old)**2d0, LzPhi, Pot)
             temp(:,:)     = -Atemp(:,:)*dt/(epsilon*i)
-            Phi_next(:,:) = Phi_next(:,:) + temp(:,:)
+            Phi_new(:,:) = Phi_new(:,:) + temp(:,:)
         end do
+
+        ! Mix the previous density and calculated wave function's density
+        density(:,:) = 0.7d0*abs(Phi_old(:,:))**2d0 + 0.3d0*abs(Phi_new(:,:))**2d0
+
+        ! First term of Taylor expansion
+        temp(:,:)    = Phi_old(:,:)
+        Phi_new(:,:) = temp(:,:)
+        ! Other terms of Taylor expansion
+        do i = 1, 10
+            Atemp = apply_hamiltonian(temp, density, LzPhi, Pot)
+            temp(:,:)     = -Atemp(:,:)*dt/(epsilon*i)
+            Phi_new(:,:) = Phi_new(:,:) + temp(:,:)
+        end do
+
+        Phi(:,:) = Phi_new(:,:)
+        call normalize(Phi)
     end subroutine evolve
 
     ! Calculate HPhi (H:Hamiltonian, Phi:Wave function)
-    subroutine apply_hamiltonian(Phi, N, dh, dt, epsilon, kappa, density, LzPhi, Pot, HPhi, OMEGA)
-        integer,intent(in)             :: N
-        complex(kind(0d0)),intent(in)  :: Phi(0:N,0:N), LzPhi(0:N,0:N), Pot(0:N,0:N)
-        complex(kind(0d0)),intent(out) :: HPhi(0:N,0:N)
-        double precision,intent(in)    :: dh, epsilon, kappa, dt
-        double precision,intent(in)    :: OMEGA ! Rotation rate of the cranking model
+    function apply_hamiltonian(Phi, density, LzPhi, Pot) result(HPhi)
+        complex(kind(0d0)),intent(in)  :: Phi(0:N,0:N), LzPhi(0:N,0:N)
+        double precision,intent(in)    :: Pot(0:N,0:N)
+        complex(kind(0d0))             :: HPhi(0:N,0:N)
         double precision,intent(in)    :: density(0:N,0:N)
         integer                        :: i, j
         HPhi(:,:) = 0d0
@@ -112,147 +156,113 @@ contains
                 HPhi(i,j) = HPhi(i,j) + kappa*density(i,j)*Phi(i,j)
 
                 ! Cranking model
-                HPhi(i,j) = HPhi(i,j) - OMEGA*LzPhi(i,j)/(20d0*pi)
+                HPhi(i,j) = HPhi(i,j) - OMEGA*LzPhi(i,j)/omega_x
             end do
         end do
-    end subroutine
+    end function
 
     ! Solve Energy Expected Value
-    subroutine solve_energy(Phi, Pot, Lz, N, epsilon, kappa, mu, dh, dt, OMEGA)
-        integer,intent(in)            :: N
-        double precision,intent(in)   :: dh, epsilon, kappa, dt, OMEGA
-        complex(kind(0d0)),intent(in) :: Pot(0:N,0:N)
-        complex(kind(0d0)),intent(in) :: Phi(0:N,0:N), Lz(0:N,0:N)
-        double precision,intent(out)  :: mu
-        complex(kind(0d0))            :: HPhi(0:N,0:N), sum_temp(0:N), sum_cmplx
-        integer                       :: i
-        mu = 0d0
-        call apply_hamiltonian(Phi, N, dh, dt, epsilon, kappa, abs(Phi)**2d0, Lz, Pot, HPhi, OMEGA)
-        sum_temp(:) = dcmplx(0d0, 0d0)
-        do i = 0, N
-            if (i == 0 .or. i == N) then
-                sum_temp(:) = sum_temp(:) + 0.5d0*conjg(Phi(i,:))*HPhi(i,:)*dh
-            else 
-                sum_temp(:) = sum_temp(:) + conjg(Phi(i,:))*HPhi(i,:)*dh
-            end if
-        end do
-        sum_cmplx = dcmplx(0d0, 0d0)
-        do i = 0, N
-            if (i == 0 .or. i == N) then
-                sum_cmplx = sum_cmplx + 0.5d0*sum_temp(i)*dh
-            else
-                sum_cmplx = sum_cmplx + sum_temp(i)*dh
-            end if
-        end do
-        ! Check wether sum is almost real here (Not implemented yet)
-        mu = dble(sum_cmplx)
-    end subroutine
+    function solve_energy(Phi, Pot, LzPhi) result(mu)
+        complex(kind(0d0)),intent(in) :: Phi(0:N,0:N), LzPhi(0:N,0:N)
+        double precision,intent(in)   :: Pot(0:N,0:N)
+        double precision              :: mu
+        complex(kind(0d0))            :: HPhi(0:N,0:N)
 
-    ! Shift wave fuction's phase partially
-    subroutine shift_phase(Phi_IN, N, x_start, x_end, y_start, y_end, Phi_OUT, angle)
-        integer,intent(in)             :: x_start, x_end, y_start, y_end, N
-        double precision,intent(in)    :: angle
-        complex(kind(0d0)),intent(in)  :: Phi_IN(0:N,0:N)
-        complex(kind(0d0)),intent(out) :: Phi_OUT(0:N,0:N)
-        integer                        :: i
-        Phi_OUT(:,:) = Phi_IN(:,:)
-        do i = x_start, x_end
-            Phi_OUT(i,y_start:y_end) = exp(iu*angle) * Phi_IN(i,y_start:y_end)
-        end do
-    end subroutine
+        HPhi = apply_hamiltonian(Phi, abs(Phi)**2d0, LzPhi, Pot)
+        mu = dble(integrate(conjg(Phi)*HPhi))
+    end function
 
     ! Make Quantized Vortex by changing the phase
-    subroutine make_vortex(Phi, N, xmax, dh, Phi_phased)
-        integer,intent(in)             :: N
-        double precision,intent(in)    :: dh, xmax
-        complex(kind(0d0)),intent(in)  :: Phi(0:N,0:N)
-        complex(kind(0d0)),intent(out) :: Phi_phased(0:N,0:N)
-        integer                        :: i, j
-        double precision               :: x, y, degree
+    subroutine make_vortex(Phi)
+        complex(kind(0d0)),intent(inout)  :: Phi(0:N,0:N)
+        integer                           :: i, j
+        double precision                  :: x, y
 
         do j = 0, N
             y = -xmax + dh*j
             do i = 0, N
                 x = -xmax + dh*i
                 
-                degree = atan2(y, x)
-                Phi_phased(i,j) = exp(iu*degree)*Phi(i,j)
+                Phi(i,j) = exp(iu*phase(y,x))*Phi(i,j)
             end do
         end do
     end subroutine
 
-    ! Get phase of the complex number
-    function get_phase(Z) result(phase)
+    ! Get phase of the complex
+    pure elemental double precision function phase_complex(Z)
         complex(kind(0d0)),intent(in) :: Z
-        double precision              :: phase
-        
-        phase = atan2(aimag(z), real(z))
+        phase_complex = atan2(aimag(Z), real(Z))
     end function
 
-    ! Get phase distribution of the field
-    subroutine get_phase_field(Phi, N, Phase)
-        integer,intent(in)            :: N
-        complex(kind(0d0)),intent(in) :: Phi(0:N,0:N)
-        double precision,intent(out)  :: Phase(0:N,0:N)
-        integer                       :: i, j
-
-        do j = 0, N
-            do i = 0, N
-                Phase(i,j) = get_phase(Phi(i,j))
-            end do
-        end do
-    end subroutine
+    ! Get phase information from given coordinates
+    double precision function phase_coordinates(Y, X)
+        double precision,intent(in) :: X, Y
+        phase_coordinates = atan2(Y, X)
+    end function
 
     ! Calculate LzPhi (Excluding Plank constant)
-    subroutine calc_angular_momentum(Phi, N, xmax, dh, LzPhi)
-        integer,intent(in)             :: N
+    function calc_angular_momentum(Phi) result(LzPhi)
         complex(kind(0d0)),intent(in)  :: Phi(0:N,0:N)
-        double precision,intent(in)    :: dh, xmax
-        complex(kind(0d0)),intent(out) :: LzPhi(0:N,0:N)
+        complex(kind(0d0))             :: LzPhi(0:N,0:N)
         integer                        :: i, j
         double precision               :: x, y
-        ! Assume the existence probability at the edge equals zero
-        LzPhi(0,0:N) = dcmplx(0d0, 0d0)
-        LzPhi(N,0:N) = dcmplx(0d0, 0d0)
-        LzPhi(0:N,0) = dcmplx(0d0, 0d0)
-        LzPhi(0:N,N) = dcmplx(0d0, 0d0)
+        complex(kind(0d0))             :: dPhi_dX(0:N,0:N), dPhi_dY(0:N,0:N)
+
+        dPhi_dX(:,:) = dcmplx(0d0, 0d0)
+        do j = 0, N
+            do i = 0, N
+
+                if (i > 1) then
+                    dPhi_dX(i,j) = dPhi_dX(i,j) - 8d0*Phi(i-1,j)
+                end if
+                if (i > 2) then
+                    dPhi_dX(i,j) = dPhi_dX(i,j) + Phi(i-2,j)
+                end if
+                if (i < N-1) then
+                    dPhi_dX(i,j) = dPhi_dX(i,j) - Phi(i+2,j)
+                end if
+                if (i < N-2) then
+                    dPhi_dX(i,j) = dPhi_dX(i,j) + 8d0*Phi(i+1,j)
+                end if
+            end do
+        end do
+
+        dPhi_dY(:,:) = dcmplx(0d0, 0d0)
+        do j = 0, N
+            do i = 0, N
+
+                if (j > 1) then
+                    dPhi_dY(i,j) = dPhi_dY(i,j) - 8d0*Phi(i,j-1)
+                end if
+                if (j > 2) then
+                    dPhi_dY(i,j) = dPhi_dY(i,j) + Phi(i,j-2)
+                end if
+                if (j < N-1) then
+                    dPhi_dY(i,j) = dPhi_dY(i,j) - Phi(i,j+2)
+                end if
+                if (j < N-2) then
+                    dPhi_dY(i,j) = dPhi_dY(i,j) + 8d0*Phi(i,j+1)
+                end if
+            end do
+        end do
 
         do j = 1, N-1
             y = -xmax + dh*j
             do i = 1, N-1
                 x = -xmax + dh*i
 
-                LzPhi(i,j) = -iu*(x*(Phi(i,j+1)-Phi(i,j-1)) - y*(Phi(i+1,j)-Phi(i-1,j)))/(2d0*dh)
+                LzPhi(i,j) = -iu*(x*dPhi_dY(i,j) - y*dPhi_dX(i,j))/(12d0*dh)
             end do
         end do
-    end subroutine
+    end function
 
     ! Calculate Expected Angular Momentum Value (Excluding Plank constant)
-    subroutine calc_angular_momentum_expected_value(Phi, N, dh, LzPhi, Lz)
-        integer,intent(in)             :: N
-        complex(kind(0d0)),intent(in)  :: Phi(0:N,0:N)
-        double precision,intent(in)    :: dh
-        complex(kind(0d0)),intent(out) :: LzPhi(0:N,0:N)
+    double precision function calc_angular_momentum_expected_value(Phi, LzPhi)
+        complex(kind(0d0)),intent(in)  :: Phi(0:N,0:N), LzPhi(0:N,0:N)
         integer                        :: i
-        double precision,intent(out)   :: Lz
-        complex(kind(0d0))             :: sum_temp(0:N), sum_cmplx
+        complex(kind(0d0))             :: sum_cmplx
 
-        sum_temp(:) = dcmplx(0d0, 0d0)
-        do i = 0, N
-            if (i == 0 .or. i == N) then
-                sum_temp(:) = sum_temp(:) + 0.5d0*conjg(Phi(i,:))*LzPhi(i,:)*dh
-            else 
-                sum_temp(:) = sum_temp(:) + conjg(Phi(i,:))*LzPhi(i,:)*dh
-            end if
-        end do
-        sum_cmplx = dcmplx(0d0, 0d0)
-        do i = 0, N
-            if (i == 0 .or. i == N) then
-                sum_cmplx = sum_cmplx + 0.5d0*sum_temp(i)*dh
-            else
-                sum_cmplx = sum_cmplx + sum_temp(i)*dh
-            end if
-        end do
+        sum_cmplx = integrate(conjg(Phi)*LzPhi)
 
         ! Check if calculated Lz doesn't have imaginary part since the operator is Hermitian
         ! (<Lz> should be quantized, right? I don't have confidence so just leave it like this...)
@@ -262,15 +272,13 @@ contains
         end if
 
         ! ( If Lz should be quantized, check if it's integer and then store it into integer variable, Lz )
-        Lz = dble(sum_cmplx)
-    end subroutine  
+        calc_angular_momentum_expected_value = dble(sum_cmplx)
+    end function  
 
     ! Calculate Probability Current
-    subroutine calc_flux(Phi, N, mass, dh, Flux)
-        integer,intent(in)            :: N
+    function calc_flux(Phi) result(Flux)
         complex(kind(0d0)),intent(in) :: Phi(0:N,0:N)
-        double precision,intent(in)   :: dh, mass
-        double precision,intent(out)  :: Flux(0:N,0:N,1:2)
+        double precision              :: Flux(0:N,0:N,1:2)
         integer                       :: i, j
 
         ! For point (0,0)
@@ -308,5 +316,5 @@ contains
         end do
 
         !Flux(:,:,:) = Flux(:,:,:)*(hbar/mass)
-    end subroutine
+    end function
 end module mathf

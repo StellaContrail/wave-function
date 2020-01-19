@@ -8,10 +8,10 @@ constants.mod: constants.f90
 mathf.mod mathf.o: mathf.f90 constants.mod
 	gfortran -c mathf.f90 $(options)
 
-io.mod io.o: io.f90
+io.mod io.o: io.f90 constants.mod
 	gfortran -c io.f90 $(options)
 
-setting.mod setting.o: setting.f90 constants.mod
+setting.mod setting.o: setting.f90 constants.mod mathf.mod
 	gfortran -c setting.f90 $(options)
 
 gpe.mod gpe.o: gpe.f90 constants.mod

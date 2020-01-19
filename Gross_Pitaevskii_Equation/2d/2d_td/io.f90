@@ -1,10 +1,14 @@
 module io
+    use constants
     implicit none
+
+    interface output
+        module procedure output_complex, output_real, output_flux, output_widths
+    end interface
 contains
     ! Save double precision complex wave function
-    subroutine output_complex(unit, f, N, dh, xmax)
-        integer,intent(in)            :: unit, N
-        double precision,intent(in)   :: dh, xmax
+    subroutine output_complex(unit, f)
+        integer,intent(in)            :: unit
         complex(kind(0d0)),intent(in) :: f(0:N, 0:N)
         double precision x, y
         integer i, j
@@ -20,9 +24,8 @@ contains
     end subroutine output_complex
 
     ! Save potential forms
-    subroutine output_potential(unit, f, N, dh, xmax)
-        integer,intent(in)            :: unit, N
-        double precision,intent(in)   :: dh, xmax
+    subroutine output_real(unit, f)
+        integer,intent(in)            :: unit
         double precision,intent(in)   :: f(0:N, 0:N)
         double precision              :: x, y
         integer                       :: i, j
@@ -31,16 +34,15 @@ contains
             y = -xmax + dh * j
             do i = 0, N
                 x = -xmax + dh * i
-                write (unit, '(*(F10.5, X))') x, y, f(i,j)
+                write (unit, '(*(F10.5, X))') x, y, f(i,j)**2d0, f(i,j), 0d0
             end do
             write (unit, *)
         end do
-    end subroutine output_potential
+    end subroutine output_real
 
     ! Save probability current
-    subroutine output_flux(unit, Flux, N, dh, xmax)
-        integer,intent(in)          :: unit, N
-        double precision,intent(in) :: dh, xmax
+    subroutine output_flux(unit, Flux)
+        integer,intent(in)          :: unit
         double precision,intent(in) :: Flux(0:N,0:N,1:2)
         double precision            :: x, y
         integer                     :: i, j
@@ -57,13 +59,12 @@ contains
     end subroutine
 
     ! Save rotation of flux vectors
-    subroutine output_rotation(unit, Rot, N, dh, xmax)
-        integer,intent(in)          :: unit, N
-        double precision,intent(in) :: dh, xmax
+    subroutine output_rotation(unit, Rot)
+        integer,intent(in)          :: unit
         double precision,intent(in) :: Rot(0:N,0:N)
         double precision            :: x, y, z
         integer                     :: i, j, k
-        double precision,parameter  :: SCALE = 10d0!1000d0
+        double precision,parameter  :: SCALE = 1d0!1000d0
         
         ! Be careful of putting two blank lines. Gnuplot behaves wrongly when specifying every keyword.
         do k = 0, 1
@@ -85,9 +86,9 @@ contains
         end do
     end subroutine
 
-    subroutine output_widths(unit, iter, dt, width_x, width_y)
+    subroutine output_widths(unit, iter, width_x, width_y)
         integer,intent(in)          :: unit, iter
-        double precision,intent(in) :: dt, width_x, width_y
+        double precision,intent(in) :: width_x, width_y
         write (unit, *) dt*iter, width_x, width_y
     end subroutine
 end module io

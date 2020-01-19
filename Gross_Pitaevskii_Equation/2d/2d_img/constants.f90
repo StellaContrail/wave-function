@@ -6,4 +6,23 @@ module constants
     
     ! Physical constants
     double precision,parameter     :: hbar = 1.05d-34         ! Reduced Plank constant
+
+    ! Calculation settings
+    double precision,parameter     :: mass             = 1.4d-25
+    double precision,parameter     :: omega_x          = 20d0 * pi
+    double precision,parameter     :: omega_y          = omega_x
+    double precision,parameter     :: ParticleCount    = 1000
+    double precision,parameter     :: ScatteringLength = 5.1d-9
+    integer         ,parameter     :: N                = 100 - 1
+    double precision,parameter     :: OMEGA            = 10d0
+    double precision,parameter     :: dh               = 0.06d0
+    double precision,parameter     :: dt               = 0.0015d0
+
+    ! Global constants
+    double precision,parameter     :: xmax    = (N/2 + 0.5d0) * dh
+    double precision,parameter     :: Azero   = sqrt(hbar/(omega_x*mass))
+    double precision,parameter     :: Xs      = Azero
+    double precision,parameter     :: gamma   = omega_y / omega_x
+    double precision,parameter     :: epsilon = (Azero/Xs)**2d0
+    double precision,parameter     :: kappa   = (4d0*pi*ScatteringLength*ParticleCount/Azero)*(Azero/Xs)**5d0
 end module

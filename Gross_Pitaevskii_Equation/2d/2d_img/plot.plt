@@ -3,7 +3,7 @@ set size ratio 1
 set terminal jpeg size 1600,1600
 set output "data_final.jpg"
 set pm3d
-xmax = 15
+xmax = 3
 set xrange  [-xmax:xmax]
 set yrange  [-xmax:xmax]
 set xlabel "X (unit:Xs)"
@@ -17,10 +17,9 @@ set multiplot layout 2,2
     set style fill transparent solid 0.8
     set zlabel "Intensity"
     set title "External Potential"
-    splot "data_potential.txt" using 1:2:3 with pm3d title ""
+    splot "data_potential.txt" using 1:2:4 with pm3d title ""
 
     set palette defined ( -1 '#000030', 0 '#000090',1 '#000fff',2 '#0090ff',3 '#0fffee',4 '#90ff70',5 '#ffee00',6 '#ff7000',7 '#ee0000',8 '#7f0000')
-    set zlabel "Probability"
     set title "Real part of wave function"
     splot "data.txt" using 1:2:4 with pm3d title ""
     set title "Imaginary part of wave function"
