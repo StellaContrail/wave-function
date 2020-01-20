@@ -63,7 +63,7 @@ do for [i=0: data_num-1] {
         #set nosurface
         #set contour
         set title sprintf("Time development of Non-Linear Schroedinger Equation\n( T = %.3f )", dt*i*iter_output)
-        splot "data.txt" using 1:2:3 every :::M*i::M*(i+1)-1 title "" with pm3d
+        splot "data.txt" using 1:2:4 every :::M*i::M*(i+1)-1 title "" with pm3d
         #unset contour
         #set surface
     }
