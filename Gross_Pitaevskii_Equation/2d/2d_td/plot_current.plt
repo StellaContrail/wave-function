@@ -2,12 +2,12 @@ set terminal gif animate delay 10 optimize size 800,800
 set size ratio 1
 set output "current.gif"
 # SETTINGS
-dh          = 0.06
-dt          = 0.0001
+dh          = 0.16
+dt          = 0.002
 N           = 100-1   # STEP COUNT
 M           = N + 1
-iter        = 5000 # ITERATION COUNT OF TIME
-iter_output = 50    # SKIP COUNT IN THE ITERATION OF TIME
+iter        = 1000 # ITERATION COUNT OF TIME
+iter_output = 10    # SKIP COUNT IN THE ITERATION OF TIME
 skip_output = 25    # SKIP COUNT OF SHOWING SPEED AND ETA
 # OTHER VARIABLES USED BY SCRIPT
 xmax        = real(N/2 + 0.5)*dh     # BOUNDARY OF X

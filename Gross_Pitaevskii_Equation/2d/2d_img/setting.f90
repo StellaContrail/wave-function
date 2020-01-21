@@ -8,7 +8,7 @@ contains
     subroutine initialize(Phi, Pot)
         complex(kind(0d0)),intent(out)  :: Phi(0:N, 0:N)
         double precision,intent(out)  :: Pot(0:N, 0:N)
-        double precision                :: x, y
+        double precision                :: x, y, dummy, real_part, imag_part
         integer                         :: i, j
         ! sigma : Width of Gaussian's wave packet formed potential
         double precision,parameter      :: sigma = 0.5d0
@@ -16,13 +16,12 @@ contains
         integer,parameter               :: mode = 5
         ! R_0   : Radius of circle or box half width
         double precision,parameter      :: R_0 = 3d0
-
         do j = 0, N
             y = -xmax + dh*j
             do i = 0, N
                 x = -xmax + dh*i
                 ! Initial trial wave function
-                Phi(i, j) = exp(-0.5d0*(x*x+y*y)) * exp(iu*(atan2(y, x)))
+                Phi(i, j) = exp(-0.5d0*(x*x+y*y))
 
                 ! External potential
                 select case (mode)
@@ -54,15 +53,36 @@ contains
                     end if
                 case (5)
                     ! Pinning Grid with circulary symmetric trap
-                    Pot(i, j) = 200d0*(1d0+tanh(2d0*(sqrt(x*x+y*y)-R_0)))
-                    ! Pinning site
-                    !Pot(i, j) = Pot(i, j) + 2d0*60d0*(1d0+tanh(4d0*(sqrt((x-1.5d0)**2d0+(y-1.5d0)**2d0))))
+                    Pot(i, j) = pinning_potential(x, y, 200d0, 120d0, 6.5d0, 1.5d0, 1.5d0, 4d0)
                 case default
                     stop "Invalid mode of external potential"
                 end select
             end do
         end do
-
-        call normalize(Phi)
+        
+        do j = 0, N
+            y = -xmax + dh*j
+            do i = 0, N
+                x = -xmax + dh*i
+    
+                if ((x-1.5d0)**2d0 + (y-1.5d0)**2d0 < 1.5d0**2d0) then
+                    Phi(i,j) = Phi(i,j) * exp(-iu*phase((y-1.5d0), (x-1.5d0)))
+                end if
+            end do 
+        end do
     end subroutine initialize
+
+    function pinning_potential(x, y, Vmax, V0, R0, x0, y0, delta) result(V)
+        double precision,intent(in) :: x, y, Vmax, V0, R0, x0, y0, delta
+        double precision            :: V, r, rdiff
+        ! Radius from the origin point
+        r = sqrt(x*x + y*y)
+        ! Radius from the point (x0, y0)
+        rdiff = sqrt((x-x0)**2d0 + (y-y0)**2d0)
+
+        ! Circularly symmetric trap
+        V = 0.5d0*Vmax*(tanh(2*(r-R0))+1)
+        ! Pinning trap located at (x0, y0)
+        V = V + V0*(tanh(delta*rdiff)-1)
+    end function
 end module

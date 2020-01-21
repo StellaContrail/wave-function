@@ -48,6 +48,7 @@ program main
     print *, "Xs (Characteristic Length)        [m] = ", Xs
     print *, "dh (Step of distance)                 = ", dh
     print *, "dt (Step of time)                     = ", dt
+    print *, "xmax (Absolute value of maximum x)[m] = ", xmax
     print *, "<Coefficients of NLSE terms>"
     print *, "Epsilon (A0/Xs)^2                     = ", epsilon
     print *, "Kappa (Coefficient of NL term)        = ", kappa
@@ -56,9 +57,6 @@ program main
     print *, "Healing length (8*pi*|a|*N/Xs^3)^-0.5 = ", ((8d0*pi*abs(ScatteringLength)*ParticleCount)/(Xs**3d0))**(-0.5d0)
     print *, "------------------------------------------------------------------"
     write (*, *)
-
-    print *, "Press Enter key to start calculation..."
-    read (*, *)
     
     ! Initialization
     call initialize(Phi, Pot)
@@ -71,20 +69,30 @@ program main
     call output(10, Phi)
     close(10)
     write (*, *) "- Initial Wave Function => ", fn_initial
+    
+    ! Calculate z-component angular momentum expected value
+    call calc_angular_momentum(Phi, LzPhi)
+    call calc_angular_momentum_expected_value(Phi, LzPhi, Lz)
+    write (*, '(X, A, F13.10, X, A)') "- Angular momentum <Lz> = ", Lz, "hbar"
+    write (*, *) "- OMEGA = ", OMEGA
+
+    print *, "Press Enter key to start calculation..."
+    read (*, *)
+    write (*, '(X, A)') "* Calculation has been initiated"
 
     open(10, file=fn_result)
     open(20, file=fn_potential)
     open(30, file=fn_flux)
     open(40, file=fn_rotation)
     !open(50, file="widths.txt")
-    total_iterations = 5000
+    total_iterations = 1000
     call cpu_time(t1)
     do i = 1, total_iterations
         ! Evolve the system
-        call evolve(Phi, Pot_TD)
+        call evolve(Phi, Pot_TD, LzPhi)
 
         ! Save wave function, potential, flux, rotation, and widths every 50th step
-        if (mod(i, 50) == 0) then
+        if (mod(i, 10) == 0) then
             ! Save wave function
             call output(10, Phi)
 
@@ -105,8 +113,8 @@ program main
         end if
 
         ! Refresh the iteration display every 500th step
-        if (mod(i, 500) == 0) then
-            if (i > 500) then
+        if (mod(i, 50) == 0) then
+            if (i > 50) then
                 write (*, '(A)', advance='no') char(13)
             end if
             write (*, '(X, A, I5, A, I5, A)', advance='no') "- ", i, "/", total_iterations, " completed"

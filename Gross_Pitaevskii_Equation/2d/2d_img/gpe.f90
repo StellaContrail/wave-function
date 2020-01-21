@@ -18,8 +18,9 @@ program main
     double precision               :: t1, t2           ! Calculation time variables
 
     ! Coefficients and variables (not user defined)
-    integer                        :: i                ! Loop variable
+    integer                        :: i,j              ! Loop variable
     double precision               :: mu_old           ! Chemical potential at previous step
+    double precision               :: x, y
 
     ! Output File Path
     character(*),parameter         :: fn_initial     = "data_initial.txt"         ! (Output) Trial wave function
@@ -44,6 +45,7 @@ program main
     print *, "Xs (Characteristic Length)        [m] = ", Xs
     print *, "dh (Step of distance)                 = ", dh
     print *, "dt (Step of time)                     = ", dt
+    print *, "xmax (Absolute value of maximum x)[m] = ", xmax
     print *, "<Coefficients of NLSE terms>"
     print *, "Epsilon (A0/Xs)^2                     = ", epsilon
     print *, "Kappa (Coefficient of NL term)        = ", kappa
@@ -115,6 +117,8 @@ program main
     write (*, *)
     
     write (*, '(X, A, F5.1, A)') "- Calculation time took", t2 - t1, " seconds"
+    
+    
 
     ! Save calculation result
     call output(fn_result, Phi)

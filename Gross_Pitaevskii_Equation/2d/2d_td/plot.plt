@@ -2,12 +2,12 @@ set terminal gif animate delay 10 optimize size 1600,1600
 set output "data.gif"
 set pm3d
 # SETTINGS
-dh          = 0.06
-dt          = 0.01
+dh          = 0.16
+dt          = 0.002
 N           = 100-1   # STEP COUNT
 M           = N + 1
-iter        = 5000 # ITERATION COUNT OF TIME
-iter_output = 50    # SKIP COUNT IN THE ITERATION OF TIME
+iter        = 1000 # ITERATION COUNT OF TIME
+iter_output = 10    # SKIP COUNT IN THE ITERATION OF TIME
 skip_output = 25    # SKIP COUNT OF SHOWING SPEED AND ESTIMATED TIME REMAINING
 # OTHER VARIABLES USED BY SCRIPT
 xmax        = real(N/2 + 0.5)*dh     # BOUNDARY OF X
@@ -54,12 +54,8 @@ do for [i=0: data_num-1] {
             splot "data_potential.txt" using 1:2:4 every :::M*i::M*(i+1)-1 title "" with pm3d
         unset multiplot
     } else {
-        if (STATS_max > 1) {
-            set zrange  [0:STATS_max]
-        } else {
-            set zrange  [0:1]
-        }
-        set cbrange [0:STATS_max]
+        set zrange  [0:1.5]
+        set cbrange [0:1.5]
         #set nosurface
         #set contour
         set title sprintf("Time development of Non-Linear Schroedinger Equation\n( T = %.3f )", dt*i*iter_output)

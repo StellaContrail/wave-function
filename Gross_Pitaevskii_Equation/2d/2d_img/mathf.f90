@@ -246,9 +246,9 @@ contains
             end do
         end do
 
-        do j = 1, N-1
+        do j = 0, N
             y = -xmax + dh*j
-            do i = 1, N-1
+            do i = 0, N
                 x = -xmax + dh*i
 
                 LzPhi(i,j) = -iu*(x*dPhi_dY(i,j) - y*dPhi_dX(i,j))/(12d0*dh)

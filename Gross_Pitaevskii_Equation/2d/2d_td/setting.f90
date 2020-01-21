@@ -3,7 +3,7 @@ module setting
     implicit none
 contains
     ! Initialize wave functions and potential
-  subroutine initialize(Phi, Pot)
+    subroutine initialize(Phi, Pot)
         complex(kind(0d0)),intent(out)  :: Phi(0:N, 0:N)
         double precision,intent(out)    :: Pot(0:N, 0:N)
         double precision                :: x, y, dummy, real_part, imag_part
@@ -75,15 +75,27 @@ contains
                     Pot(i, j) = 0.5d0*(x*x*2d0+gamma*gamma*y*y*0.06d0)*0.1d0
                 case (5)
                     ! Pinning Grid with circulary symmetric trap
-                    Pot(i, j) = 200d0*(1d0+tanh(2d0*(sqrt(x*x+y*y)-R_0)))
-                    ! Pinning site
-                    !Pot(i, j) = Pot(i, j) + 2d0*60d0*(1d0+tanh(4d0*(sqrt((x-1.5d0)**2d0+(y-1.5d0)**2d0))))
+                    Pot(i, j) = pinning_potential(x, y, 200d0, 120d0, 6.5d0, 1.5d0, 1.5d0, 4d0)
                 case default
                     stop "Invalid mode of external potential"
                 end select
             end do
         end do
-  end subroutine initialize
+    end subroutine initialize
+
+    function pinning_potential(x, y, Vmax, V0, R0, x0, y0, delta) result(V)
+        double precision,intent(in) :: x, y, Vmax, V0, R0, x0, y0, delta
+        double precision            :: V, r, rdiff
+        ! Radius from the origin point
+        r = sqrt(x*x + y*y)
+        ! Radius from the point (x0, y0)
+        rdiff = sqrt((x-x0)**2d0 + (y-y0)**2d0)
+
+        ! Circularly symmetric trap
+        V = 0.5d0*Vmax*(tanh(2d0*(r-R0))+1d0)
+        ! Pinning trap located at (x0, y0)
+        V = V + V0*(tanh(delta*rdiff)-1d0)
+    end function
 
   ! Vary potential form depending on time
   subroutine vary_potential(Pot, Pot_TD, iter, iter_max)
@@ -96,7 +108,7 @@ contains
     ! < Circular Stirring Options >
     ! R_0   : Radius of circular stirring
     double precision,parameter     :: R_0 = 1.8d0
-    double precision,parameter     :: OMEGA = 0d0
+    double precision,parameter     :: stirOMEGA = 0d0
     ! < Linear Stirring Option >
     ! v_x, v_y : Velocity of stirring (defined later)
     double precision               :: v_x, v_y
@@ -154,10 +166,10 @@ contains
     case (2)
         ! Circular Stirring
         do j = 0, N
-            y_s = R_0*sin(OMEGA*iter)
+            y_s = R_0*sin(stirOMEGA*iter)
             y = -xmax + dh*j
             do i = 0, N
-                x_s = R_0*cos(OMEGA*iter)
+                x_s = R_0*cos(stirOMEGA*iter)
                 x = -xmax + dh*i
 
                 Pot_TD(i, j) = Pot(i, j) + V*exp(-0.5d0*((x-x_s)**2d0+(y-y_s)**2d0)/sigma**2d0)

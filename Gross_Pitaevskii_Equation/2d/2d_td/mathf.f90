@@ -62,8 +62,9 @@ contains
     end subroutine normalize
 
     ! Real-time propagation
-    subroutine evolve(Phi, Pot)
+    subroutine evolve(Phi, Pot, LzPhi)
         double precision,intent(in)      :: Pot(0:N,0:N)
+        complex(kind(0d0)),intent(in)    :: LzPhi(0:N,0:N) 
         complex(kind(0d0)),intent(inout) :: Phi(0:N,0:N)
         complex(kind(0d0))               :: Phi_old(0:N,0:N), Phi_new(0:N,0:N)
         integer                          :: i
@@ -76,7 +77,7 @@ contains
         Phi_new(:,:) = temp(:,:)
         ! Other terms of Taylor expansion
         do i = 1, 10
-            call apply_hamiltonian(temp, abs(Phi_old)**2d0, Pot, Atemp)
+            call apply_hamiltonian(temp, abs(Phi_old)**2d0, Pot, LzPhi, Atemp)
             temp(:,:)   = -iu*Atemp(:,:)*dt/(epsilon*i)
             Phi_new(:,:) = Phi_new(:,:) + temp(:,:)
         end do
@@ -88,7 +89,7 @@ contains
         Phi_new(:,:) = temp(:,:)
         ! Other terms of Taylor expansion
         do i = 1, 10
-            call apply_hamiltonian(temp, density, Pot, Atemp)
+            call apply_hamiltonian(temp, density, Pot, LzPhi, Atemp)
             temp(:,:)   = -iu*Atemp(:,:)*dt/(epsilon*i)
             Phi_new(:,:) = Phi_new(:,:) + temp(:,:)
         end do
@@ -97,8 +98,8 @@ contains
     end subroutine evolve
 
     ! Calculate HPhi (H:Hamiltonian, Phi:Wave function)
-    subroutine apply_hamiltonian(Phi, density, Pot, HPhi)
-        complex(kind(0d0)),intent(in)  :: Phi(0:N,0:N)
+    subroutine apply_hamiltonian(Phi, density, Pot, LzPhi, HPhi)
+        complex(kind(0d0)),intent(in)  :: Phi(0:N,0:N), LzPhi(0:N,0:N)
         complex(kind(0d0)),intent(out) :: HPhi(0:N,0:N)
         integer                        :: i, j
         double precision,intent(in)    :: Pot(0:N,0:N), density(0:N,0:N)
@@ -145,16 +146,19 @@ contains
 
                 ! Nonlinear part
                 HPhi(i,j) = HPhi(i,j) + kappa*density(i,j)*Phi(i,j)
+
+                ! Cranking model
+                HPhi(i,j) = HPhi(i,j) - OMEGA*LzPhi(i,j)/omega_x
             end do
         end do
     end subroutine
 
     ! Solve Energy Expected Value
-    double precision function solve_energy(Phi, Pot)
+    double precision function solve_energy(Phi, Pot, LzPhi)
         double precision,intent(in)    :: Pot(0:N,0:N)
-        complex(kind(0d0)),intent(in)  :: Phi(0:N,0:N)
+        complex(kind(0d0)),intent(in)  :: Phi(0:N,0:N), LzPhi(0:N,0:N)
         complex(kind(0d0))             :: HPhi(0:N,0:N)
-        call apply_hamiltonian(Phi, abs(Phi)**2d0, Pot, HPhi)
+        call apply_hamiltonian(Phi, abs(Phi)**2d0, Pot, LzPhi, HPhi)
         solve_energy = dble(integrate(conjg(Phi)*HPhi))
     end function
 
@@ -278,9 +282,9 @@ contains
             end do
         end do
 
-        do j = 1, N-1
+        do j = 0, N
             y = -xmax + dh*j
-            do i = 1, N-1
+            do i = 0, N
                 x = -xmax + dh*i
 
                 LzPhi(i,j) = -iu*(x*dPhi_dY(i,j) - y*dPhi_dX(i,j))/(12d0*dh)

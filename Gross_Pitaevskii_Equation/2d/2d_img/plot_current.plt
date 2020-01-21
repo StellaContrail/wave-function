@@ -2,7 +2,7 @@
 set terminal jpeg size 1600,1600
 set size ratio 1
 # SETTINGS
-xmax        = 15     # BOUNDARY OF X
+xmax        = 8     # BOUNDARY OF X
 set xrange [-xmax:xmax]
 set yrange [-xmax:xmax]
 set xlabel "X (Unit:Xs)"
