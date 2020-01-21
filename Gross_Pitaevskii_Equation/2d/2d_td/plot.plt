@@ -1,4 +1,4 @@
-set terminal gif animate delay 10 optimize size 1600,1600
+set terminal gif animate delay 10 optimize size 800,800
 set output "data.gif"
 set pm3d
 # SETTINGS
@@ -16,8 +16,13 @@ time_new    = 0.0
 time_old    = 0.0
 set xrange [-xmax:xmax]
 set yrange [-xmax:xmax]
+set xlabel "X"
+set ylabel "Y"
 isdebug     = 1
+set view 0, 0, 1, 1
+set pm3d map
 stats "data.txt" u 3 nooutput
+set object 1 circle at -1.5, 1.5 size 0.5 front fillcolor "white"
 do for [i=0: data_num-1] {
     if (i%skip_output == 0) {
         time_new = time(0.0)
@@ -35,7 +40,7 @@ do for [i=0: data_num-1] {
             splot "data_initial.txt" using 1:2:4 title "" with pm3d
 
             set zrange  [0:1]
-            set cbrange [0:0.2]
+            set cbrange [0:1]
             #set nosurface
             #set contour
             set title sprintf("Time development of Non-Linear Schroedinger Equation\n( T = %.3f )", dt*i*iter_output)
@@ -44,18 +49,18 @@ do for [i=0: data_num-1] {
             #set surface
 
             set zrange [0:1]
-            set cbrange [0:0.5]
+            set cbrange [0:1]
             set title "Probability Profile of Initial Wave Function"
             splot "data_initial.txt" using 1:2:3 title "" with pm3d
 
-            set zrange  [-50:50]
-            set cbrange [-50:50]
+            unset zrange
+            unset cbrange
             set title sprintf("External Potential")
             splot "data_potential.txt" using 1:2:4 every :::M*i::M*(i+1)-1 title "" with pm3d
         unset multiplot
     } else {
-        set zrange  [0:1.5]
-        set cbrange [0:1.5]
+        set zrange  [0:1]
+        set cbrange [0:1]
         #set nosurface
         #set contour
         set title sprintf("Time development of Non-Linear Schroedinger Equation\n( T = %.3f )", dt*i*iter_output)

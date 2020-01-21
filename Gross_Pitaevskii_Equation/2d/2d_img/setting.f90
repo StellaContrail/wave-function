@@ -53,7 +53,7 @@ contains
                     end if
                 case (5)
                     ! Pinning Grid with circulary symmetric trap
-                    Pot(i, j) = pinning_potential(x, y, 200d0, 120d0, 6.5d0, 1.5d0, 1.5d0, 4d0)
+                    Pot(i, j) = pinning_potential(x, y, 200d0, 120d0, 6.5d0, -1.5d0, 1.5d0, 4d0)
                 case default
                     stop "Invalid mode of external potential"
                 end select
@@ -65,8 +65,8 @@ contains
             do i = 0, N
                 x = -xmax + dh*i
     
-                if ((x-1.5d0)**2d0 + (y-1.5d0)**2d0 < 1.5d0**2d0) then
-                    Phi(i,j) = Phi(i,j) * exp(-iu*phase((y-1.5d0), (x-1.5d0)))
+                if ((x+1.5d0)**2d0 + (y-1.5d0)**2d0 < 1.5d0**2d0) then
+                    Phi(i,j) = Phi(i,j) * exp(-iu*phase((y-1.5d0), (x+1.5d0)))
                 end if
             end do 
         end do

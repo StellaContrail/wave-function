@@ -75,7 +75,7 @@ contains
                     Pot(i, j) = 0.5d0*(x*x*2d0+gamma*gamma*y*y*0.06d0)*0.1d0
                 case (5)
                     ! Pinning Grid with circulary symmetric trap
-                    Pot(i, j) = pinning_potential(x, y, 200d0, 120d0, 6.5d0, 1.5d0, 1.5d0, 4d0)
+                    Pot(i, j) = pinning_potential(x, y, 200d0, 120d0, 6.5d0, -1.5d0, 1.5d0, 4d0)
                 case default
                     stop "Invalid mode of external potential"
                 end select
