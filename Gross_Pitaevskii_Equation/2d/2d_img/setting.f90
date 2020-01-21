@@ -13,7 +13,7 @@ contains
         ! sigma : Width of Gaussian's wave packet formed potential
         double precision,parameter      :: sigma = 0.5d0
         ! mode  : Specify type of potential forms
-        integer,parameter               :: mode = 0
+        integer,parameter               :: mode = 5
         ! R_0   : Radius of circle or box half width
         double precision,parameter      :: R_0 = 3d0
 

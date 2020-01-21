@@ -14,9 +14,9 @@ module constants
     double precision,parameter     :: ParticleCount    = 1000
     double precision,parameter     :: ScatteringLength = 5.1d-9
     integer         ,parameter     :: N                = 100 - 1
-    double precision,parameter     :: OMEGA            = 10d0
     double precision,parameter     :: dh               = 0.06d0
     double precision,parameter     :: dt               = 0.0015d0
+    double precision,parameter     :: OMEGA            = 0d0 !(2*pi/(dt*5000d0))*10d0
 
     ! Global constants
     double precision,parameter     :: xmax    = (N/2 + 0.5d0) * dh
