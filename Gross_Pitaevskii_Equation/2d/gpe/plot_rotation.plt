@@ -1,26 +1,26 @@
 set terminal gif animate delay 10 optimize size 800,800
 set size ratio 1
 set output "rotation.gif"
-unset pm3d
+set pm3d map
+set view 0, 0, 1, 1
+load "gnuplot_vars.txt"
+stats fn_rotation_real_result u 3 nooutput
 # SETTINGS
-dh          = 0.06
-dt          = 0.0001
-N           = 100-1   # STEP COUNT
 M           = N + 1
-iter        = 5000 # ITERATION COUNT OF TIME
-iter_output = 50    # SKIP COUNT IN THE ITERATION OF TIME
 skip_output = 25    # SKIP COUNT OF SHOWING SPEED AND ETA
 # OTHER VARIABLES USED BY SCRIPT
-xmax        = real(N/2 + 0.5)*dh     # BOUNDARY OF X
 data_num    = int(real(iter)/iter_output)
 time_new    = 0.0
 time_old    = 0.0
+set grid
 set xrange [-xmax:xmax]
 set yrange [-xmax:xmax]
-set zrange [-1:1]
+set zrange [-10:10]
+set cbrange [-10:10]
 set xlabel "X (Unit:Xs)"
 set ylabel "Y (Unit:Xs)"
 set zlabel "rot(j)"
+set zlabel rotate by 90
 do for [i=0: data_num-1] {
     if (i%skip_output == 0) {
         time_new = time(0.0)
@@ -30,7 +30,7 @@ do for [i=0: data_num-1] {
         print sprintf("%5d / %5d    SPD : %5.2f lines/s   Estimated Time Remaining : %5.2f sec", i, data_num, speed, (data_num-i+1)/speed)
     }
     set title sprintf("Rotation of Probability Current\n( T = %.3f )", dt*i*iter_output)
-    splot "rotation_real_time_development.txt" every :::2*M*i::2*M*(i+1)-1 title "" with vectors
+    splot fn_rotation_real_result every :::2*M*i::2*M*(i+1)-1 u 1:2:4 title "" with pm3d
 }
 unset output
 set terminal wxt

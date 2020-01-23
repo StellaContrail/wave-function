@@ -110,32 +110,4 @@ contains
             write (unit, *)
         end do
     end subroutine
-    
-    ! Save rotation of flux vectors
-    subroutine output_rotation(unit, Rot)
-        integer,intent(in)          :: unit
-        double precision,intent(in) :: Rot(0:N,0:N)
-        double precision            :: x, y, z
-        integer                     :: i, j, k
-        double precision,parameter  :: SCALE = 1d0!1000d0
-        
-        ! Be careful of putting two blank lines. Gnuplot behaves wrongly when specifying every keyword.
-        do k = 0, 1
-            z = -xmax + dh * k
-            do j = 0, N
-                y = -xmax + dh * j
-                do i = 0, N
-                    x = -xmax + dh * i
-
-                    ! X Y Z ROT_X ROT_Y ROT_Z
-                    if (k == 0) then
-                        write (unit, *) x, y, 0d0, 0d0, 0d0, SCALE*Rot(i,j)
-                    else
-                        write (unit, *) x, y, z, 0d0, 0d0, 0d0
-                    end if
-                end do
-                write (unit, *)
-            end do
-        end do
-    end subroutine
 end module io

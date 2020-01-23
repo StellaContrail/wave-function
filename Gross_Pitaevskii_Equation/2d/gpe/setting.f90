@@ -11,10 +11,6 @@ contains
         integer,intent(in)                       :: mode
         double precision                         :: x, y
         integer                                  :: i, j
-        double precision                         :: x0, y0
-        ! Pinning site location
-        x0 = -1.5d0
-        y0 = 1.5d0
 
         do j = 0, N
             y = -xmax + dh*j
@@ -55,29 +51,16 @@ contains
                     end if
                 case (5)
                     ! Pinning Grid with circulary symmetric trap
-                    Pot(i, j) = pinning_potential(x, y, 200d0, 120d0, 6.5d0, x0, y0, 4d0)
+                    Pot(i, j) = pinning_potential(x, y)
                 case default
                     stop "Invalid mode of external potential"
                 end select
             end do
         end do
-        
-        if (present(Phi)) then
-            do j = 0, N
-                y = -xmax + dh*j
-                do i = 0, N
-                    x = -xmax + dh*i
-        
-                    if ((x-x0)**2d0 + (y-y0)**2d0 < 1.5d0**2d0) then
-                        Phi(i,j) = Phi(i,j) * exp(iu*phase((y-y0), (x-x0)))
-                    end if
-                end do 
-            end do
-        end if
     end subroutine initialize
 
-    function pinning_potential(x, y, Vmax, V0, R0, x0, y0, delta) result(V)
-        double precision,intent(in) :: x, y, Vmax, V0, R0, x0, y0, delta
+    function pinning_potential(x, y) result(V)
+        double precision,intent(in) :: x, y
         double precision            :: V, r, rdiff
         ! Radius from the origin point
         r = sqrt(x*x + y*y)
@@ -87,6 +70,6 @@ contains
         ! Circularly symmetric trap
         V = 0.5d0*Vmax*(tanh(2*(r-R0))+1)
         ! Pinning trap located at (x0, y0)
-        V = V + V0*(tanh(delta*rdiff)-1)
+        V = V + V0*(tanh(delta*(rdiff-alpha))-1)
     end function
 end module

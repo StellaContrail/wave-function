@@ -65,17 +65,20 @@ contains
         Phi(:, :) = Phi(:, :) / sqrt(integrate(abs(Phi(:,:))**2d0))
     end subroutine normalize
 
-    ! Imaginary-time propagation
-    subroutine evolve(Phi, LzPhi, Pot, OMEGA, m, isImag)
-        complex(kind(0d0)),intent(inout) :: Phi(0:N,0:N)
-        complex(kind(0d0)),intent(in)    :: LzPhi(0:N, 0:N)
-        double precision,intent(in)      :: Pot(0:N,0:N), OMEGA, m
-        logical,intent(in)               :: isImag
-        complex(kind(0d0))               :: Phi_old(0:N,0:N), Phi_new(0:N,0:N)
-        complex(kind(0d0))               :: temp(0:N,0:N), Atemp(0:N,0:N)
-        double precision                 :: density(0:N,0:N)
-        integer                          :: i
-        complex(kind(0d0))               :: lambda
+    subroutine evolve(Phi, LzPhi, Pot, OMEGA, isImag, m)
+        complex(kind(0d0)),intent(inout)     :: Phi(0:N,0:N)
+        complex(kind(0d0)),intent(in)        :: LzPhi(0:N, 0:N)
+        double precision,intent(in)          :: Pot(0:N,0:N), OMEGA
+        double precision,intent(in),optional :: m
+        logical,intent(in)                   :: isImag
+        complex(kind(0d0))                   :: Phi_old(0:N,0:N), Phi_new(0:N,0:N)
+        complex(kind(0d0))                   :: temp(0:N,0:N), Atemp(0:N,0:N)
+        double precision                     :: density(0:N,0:N)
+        integer                              :: i
+        complex(kind(0d0))                   :: lambda
+        if (isImag .and. (.not.present(m))) then
+            stop "parameter m is missing when calling evolve()"
+        end if
         if (isImag) then
             lambda = dcmplx(1d0, 0d0)
         else
@@ -94,7 +97,11 @@ contains
         end do
 
         ! Mix the previous density and calculated wave function's density
-        density(:,:) = m*abs(Phi_old(:,:))**2d0 + (1d0-m)*abs(Phi_new(:,:))**2d0
+        if (isImag) then
+            density(:,:) = m*abs(Phi_old(:,:))**2d0 + (1d0-m)*abs(Phi_new(:,:))**2d0
+        else
+            density(:,:) = 0.5d0*abs(Phi_old(:,:))**2d0 + 0.5d0*abs(Phi_new(:,:))**2d0
+        end if
 
         ! First term of Taylor expansion
         temp(:,:)    = Phi_old(:,:)
@@ -107,7 +114,9 @@ contains
         end do
 
         Phi(:,:) = Phi_new(:,:)
-        call normalize(Phi)
+        if (isImag) then
+            call normalize(Phi)
+        end if
     end subroutine evolve
 
     ! Calculate HPhi (H:Hamiltonian, Phi:Wave function)
@@ -180,18 +189,24 @@ contains
     end function
 
     ! Make Quantized Vortex by changing the phase
-    subroutine make_vortex(Phi)
-        complex(kind(0d0)),intent(inout)  :: Phi(0:N,0:N)
-        integer                           :: i, j
-        double precision                  :: x, y
+    subroutine make_vortex(Phi, radius)
+        complex(kind(0d0)),intent(inout)     :: Phi(0:N,0:N)
+        double precision,intent(in),optional :: radius
+        integer                              :: i, j
+        double precision                     :: x, y
 
         do j = 0, N
             y = -xmax + dh*j
             do i = 0, N
                 x = -xmax + dh*i
-                
-                Phi(i,j) = exp(iu*phase(y,x))*Phi(i,j)
-            end do
+                if (present(radius)) then
+                    if ((x-x0)**2d0 + (y-y0)**2d0 < radius**2d0) then
+                        Phi(i,j) = Phi(i,j) * exp(iu*phase((y-y0), (x-x0)))
+                    end if
+                else
+                    Phi(i,j) = Phi(i,j) * exp(iu*phase((y-y0), (x-x0)))
+                end if
+            end do 
         end do
     end subroutine
 
@@ -264,17 +279,19 @@ contains
     end function
 
     ! Calculate Expected Angular Momentum Value (Excluding Plank constant)
-    double precision function calc_Lz(Phi, LzPhi)
+    ! flag : Handle errors?
+    double precision function calc_Lz(Phi, LzPhi, flag)
         complex(kind(0d0)),intent(in)  :: Phi(0:N,0:N), LzPhi(0:N,0:N)
+        logical,intent(in)             :: flag
         complex(kind(0d0))             :: sum_cmplx
 
         sum_cmplx = integrate(conjg(Phi)*LzPhi)
 
-        ! Check if calculated Lz doesn't have imaginary part since the operator is Hermitian
-        ! (<Lz> should be quantized, right? I don't have confidence so just leave it like this...)
-        if (aimag(sum_cmplx) > 1d-6) then
-            write (*, '(X, A, 2F13.10, A)') "Angular momentum is not properly calculated <Lz> = (", sum_cmplx, ")"
-            stop
+        if (flag) then
+            if (aimag(sum_cmplx) > 1d-6) then
+                write (*, '(X, A, F0.10, X, F0.10, A)') "Angular momentum is not properly calculated <Lz> = (", sum_cmplx, ")"
+                stop
+            end if
         end if
 
         ! ( If Lz should be quantized, check if it's integer and then store it into integer variable, Lz )
