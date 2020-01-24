@@ -201,10 +201,10 @@ contains
                 x = -xmax + dh*i
                 if (present(radius)) then
                     if ((x-x0)**2d0 + (y-y0)**2d0 < radius**2d0) then
-                        Phi(i,j) = Phi(i,j) * exp(iu*phase((y-y0), (x-x0)))
+                        Phi(i,j) = Phi(i,j) * exp(iu*phase(y-y0, x-x0))
                     end if
                 else
-                    Phi(i,j) = Phi(i,j) * exp(iu*phase((y-y0), (x-x0)))
+                    Phi(i,j) = Phi(i,j) * exp(iu*phase(y-y0, x-x0))
                 end if
             end do 
         end do

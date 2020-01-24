@@ -68,8 +68,8 @@ contains
         rdiff = sqrt((x-x0)**2d0 + (y-y0)**2d0)
 
         ! Circularly symmetric trap
-        V = 0.5d0*Vmax*(tanh(2*(r-R0))+1)
+        V = 0.5d0*Vmax*(tanh(2*(r-R0))+1d0)
         ! Pinning trap located at (x0, y0)
-        V = V + V0*(tanh(delta*(rdiff-alpha))-1)
+        V = V + V0*(tanh(delta*(rdiff-alpha))-1d0)
     end function
 end module

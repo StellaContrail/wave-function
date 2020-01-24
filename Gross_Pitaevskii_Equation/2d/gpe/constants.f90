@@ -14,13 +14,13 @@ module constants
     double precision,parameter     :: ParticleCount    = 1000
     double precision,parameter     :: ScatteringLength = 5.1d-9
     integer         ,parameter     :: N                = 100 - 1
-    double precision,parameter     :: dh               = 0.12d0
+    double precision,parameter     :: dh               = 0.08d0
     double precision,parameter     :: dt               = 0.0005d0
     double precision,parameter     :: OMEGA_imag       = 0d0 !(2*pi/(dt*5000d0))*10d0
-    double precision,parameter     :: OMEGA_real       = 1d0 !(2*pi/(dt*5000d0))*10d0
+    double precision,parameter     :: OMEGA_real       = 15d0 !(2*pi/(dt*5000d0))*10d0
     double precision,parameter     :: Vmax             = 200d0
-    double precision,parameter     :: V0               = 90d0
-    double precision,parameter     :: R0               = 5d0
+    double precision,parameter     :: V0               = 120d0
+    double precision,parameter     :: R0               = 4d0
     double precision,parameter     :: delta            = 4d0
     double precision,parameter     :: alpha            = 0d0
     double precision,parameter     :: x0               = -0.5d0

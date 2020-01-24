@@ -89,7 +89,7 @@ program main
     if (i >= 50000) then
         stop "* Calculation has been exceeded its iteration limit. Incorrect result is expected."
     end if
-    call make_vortex(Phi, 1.5d0)
+    call make_vortex(Phi, 1d0)
     write (*, '(X, A)') "- Made a vortex"
     call output(fn_wavefunction_imaginary_result, Phi)
     LzPhi = calc_LzPhi(Phi)
