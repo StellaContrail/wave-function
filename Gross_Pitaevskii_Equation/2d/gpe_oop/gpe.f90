@@ -1,19 +1,52 @@
-! Imaginary time-development of Gross-Pitaevskii Equation in 2 dimensional space
-! The Equations and constants are to be referenced to DOI:10.1016/S0021-9991(03)00102-5
-! TODO: Store initial values from setting file into variables
-
 program main
     use io
     use setting
     use mathf
     use constants
     implicit none
+
+    type, abstract :: field_object
+    contains
+        procedure(array_interface),      pass(this),deferred :: array       ! Returns array of field
+        procedure(description_interface),pass(this),deferred :: description ! Returns formatted description of field
+    end type
+
+    abstract interface
+        pure function array_interface(this) result(array_)
+            import :: field_object
+            class(field_object), intent(in) :: this
+            double precision,allocatable    :: array_(:)
+        end function
+        pure function description_interface(this, prefix) result(desc)
+            import :: field_object
+            class(field_object),intent(in)   :: this
+            character(*),intent(in),optional :: prefix
+            character(len=:),allocatable     :: desc
+        end function
+        pure function normalized_1d_interface(this) result(normalized_)
+            import :: field_object
+            class(field_object),intent(in)   :: this
+
+        end function
+        pure function normalized_2d_interface(this) result(normalized_)
+
+        end function
+    end interface
+
+    type, extends(field_object) :: 1d_field
+        double precision,allocatable :: Psi(:)
+    contains
+        
+    end type
+
+    
+
     ! Physical values
     complex(kind(0d0)),allocatable :: Phi(:, :)        ! Wave function phased by given angle
     complex(kind(0d0)),allocatable :: LzPhi(:,:)       ! Angular momentum operator on wave function
-    double precision  ,allocatable :: Pot(:, :)        ! Potential in Laboratory frame
-    double precision  ,allocatable :: Flux(:,:,:)
-    double precision  ,allocatable :: Rot(:,:)
+    double precision,allocatable   :: Pot(:, :)        ! Potential in Laboratory frame
+    double precision,allocatable   :: Flux(:,:,:)
+    double precision,allocatable   :: Rot(:,:)
     double precision               :: mu               ! chemical potential
     double precision               :: Lz               ! Angular momentum itself
     double precision               :: t1, t2           ! Calculation time variables
@@ -26,12 +59,12 @@ program main
     double precision               :: mu_old           ! Chemical potential at previous step
 
     ! File names
-    character(*),parameter       :: fn_potential_imaginary            = "potential_imaginary.txt"
+    character(*),parameter       :: fn_potential_imaginary = "potential_imaginary.txt"
     character(*),parameter       :: fn_wavefunction_imaginary_initial = "wavefunction_imaginary_initial.txt"
-    character(*),parameter       :: fn_wavefunction_imaginary_result  = "wavefunction_imaginary_final.txt"
-    character(*),parameter       :: fn_wavefunction_real_result       = "wavefunction_real_time_development.txt"
-    character(*),parameter       :: fn_current_real_result            = "probability_current_real_time_development.txt"
-    character(*),parameter       :: fn_rotation_real_result           = "rotation_real_time_development.txt"
+    character(*),parameter       :: fn_wavefunction_imaginary_result = "wavefunction_imaginary_final.txt"
+    character(*),parameter       :: fn_wavefunction_real_result = "wavefunction_real_time_development.txt"
+    character(*),parameter       :: fn_current_real_result = "probability_current_real_time_development.txt"
+    character(*),parameter       :: fn_rotation_real_result = "rotation_real_time_development.txt"
 
     ! Allocate variables
     allocate (Phi(0:N,0:N), LzPhi(0:N,0:N), Pot(0:N,0:N))
