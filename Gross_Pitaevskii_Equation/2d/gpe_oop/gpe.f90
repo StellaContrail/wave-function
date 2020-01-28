@@ -5,41 +5,62 @@ program main
     use constants
     implicit none
 
+    ! Usage of this program
+    ! - Declare a instance of the state
+    ! type(field_object) state
+    ! - Calculate real-time propagation of the system
+    ! state%solve(N=100, dh=0.1, dt=0.0001, V=f, imag=.true., disp=.true.)
+    ! - Calculate imaginary-time propagation of the system
+    ! state%solve(N=100, dh=0.1, dt=0.0001, V=f, imag=.false., disp=.true.)
+    ! - Create a system setting instance
+    ! state%system = state%setting(N=100, dh=0.1, dt=0.0001, V=f, omega=0.25)
+    ! - Import a system setting instance to solve time propagation of the system
+    ! state%solve(state%system, imag=.true., disp=.true.)
+    ! - Output the system's wave function
+    ! call output(state%array%Psi)
+    ! - Output nice-formatted descripton of the system
+    ! write (*,*) state%description()
+    ! - Returns flux and rotation of the system
+    ! flux = state%flux()
+    ! rot = state%rotation()
+
+    ! The problem is how to adapt 1-dimensional, 2-dimensional, 3-dimensional procedures as one procedure (override)
+    ! You cannot define interface with specified dimension of Psi in this case
     type, abstract :: field_object
     contains
-        procedure(array_interface),      pass(this),deferred :: array       ! Returns array of field
         procedure(description_interface),pass(this),deferred :: description ! Returns formatted description of field
+        procedure(setting_interface),    pass(this),deferred :: setting     ! Creates a instance of setting
+        procedure(array_interface),      pass(this),deferred :: array       ! Returns an array containing multiple system information
+        procedure(solve_interface),      pass(this),deferred :: solve       ! Solve system real-,imaginary-time evolution
+        procedure(flux_interface),       pass(this),deferred :: flux        ! Calculate flux of the system
+        procedure(rotation_interface),   pass(this),deferred :: rotation    ! Calculate rotation of the system
     end type
 
     abstract interface
-        pure function array_interface(this) result(array_)
-            import :: field_object
-            class(field_object), intent(in) :: this
-            double precision,allocatable    :: array_(:)
-        end function
         pure function description_interface(this, prefix) result(desc)
             import :: field_object
             class(field_object),intent(in)   :: this
             character(*),intent(in),optional :: prefix
             character(len=:),allocatable     :: desc
         end function
-        pure function normalized_1d_interface(this) result(normalized_)
-            import :: field_object
-            class(field_object),intent(in)   :: this
-
-        end function
-        pure function normalized_2d_interface(this) result(normalized_)
-
-        end function
     end interface
 
     type, extends(field_object) :: 1d_field
-        double precision,allocatable :: Psi(:)
+        complex(kind(0d0)),allocatable :: Psi(:)
     contains
         
     end type
 
-    
+    type, extends(field_object) :: 2d_field
+        complex(kind(0d0)),allocatable :: Psi(:,:)
+    contains
+
+    end type
+
+    type, extends(field_object) :: 3d_field
+        complex(kind(0d0)),allocatable :: Psi(:,:,:)
+    contains
+    end type
 
     ! Physical values
     complex(kind(0d0)),allocatable :: Phi(:, :)        ! Wave function phased by given angle
