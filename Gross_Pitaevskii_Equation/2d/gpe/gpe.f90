@@ -153,6 +153,6 @@ program main
     close(10)
 
     ! Plot wave function time-lapse
-    !write (*, *) "Generating animation of wave function's time evolution"
-    !call execute_command_line('gnuplot "plot.plt"')
+    write (*, *) "Generating animation of wave function's time evolution"
+    call execute_command_line('gnuplot "plot.plt"')
 end program 

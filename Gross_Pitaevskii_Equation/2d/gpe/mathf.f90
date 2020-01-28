@@ -90,9 +90,9 @@ contains
         temp(:,:)    = Phi_old(:,:)
         Phi_new(:,:) = temp(:,:)
         ! Other terms of Taylor expansion
-        do i = 1, 10
-            Atemp = apply_hamiltonian(temp, abs(Phi_old)**2d0, LzPhi, Pot, OMEGA)
-            temp(:,:)     = -lambda*Atemp(:,:)*dt/(epsilon*i)
+        do i = 1, 15
+            Atemp        = apply_hamiltonian(temp, abs(Phi_old)**2d0, LzPhi, Pot, OMEGA)
+            temp(:,:)    = -lambda*Atemp(:,:)*dt/(epsilon*i)
             Phi_new(:,:) = Phi_new(:,:) + temp(:,:)
         end do
 
@@ -107,9 +107,9 @@ contains
         temp(:,:)    = Phi_old(:,:)
         Phi_new(:,:) = temp(:,:)
         ! Other terms of Taylor expansion
-        do i = 1, 10
-            Atemp = apply_hamiltonian(temp, density, LzPhi, Pot, OMEGA)
-            temp(:,:)     = -lambda*Atemp(:,:)*dt/(epsilon*i)
+        do i = 1, 15
+            Atemp        = apply_hamiltonian(temp, density, LzPhi, Pot, OMEGA)
+            temp(:,:)    = -lambda*Atemp(:,:)*dt/(epsilon*i)
             Phi_new(:,:) = Phi_new(:,:) + temp(:,:)
         end do
 
@@ -293,8 +293,7 @@ contains
                 stop
             end if
         end if
-
-        ! ( If Lz should be quantized, check if it's integer and then store it into integer variable, Lz )
+        
         calc_Lz = dble(sum_cmplx)
     end function  
 

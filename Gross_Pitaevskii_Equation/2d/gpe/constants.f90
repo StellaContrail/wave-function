@@ -16,17 +16,15 @@ module constants
     integer         ,parameter     :: N                = 100 - 1
     double precision,parameter     :: dh               = 0.10d0
     double precision,parameter     :: dt               = 0.0001d0
-    double precision,parameter     :: OMEGA_imag       = 0d0 !(2*pi/(dt*5000d0))*10d0
-    double precision,parameter     :: OMEGA_real       = 0.0d0 !(2*pi/(dt*5000d0))*10d0
+    double precision,parameter     :: OMEGA_imag       = 0d0
+    double precision,parameter     :: OMEGA_real       = 0.3d0
     double precision,parameter     :: Vmax             = 200d0
-    double precision,parameter     :: V0               = 50d0 !90d0
+    double precision,parameter     :: V0               = 90d0
     double precision,parameter     :: R0               = 4d0
     double precision,parameter     :: delta            = 4d0
     double precision,parameter     :: alpha            = 0d0
     double precision,parameter     :: x0               = 1.5d0
     double precision,parameter     :: y0               = 1.5d0
-    !double precision,parameter     :: OMEGA            = 0d0
-
 
     ! Global constants
     double precision,parameter     :: xmax    = (N/2 + 0.5d0) * dh
