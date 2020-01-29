@@ -64,7 +64,7 @@ do for [i=0: data_num-1] {
     } else {
         #set zrange  [0:1]
         #set cbrange [0:1]
-        set zrange  [0:STATS_max]
+        set zrange  [STATS_min:STATS_max]
         set cbrange [0:1]
         #set nosurface
         #set contour

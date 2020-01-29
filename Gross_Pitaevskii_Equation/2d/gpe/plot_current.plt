@@ -15,6 +15,9 @@ set xlabel "X (Unit:Xs)"
 set ylabel "Y (Unit:Xs)"
 set view 0, 0, 1, 1
 set palette rgbformulae 22,13,10
+stats fn_wavefunction_real_result using 3 nooutput
+set zrange [STATS_min:STATS_max]
+set cbrange [STATS_min:STATS_max]
 do for [i=0: data_num-1] {
     if (i%skip_output == 0) {
         time_new = time(0.0)

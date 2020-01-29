@@ -3,9 +3,11 @@ module mathf
     use constants
     implicit none
 
+    ! Integrate given function with any precision
     interface integrate
         module procedure integrate_real, integrate_complex
     end interface
+    ! Get phase of given complex number/position
     interface phase
         module procedure phase_coordinates, phase_complex
     end interface
@@ -189,11 +191,12 @@ contains
     end function
 
     ! Make Quantized Vortex by changing the phase
-    subroutine make_vortex(Phi, radius)
-        complex(kind(0d0)),intent(inout)     :: Phi(0:N,0:N)
-        double precision,intent(in),optional :: radius
-        integer                              :: i, j
-        double precision                     :: x, y
+    subroutine make_vortex(Phi, m, radius)
+        complex(kind(0d0)),intent(inout)       :: Phi(0:N,0:N)
+        integer,           intent(in)          :: m
+        double precision,  intent(in),optional :: radius
+        integer                                :: i, j
+        double precision                       :: x, y
 
         do j = 0, N
             y = -xmax + dh*j
@@ -201,10 +204,10 @@ contains
                 x = -xmax + dh*i
                 if (present(radius)) then
                     if ((x-x0)**2d0 + (y-y0)**2d0 < radius**2d0) then
-                        Phi(i,j) = Phi(i,j) * exp(iu*phase(y-y0, x-x0))
+                        Phi(i,j) = Phi(i,j) * exp(iu*m*phase(y-y0, x-x0))
                     end if
                 else
-                    Phi(i,j) = Phi(i,j) * exp(iu*phase(y-y0, x-x0))
+                    Phi(i,j) = Phi(i,j) * exp(iu*m*phase(y-y0, x-x0))
                 end if
             end do 
         end do
@@ -293,7 +296,7 @@ contains
                 stop
             end if
         end if
-        
+
         calc_Lz = dble(sum_cmplx)
     end function  
 

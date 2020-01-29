@@ -1,7 +1,7 @@
 ! Imaginary time-development of Gross-Pitaevskii Equation in 2 dimensional space
 ! The Equations and constants are to be referenced to DOI:10.1016/S0021-9991(03)00102-5
 ! TODO: Store initial values from setting file into variables
-
+! TODO: Load them and if they matches the present settings, skip the imaginary-time calculation part
 program main
     use io
     use setting
@@ -59,7 +59,8 @@ program main
     print *, "Healing length (8*pi*|a|*N/Xs^3)^-0.5 = ", ((8d0*pi*abs(ScatteringLength)*ParticleCount)/(Xs**3d0))**(-0.5d0)
     print *, "------------------------------------------------------------------"
     call initialize(Pot, 5, Phi)
-    !call make_vortex(Phi, 1d0)
+    call make_vortex(Phi, 2, 1d0)
+    write (*, '(X, A, F0.3, A, F0.3, A)') "- Phase Shifted at (",x0, ", ", y0, ")"
     call output(fn_wavefunction_imaginary_initial, Phi)
     call output(fn_potential_imaginary, Pot)
     mu = solve_energy(Phi, Pot, LzPhi, OMEGA_imag)
@@ -89,8 +90,6 @@ program main
     if (i >= 50000) then
         stop "* Calculation has been exceeded its iteration limit. Incorrect result is expected."
     end if
-    call make_vortex(Phi, 1d0)
-    write (*, '(X, A)') "- Made a vortex"
     call output(fn_wavefunction_imaginary_result, Phi)
     LzPhi = calc_LzPhi(Phi)
     Lz = calc_Lz(Phi, LzPhi, .true.)
