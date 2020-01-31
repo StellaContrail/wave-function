@@ -32,6 +32,8 @@ program main
     character(*),parameter       :: fn_wavefunction_real_result       = "wavefunction_real_time_development.txt"
     character(*),parameter       :: fn_current_real_result            = "probability_current_real_time_development.txt"
     character(*),parameter       :: fn_rotation_real_result           = "rotation_real_time_development.txt"
+    character(*),parameter       :: fn_phase_distribution_real_result = "phase_distribution_real_time_development.txt"
+    character(*),parameter       :: fn_energy_iteration_dependance    = "energy_iteration_dependence.txt"
 
     ! Allocate variables
     allocate (Phi(0:N,0:N), LzPhi(0:N,0:N), Pot(0:N,0:N))
@@ -58,12 +60,14 @@ program main
     print *, "Delta (4*pi*a*N/a_0)                  = ", (4d0*pi*ScatteringLength*ParticleCount)/Azero
     print *, "Healing length (8*pi*|a|*N/Xs^3)^-0.5 = ", ((8d0*pi*abs(ScatteringLength)*ParticleCount)/(Xs**3d0))**(-0.5d0)
     print *, "------------------------------------------------------------------"
-    call initialize(Pot, 5, Phi)
-    call make_vortex(Phi, 2, 1d0)
+    call initialize(Pot, 6, Phi)
+    call make_vortex(Phi, 2)
     write (*, '(X, A, F0.3, A, F0.3, A)') "- Phase Shifted at (",x0, ", ", y0, ")"
     call output(fn_wavefunction_imaginary_initial, Phi)
     call output(fn_potential_imaginary, Pot)
+    open(11, file=fn_energy_iteration_dependance)
     mu = solve_energy(Phi, Pot, LzPhi, OMEGA_imag)
+    write (11, *) 0, mu
     LzPhi = calc_LzPhi(Phi)
     Lz    = calc_Lz(Phi, LzPhi, .true.)
     write (*, '(X, A, F0.10, X, A)') "- <Lz> = ", Lz, "hbar"
@@ -75,6 +79,7 @@ program main
         call evolve(Phi, LzPhi, Pot, OMEGA_imag, .true., 0.7d0)
         mu_old = mu
         mu = solve_energy(Phi, Pot, LzPhi, OMEGA_imag)
+        write (11, *) i, mu
         if (mod(i, 500) == 0) then
             if (i > 500) then
                 write (*, '(A)', advance='no') char(13)
@@ -87,6 +92,7 @@ program main
             exit
         end if
     end do
+    close(11)
     if (i >= 50000) then
         stop "* Calculation has been exceeded its iteration limit. Incorrect result is expected."
     end if
@@ -97,12 +103,13 @@ program main
     write (*, *)
 
     !----------------------- REAL TIME CALCULATION FROM HERE -------------------------------------------
-    call initialize(Pot, 5)
+    call initialize(Pot, 6)
     write (*, '(X, A)') "* Calculating 2D GPE real-time evoluton of calculated wave function"
     write (*, '(X, A, F0.10)') "- OMEGA = ", OMEGA_real
     open(10, file=fn_wavefunction_real_result)
     open(20, file=fn_current_real_result)
     open(30, file=fn_rotation_real_result)
+    open(40, file=fn_phase_distribution_real_result)
     time_iterations = 5000
     time_iterations_interval = 50
     do i = 1, time_iterations
@@ -111,9 +118,10 @@ program main
         if (mod(i, time_iterations_interval) == 0) then
             call output_complex_unit(10, Phi)
             Flux = calc_flux(Phi)
-            call output(30, Flux)
+            call output(20, Flux)
             call calc_rotation(Flux, Rot)
             call output(30, Rot)
+            call output(40, phase(Phi))
         end if
         if (mod(i, 50) == 0) then
             if (i > 50) then
@@ -128,6 +136,7 @@ program main
     close (10)
     close (20)
     close (30)
+    close (40)
     write (*, '(X, A, F5.1, A)') "- Calculation took ", t2 - t1, " sec"
     LzPhi = calc_LzPhi(Phi)
     Lz = calc_Lz(Phi, LzPhi, .false.)
@@ -149,6 +158,7 @@ program main
     write (10, '(3A)')          "fn_wavefunction_real_result = '", fn_wavefunction_real_result, "'"
     write (10, '(3A)')          "fn_current_real_result = '", fn_current_real_result, "'"
     write (10, '(3A)')          "fn_rotation_real_result = '", fn_rotation_real_result, "'"
+    write (10, '(3A)')          "fn_phase_distribution_real_result = '", fn_phase_distribution_real_result, "'"
     close(10)
 
     ! Plot wave function time-lapse

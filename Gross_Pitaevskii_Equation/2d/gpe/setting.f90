@@ -52,6 +52,9 @@ contains
                 case (5)
                     ! Pinning Grid with circulary symmetric trap
                     Pot(i, j) = pinning_potential(x, y)
+                case (6)
+                    ! Circulary symmetric trap
+                    Pot(i, j) = only_trap_potential(x, y)
                 case default
                     stop "Invalid mode of external potential"
                 end select
@@ -70,6 +73,16 @@ contains
         ! Circularly symmetric trap
         V = 0.5d0*Vmax*(tanh(2*(r-R0))+1d0)
         ! Pinning trap located at (x0, y0)
-        V = V + V0*(tanh(delta*(rdiff-alpha))-1d0)
+        V = V - V0*(tanh(delta*(rdiff-alpha))-1d0)
+    end function
+
+    function only_trap_potential(x, y) result(V)
+        double precision,intent(in) :: x, y
+        double precision            :: V, r, rdiff
+        ! Radius from the origin point
+        r = sqrt(x*x + y*y)
+
+        ! Circularly symmetric trap
+        V = 0.5d0*Vmax*(tanh(2*(r-R0))+1d0)
     end function
 end module

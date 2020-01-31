@@ -203,11 +203,11 @@ contains
             do i = 0, N
                 x = -xmax + dh*i
                 if (present(radius)) then
-                    if ((x-x0)**2d0 + (y-y0)**2d0 < radius**2d0) then
-                        Phi(i,j) = Phi(i,j) * exp(iu*m*phase(y-y0, x-x0))
+                    if ((x-x0_vortex)**2d0 + (y-y0_vortex)**2d0 < radius**2d0) then
+                        Phi(i,j) = Phi(i,j) * exp(iu*m*phase(y-y0_vortex, x-x0_vortex))
                     end if
                 else
-                    Phi(i,j) = Phi(i,j) * exp(iu*m*phase(y-y0, x-x0))
+                    Phi(i,j) = Phi(i,j) * exp(iu*m*phase(y-y0_vortex, x-x0_vortex))
                 end if
             end do 
         end do

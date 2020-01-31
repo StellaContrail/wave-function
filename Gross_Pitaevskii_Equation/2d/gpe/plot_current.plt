@@ -28,7 +28,7 @@ do for [i=0: data_num-1] {
     }
     set pm3d map
     set title sprintf("Probability current\n( T = %.3f )", dt*i*iter_output)
-    splot fn_wavefunction_real_result using 1:2:3 every :::M*i::M*(i+1)-1 title "", fn_current_real_result using 1:2:(0):($3*15):($4*15):(0) every :::M*i::M*(i+1)-1 title "" with vectors linecolor rgb "#000000"
+    splot fn_wavefunction_real_result using 1:2:3 every :::M*i::M*(i+1)-1 title "", fn_current_real_result using 1:2:(0):($3):($4):(0) every :::M*i::M*(i+1)-1 title "" with vectors linecolor rgb "#000000"
     unset pm3d
     
     #set title sprintf("Probability current\n( T = %.3f )", dt*i*iter_output)
