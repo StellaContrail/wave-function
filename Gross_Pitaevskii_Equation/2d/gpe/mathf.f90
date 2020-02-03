@@ -79,7 +79,7 @@ contains
         complex(kind(0d0))                   :: Phi_old(0:N,0:N), Phi_new(0:N,0:N)
         complex(kind(0d0))                   :: temp(0:N,0:N), Atemp(0:N,0:N)
         double precision                     :: density(0:N,0:N)
-        integer                              :: i
+        integer                              :: i, j
         complex(kind(0d0))                   :: lambda
         if (isImag .and. (.not.present(m))) then
             stop "parameter m is missing when calling evolve()"

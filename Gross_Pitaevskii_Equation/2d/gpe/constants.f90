@@ -37,11 +37,13 @@ module constants
     double precision,  parameter :: delta            = 4d0
     double precision,  parameter :: alpha            = 0d0
     ! Phase is shifted around this location
-    double precision,  parameter :: x0_vortex        = 0d0
-    double precision,  parameter :: y0_vortex        = 0d0
+    double precision,  parameter :: x0_vortex        = 1.5d0
+    double precision,  parameter :: y0_vortex        = 1.5d0
     ! Pinning site is located at this location
     double precision,  parameter :: x0               = 1.5d0
     double precision,  parameter :: y0               = 1.5d0
+    ! whether to be in co-rotating frame with changing phase in phase animation
+    logical,           parameter :: onRotating       = .true.
 
     ! Global constants
     double precision,  parameter :: xmax    = (N/2 + 0.5d0) * dh

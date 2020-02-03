@@ -73,14 +73,14 @@ program main
     read (*, *)
 
     call initialize(Pot, 6, Phi)
-    call make_vortex(Phi, 2)
+    call make_vortex(Phi, 2, 1d0)
     write (*, '(X, A, F0.3, A, F0.3, A)') "- Phase Shifted at (",x0, ", ", y0, ")"
     call output(fn_wavefunction_imaginary_initial, Phi)
     call output_potential(fn_potential_imaginary, Pot)
     open(11, file=fn_energy_iteration_dependance_imaginary)
     LzPhi = calc_LzPhi(Phi)
     mu = solve_energy(Phi, Pot, LzPhi, OMEGA_imag)
-    write (11, *) 0, mu*ENERGY_UNIT_IN_DIMENSIONLESS_GPE
+    write (11, *) 0, mu, mu*ENERGY_UNIT_IN_DIMENSIONLESS_GPE
     Lz    = calc_Lz(Phi, LzPhi, .true.)
     write (*, '(X, A, F0.10, X, A)') "- <Lz> = ", Lz, "hbar"
     write (*, '(X, A, F0.15, A)') "- mu   = ", mu*ENERGY_UNIT_IN_DIMENSIONLESS_GPE/(1.602d-19), " [eV]" 
@@ -92,14 +92,14 @@ program main
         call evolve(Phi, LzPhi, Pot, OMEGA_imag, .true., 0.7d0)
         mu_old = mu
         mu = solve_energy(Phi, Pot, LzPhi, OMEGA_imag)
-        write (11, *) i, mu*ENERGY_UNIT_IN_DIMENSIONLESS_GPE
+        write (11, *) i, mu, mu*ENERGY_UNIT_IN_DIMENSIONLESS_GPE
         if (mod(i, 500) == 0) then
             if (i > 500) then
                 write (*, '(A)', advance='no') char(13)
             end if
             write (*, '(X, A, I5, A)', advance='no') "- ", i, " calculations have been done"
         end if
-        if (abs(mu_old - mu) < 1d-10) then
+        if (abs(mu_old - mu) < 1d-6) then
             write (*, *)
             write (*, '(X, A, I0, A)') "- Calculation successfully completed with ", i, " iterations"
             exit
@@ -117,7 +117,7 @@ program main
     write (*, *)
 
     !----------------------- REAL TIME CALCULATION FROM HERE -------------------------------------------
-    call initialize(Pot, 6)
+    call initialize(Pot, 5)
     call output_potential(fn_potential_real, Pot)
     write (*, '(X, A)') "* Calculating 2D GPE real-time evoluton of calculated wave function"
     write (*, '(X, A, F0.10)') "- OMEGA = ", OMEGA_real
@@ -130,19 +130,24 @@ program main
     time_iterations_interval = 50
     do i = 1, time_iterations
         LzPhi = calc_LzPhi(Phi)
+        mu_old = mu
         call evolve(Phi, LzPhi, Pot, OMEGA_real, .false.)
         mu = solve_energy(Phi, Pot, LzPhi, OMEGA_real)
-        write (50, *) i, mu*ENERGY_UNIT_IN_DIMENSIONLESS_GPE
+        write (50, *) i, mu, mu*ENERGY_UNIT_IN_DIMENSIONLESS_GPE
         if (mod(i, time_iterations_interval) == 0) then
             call output_complex_unit(10, Phi)
             Flux = calc_flux(Phi)
             call output(20, Flux)
             call calc_rotation(Flux, Rot)
             call output(30, Rot)
-            call output(40, phase(Phi))
+            if (onRotating) then
+                call output(40, phase(Phi*exp(iu*mod(mu_old*dt*i/epsilon,2d0*pi))))
+            else
+                call output(40, phase(Phi))
+            end if
         end if
-        if (mod(i, 50) == 0) then
-            if (i > 50) then
+        if (mod(i, 100) == 0) then
+            if (i > 100) then
                 write (*, '(A)', advance='no') char(13)
             end if
             write (*, '(X, A, I5, A, I5, A)', advance='no') "- ", i, "/", time_iterations, " completed"
@@ -219,6 +224,7 @@ program main
     close(10)
 
     ! Plot wave function time-lapse (Gnuplot command must be enabled in terminal)
-    !write (*, *) "Generating animation of wave function's time evolution"
-    !call execute_command_line('gnuplot "plot.plt"')
+    write (*, *) "Generating animation of wave function's time evolution"
+    call execute_command_line('gnuplot "plot_current.plt"')
+    call execute_command_line('gnuplot "plot_phase.plt"')
 end program 
