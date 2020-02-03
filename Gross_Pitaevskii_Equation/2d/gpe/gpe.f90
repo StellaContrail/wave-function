@@ -117,7 +117,7 @@ program main
     write (*, *)
 
     !----------------------- REAL TIME CALCULATION FROM HERE -------------------------------------------
-    call initialize(Pot, 5)
+    call initialize(Pot, 6)
     call output_potential(fn_potential_real, Pot)
     write (*, '(X, A)') "* Calculating 2D GPE real-time evoluton of calculated wave function"
     write (*, '(X, A, F0.10)') "- OMEGA = ", OMEGA_real
