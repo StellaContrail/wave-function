@@ -1,4 +1,7 @@
 ! Mathematical Procedures
+! TODO: 境界条件を自由に決められるようにする 具体的にはHamiltoinian内及びLzPhi内の微分演算子の扱いを変える (Dark Solitonを得るため)
+! REFER -> https://www.ias.ac.in/article/fulltext/pram/077/05/0929-0947
+
 module mathf
     use constants
     implicit none
@@ -174,7 +177,7 @@ contains
                 HPhi(i,j) = HPhi(i,j) + kappa*density(i,j)*Phi(i,j)
 
                 ! Cranking model
-                HPhi(i,j) = HPhi(i,j) - OMEGA*LzPhi(i,j)/omega_x
+                HPhi(i,j) = HPhi(i,j) - epsilon*(OMEGA/omega_x)*LzPhi(i,j)
             end do
         end do
     end function

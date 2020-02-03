@@ -9,9 +9,10 @@ contains
         complex(kind(0d0)),intent(out),optional  :: Phi(0:N, 0:N)
         double precision,intent(out)             :: Pot(0:N, 0:N)
         integer,intent(in)                       :: mode
-        double precision                         :: x, y
+        double precision                         :: x, y    ! x~, y~
         integer                                  :: i, j
 
+        ! Potential [J] = mass*omega_x**2d0 * Xs**2d0 * Pot(i,j)
         do j = 0, N
             y = -xmax + dh*j
             do i = 0, N
@@ -25,10 +26,11 @@ contains
                 select case (mode)
                 case (0)
                     ! Harmonic Oscillator Trap
-                    Pot(i, j) = 0.5d0*(x*x+gamma*gamma*y*y)
+                    Pot(i, j) = 0.5d0*(x**2d0+(gamma*y)**2d0)
                 case (1)
                     ! Harmonic Oscillator Trap and Very Narrow Gaussian-shaped Wall at the center
-                    Pot(i, j) = 0.5d0*(x*x+gamma*gamma*y*y) + 100d0*exp(-0.5d0*(x*x+y*y)/(0.5d0*(0.5d0)**2d0))
+                    Pot(i, j) = 0.5d0*(x**2d0+(gamma*y)**2d0)
+                    Pot(i, j) = Pot(i, j) + 100d0*exp(-0.5d0*(x*x+y*y)/(0.5d0)**2d0)
                 case (2)
                     ! Box Trap
                     if (abs(x) < 3d0 .and. abs(y) < 3d0) then
@@ -45,7 +47,7 @@ contains
                     end if
                 case (4)
                     ! Axially-symmetry Harmonic Oscillator Potential and Split Wall
-                    Pot(i, j) = 0.5d0*(x*x*2d0+gamma*gamma*y*y*0.06d0)*0.1d0
+                    Pot(i, j) = 0.5d0*(x**2d0+0.06d0*(gamma*y)**2d0)*0.1d0
                     if (abs(y) < 1d0) then
                         Pot(i, j) = 30d0
                     end if
@@ -83,6 +85,6 @@ contains
         r = sqrt(x*x + y*y)
 
         ! Circularly symmetric trap
-        V = 0.5d0*Vmax*(tanh(2*(r-R0))+1d0)
+        V = 0.5d0*Vmax*(tanh(2d0*(r-R0))+1d0)
     end function
 end module

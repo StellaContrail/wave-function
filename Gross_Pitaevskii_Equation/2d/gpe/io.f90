@@ -53,7 +53,7 @@ contains
             y = -xmax + dh * j
             do i = 0, N
                 x = -xmax + dh * i
-                write (11, '(*(F10.5, X))') x, y, f(i,j)**2d0, f(i,j), 0d0
+                write (11, *) x, y, f(i,j)**2d0, f(i,j), 0d0
             end do
             write (11, *)
         end do
@@ -69,11 +69,45 @@ contains
             y = -xmax + dh * j
             do i = 0, N
                 x = -xmax + dh * i
-                write (unit, '(*(F10.5, X))') x, y, f(i,j)**2d0, f(i,j), 0d0
+                write (unit, *) x, y, f(i,j)**2d0, f(i,j), 0d0
             end do
             write (unit, *)
         end do
     end subroutine output_real_unit
+
+    ! Save potential
+    subroutine output_potential(filename, Pot)
+        double precision,intent(in)   :: Pot(0:N, 0:N)
+        character(*),intent(in)       :: filename
+        double precision x, y
+        integer i, j
+        open(11, file=filename)
+
+        do j = 0, N
+            y = -xmax + dh * j
+            do i = 0, N
+                x = -xmax + dh * i
+                write (11, *) x, y, Pot(i,j)*ENERGY_UNIT_IN_DIMENSIONLESS_GPE/(1.603d-19) ! eV
+            end do
+            write (11, *)
+        end do
+
+        close(11)
+    end subroutine
+    subroutine output_potential_unit(unit, Pot)
+        double precision,intent(in)   :: Pot(0:N, 0:N)
+        integer,intent(in)            :: unit
+        double precision x, y
+        integer i, j
+        do j = 0, N
+            y = -xmax + dh * j
+            do i = 0, N
+                x = -xmax + dh * i
+                write (unit, *) x, y, Pot(i,j)*ENERGY_UNIT_IN_DIMENSIONLESS_GPE/(1.603d-19)
+            end do
+            write (unit, *)
+        end do
+    end subroutine
     
     ! Save probability current
     subroutine output_flux(filename, Flux)
