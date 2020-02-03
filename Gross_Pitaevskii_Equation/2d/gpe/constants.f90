@@ -25,7 +25,7 @@ module constants
     double precision,  parameter :: dh               = 0.1d0
     double precision,  parameter :: dt               = 0.001d0
     ! Cranking model's angular velocity (Dimension is the same with omega_x or omega_y)
-    double precision,  parameter :: OMEGA_imag       = 45d0
+    double precision,  parameter :: OMEGA_imag       = 0d0
     double precision,  parameter :: OMEGA_real       = 0d0
     ! Height of trap potential
     double precision,  parameter :: Vmax             = 200d0
