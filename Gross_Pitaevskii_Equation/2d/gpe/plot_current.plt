@@ -18,6 +18,8 @@ set palette rgbformulae 22,13,10
 stats fn_wavefunction_real_result using 3 nooutput
 set zrange [STATS_min:STATS_max]
 set cbrange [STATS_min:STATS_max]
+stats fn_current_real_result using 3:4 nooutput
+SCALE = STATS_max_x > STATS_max_y ? 1.0/STATS_max_x : 1.0/STATS_max_y
 do for [i=0: data_num-1] {
     if (i%skip_output == 0) {
         time_new = time(0.0)
@@ -28,7 +30,7 @@ do for [i=0: data_num-1] {
     }
     set pm3d map
     set title sprintf("Probability current\n( T = %.3f )", dt*i*iter_output)
-    splot fn_wavefunction_real_result using 1:2:3 every :::M*i::M*(i+1)-1 title "", fn_current_real_result using 1:2:(0):($3):($4):(0) every :::M*i::M*(i+1)-1 title "" with vectors linecolor rgb "#000000"
+    splot fn_wavefunction_real_result using 1:2:3 every :::M*i::M*(i+1)-1 title "", fn_current_real_result using 1:2:(0):($3*SCALE):($4*SCALE):(0) every :::M*i::M*(i+1)-1 title "" with vectors linecolor rgb "#000000"
     unset pm3d
     
     #set title sprintf("Probability current\n( T = %.3f )", dt*i*iter_output)

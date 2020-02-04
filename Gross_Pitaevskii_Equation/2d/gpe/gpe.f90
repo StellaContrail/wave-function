@@ -18,6 +18,7 @@ program main
     double precision               :: Lz               ! Angular momentum itself
     double precision               :: t1, t2           ! Calculation time variables
     double precision               :: prob
+    integer                        :: limit_iterations
     integer                        :: time_iterations
     integer                        :: time_iterations_interval
 
@@ -73,7 +74,7 @@ program main
     read (*, *)
 
     call initialize(Pot, 5, Phi)
-    call make_vortex(Phi, 1, 2.5d0)
+    call make_vortex(Phi, 1)
     write (*, '(X, A, F0.3, A, F0.3, A)') "- Phase Shifted at (",x0, ", ", y0, ")"
     call output(fn_wavefunction_imaginary_initial, Phi)
     call output_potential(fn_potential_imaginary, Pot)
@@ -87,7 +88,8 @@ program main
     write (*, '(X, A)') "* Calculating 2D GPE Imaginary-time development for ground state"
     write (*, '(X, A, F0.10)') "- OMEGA = ", OMEGA_imag
     call cpu_time(t1)
-    do i = 1, 50000
+    limit_iterations = 100000
+    do i = 1, limit_iterations
         LzPhi = calc_LzPhi(Phi)
         call evolve(Phi, LzPhi, Pot, OMEGA_imag, .true., 0.7d0)
         mu_old = mu
@@ -97,16 +99,17 @@ program main
             if (i > 500) then
                 write (*, '(A)', advance='no') char(13)
             end if
-            write (*, '(X, A, I5, A)', advance='no') "- ", i, " calculations have been done"
+            write (*, '(X, A, I5, A, F0.9)', advance='no') "- ", i, " calculations have been done ", abs(mu_old-mu)
         end if
-        if (abs(mu_old - mu) < 1d-10) then
+        if (abs(mu_old - mu) < 1d-8) then
             write (*, *)
             write (*, '(X, A, I0, A)') "- Calculation successfully completed with ", i, " iterations"
             exit
         end if
     end do
     close(11)
-    if (i >= 50000) then
+    if (i >= limit_iterations) then
+        write (*, *)
         stop "* Calculation has been exceeded its iteration limit. Incorrect result is expected."
     end if
     call output(fn_wavefunction_imaginary_result, Phi)
@@ -226,7 +229,8 @@ program main
     close(10)
 
     ! Plot wave function time-lapse (Gnuplot command must be enabled in terminal)
-    !write (*, *) "Generating animation of wave function's time evolution"
-    !call execute_command_line('gnuplot "plot_current.plt"')
-    !call execute_command_line('gnuplot "plot_phase.plt"')
+    write (*, *) "Current animation"
+    call execute_command_line('gnuplot "plot_current.plt"')
+    write (*, *) "Phase animation"
+    call execute_command_line('gnuplot "plot_phase.plt"')
 end program 
