@@ -72,8 +72,8 @@ program main
     write (*, *) "Press Enter to initiate calculation"
     read (*, *)
 
-    call initialize(Pot, 6, Phi)
-    call make_vortex(Phi, 2, 1d0)
+    call initialize(Pot, 5, Phi)
+    call make_vortex(Phi, 1, 0.5d0)
     write (*, '(X, A, F0.3, A, F0.3, A)') "- Phase Shifted at (",x0, ", ", y0, ")"
     call output(fn_wavefunction_imaginary_initial, Phi)
     call output_potential(fn_potential_imaginary, Pot)
@@ -99,7 +99,7 @@ program main
             end if
             write (*, '(X, A, I5, A)', advance='no') "- ", i, " calculations have been done"
         end if
-        if (abs(mu_old - mu) < 1d-6) then
+        if (abs(mu_old - mu) < 1d-10) then
             write (*, *)
             write (*, '(X, A, I0, A)') "- Calculation successfully completed with ", i, " iterations"
             exit
@@ -224,7 +224,7 @@ program main
     close(10)
 
     ! Plot wave function time-lapse (Gnuplot command must be enabled in terminal)
-    write (*, *) "Generating animation of wave function's time evolution"
-    call execute_command_line('gnuplot "plot_current.plt"')
-    call execute_command_line('gnuplot "plot_phase.plt"')
+    !write (*, *) "Generating animation of wave function's time evolution"
+    !call execute_command_line('gnuplot "plot_current.plt"')
+    !call execute_command_line('gnuplot "plot_phase.plt"')
 end program 
