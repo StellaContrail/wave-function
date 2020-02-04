@@ -73,7 +73,7 @@ program main
     read (*, *)
 
     call initialize(Pot, 5, Phi)
-    call make_vortex(Phi, 1, 0.5d0)
+    call make_vortex(Phi, 1, 2.5d0)
     write (*, '(X, A, F0.3, A, F0.3, A)') "- Phase Shifted at (",x0, ", ", y0, ")"
     call output(fn_wavefunction_imaginary_initial, Phi)
     call output_potential(fn_potential_imaginary, Pot)
@@ -113,6 +113,7 @@ program main
     LzPhi = calc_LzPhi(Phi)
     Lz = calc_Lz(Phi, LzPhi, .true.)
     write (*, '(X, A, F0.10, X, A)') "- <Lz> = ", Lz, "hbar"
+    write (*, '(X, A, F0.10, X, A)') "- n    = ", circulation(Phi) / (2d0*pi)
     write (*, '(X, A, F0.15, A)') "- mu   = ", mu*ENERGY_UNIT_IN_DIMENSIONLESS_GPE/(1.602d-19), " [eV]" 
     write (*, *)
 
@@ -165,7 +166,8 @@ program main
     LzPhi = calc_LzPhi(Phi)
     Lz = calc_Lz(Phi, LzPhi, .false.)
     write (*, '(X, A, F0.10, A)') "- <Lz> = ", Lz, " hbar"
-    write (*, '(X, A, F0.15, A)') "- mu   = ", mu*ENERGY_UNIT_IN_DIMENSIONLESS_GPE/(1.602d-19), " [eV]" 
+    write (*, '(X, A, F0.15, A)') "- mu   = ", mu*ENERGY_UNIT_IN_DIMENSIONLESS_GPE/(1.602d-19), " [eV]"
+    write (*, '(X, A, F0.10, X, A)') "- n    = ", circulation(Phi) / (2d0*pi)
 
     ! Output variables data
     open(10, file="gnuplot_vars.txt")

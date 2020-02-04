@@ -376,4 +376,30 @@ contains
             end do
         end do
     end subroutine
+
+    double precision function circulation(Phi)
+        complex(kind(0d0)),intent(in) :: Phi(0:N,0:N)
+        integer                       :: i
+        double precision              :: sum
+        integer                       :: lb, ub
+        integer,parameter             :: width = 5
+        lb = floor(N/2d0) - width
+        ub = ceiling(N/2d0) + width
+
+        sum = 0d0
+        do i = lb, ub
+            sum = sum + v_dr(Phi, i, lb, +1, 0)
+            sum = sum + v_dr(Phi, ub, i, 0, +1)
+            sum = sum + v_dr(Phi, i, ub, -1, 0)
+            sum = sum + v_dr(Phi, lb, i, 0, -1)
+        end do
+        circulation = sum
+    end function
+
+    double precision function v_dr(Phi, i, j, coe_dx, coe_dy)
+        complex(kind(0d0)),intent(in) :: Phi(0:N,0:N)
+        integer,           intent(in) :: i, j, coe_dx, coe_dy
+        v_dr = 0.5d0*(coe_dx*(phase(Phi(i+1, j)) - phase(Phi(i-1, j))) + coe_dy*(phase(Phi(i, j+1)) - phase(Phi(i, j-1))))
+        ! v_dr = v_dr * (hbar/mass)
+    end function
 end module mathf
