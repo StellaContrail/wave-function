@@ -95,11 +95,19 @@ contains
         temp(:,:)    = Phi_old(:,:)
         Phi_new(:,:) = temp(:,:)
         ! Other terms of Taylor expansion
-        do i = 1, 15
-            Atemp        = apply_hamiltonian(temp, abs(Phi_old)**2d0, LzPhi, Pot, OMEGA)
-            temp(:,:)    = -lambda*Atemp(:,:)*dt/(epsilon*i)
-            Phi_new(:,:) = Phi_new(:,:) + temp(:,:)
-        end do
+        if (isImag) then
+            do i = 1, 15
+                Atemp        = apply_hamiltonian(temp, abs(Phi_old)**2d0, LzPhi, Pot, OMEGA)
+                temp(:,:)    = -lambda*Atemp(:,:)*dt_imag/(epsilon*i)
+                Phi_new(:,:) = Phi_new(:,:) + temp(:,:)
+            end do
+        else
+            do i = 1, 15
+                Atemp        = apply_hamiltonian(temp, abs(Phi_old)**2d0, LzPhi, Pot, OMEGA)
+                temp(:,:)    = -lambda*Atemp(:,:)*dt_real/(epsilon*i)
+                Phi_new(:,:) = Phi_new(:,:) + temp(:,:)
+            end do
+        end if
 
         ! Mix the previous density and calculated wave function's density
         if (isImag) then
@@ -112,11 +120,19 @@ contains
         temp(:,:)    = Phi_old(:,:)
         Phi_new(:,:) = temp(:,:)
         ! Other terms of Taylor expansion
-        do i = 1, 15
-            Atemp        = apply_hamiltonian(temp, density, LzPhi, Pot, OMEGA)
-            temp(:,:)    = -lambda*Atemp(:,:)*dt/(epsilon*i)
-            Phi_new(:,:) = Phi_new(:,:) + temp(:,:)
-        end do
+        if (isImag) then
+            do i = 1, 15
+                Atemp        = apply_hamiltonian(temp, density, LzPhi, Pot, OMEGA)
+                temp(:,:)    = -lambda*Atemp(:,:)*dt_imag/(epsilon*i)
+                Phi_new(:,:) = Phi_new(:,:) + temp(:,:)
+            end do
+        else
+            do i = 1, 15
+                Atemp        = apply_hamiltonian(temp, density, LzPhi, Pot, OMEGA)
+                temp(:,:)    = -lambda*Atemp(:,:)*dt_real/(epsilon*i)
+                Phi_new(:,:) = Phi_new(:,:) + temp(:,:)
+            end do
+        end if
 
         Phi(:,:) = Phi_new(:,:)
         if (isImag) then

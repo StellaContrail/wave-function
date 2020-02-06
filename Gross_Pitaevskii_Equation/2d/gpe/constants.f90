@@ -22,8 +22,9 @@ module constants
     ! Dimension
     integer         ,  parameter :: N                = 100 - 1
     ! Space and time step
-    double precision,  parameter :: dh               = 0.2d0
-    double precision,  parameter :: dt               = 0.001d0
+    double precision,  parameter :: dh               = 0.1d0
+    double precision,  parameter :: dt_imag          = 0.0001d0
+    double precision,  parameter :: dt_real          = 0.001d0
     ! Cranking model's angular velocity (Dimension is the same with omega_x or omega_y)
     double precision,  parameter :: OMEGA_imag       = 0d0
     double precision,  parameter :: OMEGA_real       = 0d0
@@ -32,7 +33,7 @@ module constants
     ! Depth/Height of pinning potential (Dimensionless)
     double precision,  parameter :: V0               = 90d0
     ! Radius of circulary trap potential
-    double precision,  parameter :: R0               = 9d0
+    double precision,  parameter :: R0               = 4d0
     ! Other settings about pinning potential
     double precision,  parameter :: delta            = 4d0
     double precision,  parameter :: alpha            = 0d0
@@ -40,8 +41,8 @@ module constants
     double precision,  parameter :: x0_vortex        = 0.5d0
     double precision,  parameter :: y0_vortex        = 0.5d0
     ! Pinning site is located at this location
-    double precision,  parameter :: x0               = 0.5d0
-    double precision,  parameter :: y0               = 0.5d0
+    double precision,  parameter :: x0               = 0d0
+    double precision,  parameter :: y0               = 0d0
     ! whether to be in co-rotating frame with changing phase in phase animation
     logical,           parameter :: onRotating       = .true.
 
