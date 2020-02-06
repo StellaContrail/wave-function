@@ -48,7 +48,8 @@ program main
     print *, "<Fundamental Physical Constants>"
     print *, "n         (Dimension of the space) = ", N + 1
     print *, "dh              (Step of distance) = ", dh
-    print *, "dt                  (Step of time) = ", dt
+    print *, "dt_imag             (Step of time) = ", dt_imag
+    print *, "dt_real             (Step of time) = ", dt_real
     print *, "N                 (Particle Count) = ", ParticleCount
     print *, "a               (ScatteringLength) = ", ScatteringLength
     print *, "Xs         (Characteristic Length) = ", Xs
@@ -76,7 +77,8 @@ program main
 
     call initialize(Pot, 6, Phi)
     call make_vortex(Phi, 1)
-    write (*, '(X, A, F0.3, A, F0.3, A)') "- Phase Shifted at (",x0, ", ", y0, ")"
+    write (*, '(X, A, F0.3, A, F0.3, A)') "- Phase Shifted at (",x0_vortex, ", ", y0_vortex, ")"
+    write (*, '(X, A, F0.10)') "- OMEGA = ", OMEGA_imag
     call output(fn_wavefunction_imaginary_initial, Phi)
     call output_potential(fn_potential_imaginary, Pot)
     open(11, file=fn_energy_iteration_dependance_imaginary)
@@ -87,10 +89,13 @@ program main
     write (*, '(X, A, F0.10, X, A)') "- <Lz> = ", Lz, "hbar"
     write (*, '(X, A, F0.15, A)') "- mu   = ", mu*ENERGY_UNIT_IN_DIMENSIONLESS_GPE/(1.602d-19), " [eV]" 
     write (*, '(X, A)') "* Calculating 2D GPE Imaginary-time development for ground state"
+<<<<<<< HEAD
     write (*, '(X, A, F0.10)') "- OMEGA = ", OMEGA_imag
     write (*, '(X, A, F0.10, X, A)') "- n    = ", circulation(Phi) / (2d0*pi)
+=======
+>>>>>>> 2639870c36b383b5333874f29d45eec084f1c3bc
     call cpu_time(t1)
-    limit_iterations = 100000
+    limit_iterations = 500000
     do i = 1, limit_iterations
         LzPhi = calc_LzPhi(Phi)
         call evolve(Phi, LzPhi, Pot, OMEGA_imag, .true., 0.7d0)
@@ -101,9 +106,9 @@ program main
             if (i > 500) then
                 write (*, '(A)', advance='no') char(13)
             end if
-            write (*, '(X, A, I5, A, F0.9)', advance='no') "- ", i, " calculations have been done ", abs(mu_old-mu)
+            write (*, '(X, A, I7, A, F0.9)', advance='no') "- ", i, " calculations have been done ", abs(mu_old-mu)
         end if
-        if (abs(mu_old - mu) < 1d-8) then
+        if (abs(mu_old - mu) < 1d-10) then
             write (*, *)
             write (*, '(X, A, I0, A)') "- Calculation successfully completed with ", i, " iterations"
             exit
@@ -148,7 +153,7 @@ program main
             call calc_rotation(Flux, Rot)
             call output(30, Rot)
             if (onRotating) then
-                call output(40, phase(Phi*exp(iu*mod(mu_old*dt*i/epsilon,2d0*pi))))
+                call output(40, phase(Phi*exp(iu*mod(mu_old*dt_real*i/epsilon,2d0*pi))))
             else
                 call output(40, phase(Phi))
             end if
@@ -191,7 +196,7 @@ program main
     write (10, '(A)') "# Space step"
     write (10, '(A, X, F0.10)') "dh =", dh
     write (10, '(A)') "# Time step"
-    write (10, '(A, X, F0.10)') "dt =", dt
+    write (10, '(A, X, F0.10)') "dt =", dt_real
     write (10, '(A)') "# Dimension subtracted by one"
     write (10, '(A, X, I0)')    "N =", N
     write (10, '(A)') "# Pinning Location"
