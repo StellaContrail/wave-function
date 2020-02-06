@@ -34,6 +34,7 @@ program main
     character(*),parameter       :: fn_wavefunction_real_result              = "wavefunction_real_time_development.txt"
     character(*),parameter       :: fn_current_real_result                   = "probability_current_real_time_development.txt"
     character(*),parameter       :: fn_rotation_real_result                  = "rotation_real_time_development.txt"
+    character(*),parameter       :: fn_phase_distribution_imag_result        = "phase_distribution_imaginary.txt"
     character(*),parameter       :: fn_phase_distribution_real_result        = "phase_distribution_real_time_development.txt"
     character(*),parameter       :: fn_energy_iteration_dependance_imaginary = "energy_iteration_dependence_imaginary.txt"
     character(*),parameter       :: fn_energy_iteration_dependance_real      = "energy_iteration_dependence_real.txt"
@@ -73,7 +74,7 @@ program main
     write (*, *) "Press Enter to initiate calculation"
     read (*, *)
 
-    call initialize(Pot, 5, Phi)
+    call initialize(Pot, 6, Phi)
     call make_vortex(Phi, 1)
     write (*, '(X, A, F0.3, A, F0.3, A)') "- Phase Shifted at (",x0, ", ", y0, ")"
     call output(fn_wavefunction_imaginary_initial, Phi)
@@ -87,6 +88,7 @@ program main
     write (*, '(X, A, F0.15, A)') "- mu   = ", mu*ENERGY_UNIT_IN_DIMENSIONLESS_GPE/(1.602d-19), " [eV]" 
     write (*, '(X, A)') "* Calculating 2D GPE Imaginary-time development for ground state"
     write (*, '(X, A, F0.10)') "- OMEGA = ", OMEGA_imag
+    write (*, '(X, A, F0.10, X, A)') "- n    = ", circulation(Phi) / (2d0*pi)
     call cpu_time(t1)
     limit_iterations = 100000
     do i = 1, limit_iterations
@@ -113,6 +115,7 @@ program main
         stop "* Calculation has been exceeded its iteration limit. Incorrect result is expected."
     end if
     call output(fn_wavefunction_imaginary_result, Phi)
+    call output(fn_phase_distribution_imag_result, phase(Phi))
     LzPhi = calc_LzPhi(Phi)
     Lz = calc_Lz(Phi, LzPhi, .true.)
     write (*, '(X, A, F0.10, X, A)') "- <Lz> = ", Lz, "hbar"
@@ -121,7 +124,7 @@ program main
     write (*, *)
 
     !----------------------- REAL TIME CALCULATION FROM HERE -------------------------------------------
-    call initialize(Pot, 5)
+    call initialize(Pot, 6)
     call output_potential(fn_potential_real, Pot)
     write (*, '(X, A)') "* Calculating 2D GPE real-time evoluton of calculated wave function"
     write (*, '(X, A, F0.10)') "- OMEGA = ", OMEGA_real

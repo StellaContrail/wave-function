@@ -382,16 +382,38 @@ contains
         integer                       :: i
         double precision              :: sum
         integer                       :: lb, ub
-        integer,parameter             :: width = 5
+        integer,parameter             :: width = 10
         lb = floor(N/2d0) - width
         ub = ceiling(N/2d0) + width
 
         sum = 0d0
+        ! C1
         do i = lb, ub
             sum = sum + v_dr(Phi, i, lb, +1, 0)
+        end do
+        ! C2
+        do i = lb, ub
             sum = sum + v_dr(Phi, ub, i, 0, +1)
+        end do
+        ! C3
+        do i = ub, lb, -1
             sum = sum + v_dr(Phi, i, ub, -1, 0)
-            sum = sum + v_dr(Phi, lb, i, 0, -1)
+        end do
+        ! C4
+        do i = ub, ceiling(N/2d0), -1
+            if (i == ceiling(N/2d0)) then
+                sum = sum - 0.5d0*phase(Phi(lb, i+1))
+            else
+                sum = sum + v_dr(Phi, lb, i, 0, -1)
+            end if
+        end do
+        ! C5
+        do i = floor(N/2d0), lb, -1
+            if (i == floor(N/2d0)) then
+                sum = sum + 0.5d0*phase(Phi(lb, i-1))
+            else
+                sum = sum + v_dr(Phi, lb, i, 0, -1)
+            end if
         end do
         circulation = sum
     end function
@@ -399,7 +421,10 @@ contains
     double precision function v_dr(Phi, i, j, coe_dx, coe_dy)
         complex(kind(0d0)),intent(in) :: Phi(0:N,0:N)
         integer,           intent(in) :: i, j, coe_dx, coe_dy
-        v_dr = 0.5d0*(coe_dx*(phase(Phi(i+1, j)) - phase(Phi(i-1, j))) + coe_dy*(phase(Phi(i, j+1)) - phase(Phi(i, j-1))))
+
+        v_dr = coe_dx*(phase(Phi(i+1, j))-phase(Phi(i-1,j)))
+        v_dr = v_dr + coe_dy*(phase(Phi(i, j+1))-phase(Phi(i, j-1)))
+        v_dr = 0.5d0 * v_dr
         ! v_dr = v_dr * (hbar/mass)
     end function
 end module mathf
