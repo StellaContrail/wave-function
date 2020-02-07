@@ -1,6 +1,5 @@
 ! Mathematical Procedures
-! TODO: 境界条件を自由に決められるようにする 具体的にはHamiltoinian内及びLzPhi内の微分演算子の扱いを変える (Dark Solitonを得るため)
-! REFER -> https://www.ias.ac.in/article/fulltext/pram/077/05/0929-0947
+! Maybe apply perfectly matched layer ? :https://arxiv.org/pdf/1312.1565.pdf
 
 module mathf
     use constants
@@ -155,31 +154,34 @@ contains
         ! Laplacian part (Five Point Stencil)
         do j = 0, N
             do i = 0, N
-                HPhi(i,j) = -60d0*Phi(i,j)
-                if (0 < i) then
-                    HPhi(i,j) = HPhi(i,j) + 16d0*Phi(i-1,j)
+                if (i == 0) then
+                    HPhi(i,j) = -Phi(i+2,j)+16d0*Phi(i+1,j)-30d0*Phi(i,j)-16d0*Phi(i+1,j)+Phi(i+2,j)
                 end if
-                if (1 < i) then
-                    HPhi(i,j) = HPhi(i,j) - Phi(i-2,j)
+                if (i == 1) then
+                    HPhi(i,j) = -Phi(i+2,j)+16d0*Phi(i+1,j)-30d0*Phi(i,j)+16d0*Phi(i-1,j)+Phi(i+2,j)
                 end if
-                if (i < N-1) then
-                    HPhi(i,j) = HPhi(i,j) - Phi(i+2,j)
+                if (i == N-1) then
+                    HPhi(i,j) = Phi(i-2,j)+16d0*Phi(i+1,j)-30d0*Phi(i,j)+16d0*Phi(i-1,j)-Phi(i-2,j)
                 end if
-                if (i < N) then
-                    HPhi(i,j) = HPhi(i,j) + 16d0*Phi(i+1,j)
+                if (i == N) then
+                    HPhi(i,j) = Phi(i-2,j)-16d0*Phi(i-1,j)-30d0*Phi(i,j)+16d0*Phi(i-1,j)-Phi(i-2,j)
+                end if
+                if (j == 0) then
+                    HPhi(i,j) = HPhi(i,j) -Phi(i,j+2)+16d0*Phi(i,j+1)-30d0*Phi(i,j)-16d0*Phi(i,j+1)+Phi(i,j+2)
+                end if
+                if (j == 1) then
+                    HPhi(i,j) = HPhi(i,j) -Phi(i,j+2)+16d0*Phi(i,j+1)-30d0*Phi(i,j)+16d0*Phi(i,j-1)+Phi(i,j+2)
+                end if
+                if (j == N) then
+                    HPhi(i,j) = HPhi(i,j) +Phi(i,j-2)-16d0*Phi(i,j-1)-30d0*Phi(i,j)+16d0*Phi(i,j-1)-Phi(i,j-2)
+                end if
+                if (j == N-1) then
+                    HPhi(i,j) = HPhi(i,j) +Phi(i,j-2)+16d0*Phi(i,j+1)-30d0*Phi(i,j)+16d0*Phi(i,j-1)-Phi(i,j-2)
                 end if
 
-                if (0 < j) then
-                    HPhi(i,j) = HPhi(i,j) + 16d0*Phi(i,j-1)
-                end if
-                if (1 < j) then
-                    HPhi(i,j) = HPhi(i,j) - Phi(i,j-2)
-                end if
-                if (j < N-1) then
-                    HPhi(i,j) = HPhi(i,j) - Phi(i,j+2)
-                end if
-                if (j < N) then
-                    HPhi(i,j) = HPhi(i,j) + 16d0*Phi(i,j+1)
+                if ( (1 < i .and. i < N-1) .and. (1 < j .and. j < N-1) ) then
+                    HPhi(i,j) = -Phi(i+2,j)+16d0*Phi(i+1,j)-30d0*Phi(i,j)+16d0*Phi(i-1,j)-Phi(i-2,j)
+                    HPhi(i,j) = HPhi(i,j) -Phi(i,j+2)+16d0*Phi(i,j+1)-30d0*Phi(i,j)+16d0*Phi(i,j-1)-Phi(i,j-2)
                 end if
             end do
         end do
@@ -260,17 +262,21 @@ contains
         do j = 0, N
             do i = 0, N
 
-                if (i > 1) then
-                    dPhi_dX(i,j) = dPhi_dX(i,j) - 8d0*Phi(i-1,j)
+                if (i == 0) then
+                    dPhi_dX(i,j) = -Phi(i+2,j)+8d0*Phi(i+1,j)+8d0*Phi(i+1,j)-Phi(i+2,j)
                 end if
-                if (i > 2) then
-                    dPhi_dX(i,j) = dPhi_dX(i,j) + Phi(i-2,j)
+                if (i == 1) then
+                    dPhi_dX(i,j) = -Phi(i+2,j)+8d0*Phi(i+1,j)-8d0*Phi(i-1,j)-Phi(i+2,j)
                 end if
-                if (i < N-1) then
-                    dPhi_dX(i,j) = dPhi_dX(i,j) - Phi(i+2,j)
+                if (i == N) then
+                    dPhi_dX(i,j) = Phi(i-2,j)-8d0*Phi(i-1,j)-8d0*Phi(i-1,j)+Phi(i-2,j)
                 end if
-                if (i < N-2) then
-                    dPhi_dX(i,j) = dPhi_dX(i,j) + 8d0*Phi(i+1,j)
+                if (i == N-1) then
+                    dPhi_dX(i,j) = Phi(i-2,j)+8d0*Phi(i+1,j)-8d0*Phi(i-1,j)+Phi(i-2,j)
+                end if
+
+                if ( (1 < i .and. i < N-1) .and. (1 < j .and. j < N-1) ) then
+                    dPhi_dX(i,j) = -Phi(i+2,j)+8d0*Phi(i+1,j)-8d0*Phi(i-1,j)+Phi(i-2,j)
                 end if
             end do
         end do
@@ -278,18 +284,21 @@ contains
         dPhi_dY(:,:) = dcmplx(0d0, 0d0)
         do j = 0, N
             do i = 0, N
+                if (j == 0) then
+                    dPhi_dY(i,j) = -Phi(i,j+2)+8d0*Phi(i,j+1)+8d0*Phi(i,j+1)-Phi(i,j+2)
+                end if
+                if (j == 1) then
+                    dPhi_dY(i,j) = -Phi(i,j+2)+8d0*Phi(i,j+1)-8d0*Phi(i,j-1)-Phi(i,j+2)
+                end if
+                if (j == N) then
+                    dPhi_dY(i,j) = Phi(i,j-2)-8d0*Phi(i,j-1)-8d0*Phi(i,j-1)+Phi(i,j-2)
+                end if
+                if (j == N-1) then
+                    dPhi_dY(i,j) = Phi(i,j-2)+8d0*Phi(i,j+1)-8d0*Phi(i,j-1)+Phi(i,j-2)
+                end if
 
-                if (j > 1) then
-                    dPhi_dY(i,j) = dPhi_dY(i,j) - 8d0*Phi(i,j-1)
-                end if
-                if (j > 2) then
-                    dPhi_dY(i,j) = dPhi_dY(i,j) + Phi(i,j-2)
-                end if
-                if (j < N-1) then
-                    dPhi_dY(i,j) = dPhi_dY(i,j) - Phi(i,j+2)
-                end if
-                if (j < N-2) then
-                    dPhi_dY(i,j) = dPhi_dY(i,j) + 8d0*Phi(i,j+1)
+                if ( (1 < i .and. i < N-1) .and. (1 < j .and. j < N-1) ) then
+                    dPhi_dY(i,j) = -Phi(i,j+2)+8d0*Phi(i,j+1)-8d0*Phi(i,j-1)+Phi(i,j-2)
                 end if
             end do
         end do
@@ -328,38 +337,38 @@ contains
         complex(kind(0d0)),intent(in) :: Phi(0:N,0:N)
         double precision              :: Flux(0:N,0:N,1:2)
         integer                       :: i, j
+        do j = 0, N
+            do i = 0, N
+                if (i == 0) then
+                    Flux(i,j,1) = aimag(conjg(Phi(i,j))*(-Phi(i+2,j)+8d0*Phi(i+1,j)+8d0*Phi(i+1,j)-Phi(i+2,j))/(12d0*dh))
+                end if
+                if (j == 0) then
+                    Flux(i,j,2) = aimag(conjg(Phi(i,j))*(-Phi(i,j+2)+8d0*Phi(i,j+1)+8d0*Phi(i,j+1)-Phi(i,j+2))/(12d0*dh))
+                end if
+                if (i == 1) then
+                    Flux(i,j,1) = aimag(conjg(Phi(i,j))*(-Phi(i+2,j)+8d0*Phi(i+1,j)-8d0*Phi(i-1,j)-Phi(i+2,j))/(12d0*dh))
+                end if
+                if (j == 1) then
+                    Flux(i,j,2) = aimag(conjg(Phi(i,j))*(-Phi(i,j+2)+8d0*Phi(i,j+1)-8d0*Phi(i,j-1)-Phi(i,j+2))/(12d0*dh))
+                end if
 
-        ! For point (0,0)
-        Flux(0,0,1) = aimag(conjg(Phi(0,0))*(Phi(1,0)-Phi(0,0))/dh)
-        Flux(0,0,2) = aimag(conjg(Phi(0,0))*(Phi(0,1)-Phi(0,0))/dh)
-        ! For point (0,N)
-        Flux(0,N,1) = aimag(conjg(Phi(0,N))*(Phi(1,N)-Phi(0,N))/dh)
-        Flux(0,N,2) = aimag(conjg(Phi(0,N))*(Phi(0,N)-Phi(0,N-1))/dh)
-        ! For point (N,0)
-        Flux(N,0,1) = aimag(conjg(Phi(N,0))*(Phi(N,0)-Phi(N-1,0))/dh)
-        Flux(N,0,2) = aimag(conjg(Phi(N,0))*(Phi(N,1)-Phi(N,0))/dh)
-        ! For point (N,N)
-        Flux(N,N,1) = aimag(conjg(Phi(N,N))*(Phi(N,N)-Phi(N-1,N))/dh)
-        Flux(N,N,2) = aimag(conjg(Phi(N,N))*(Phi(N,N)-Phi(N,N-1))/dh)
+                if (i == N-1) then
+                    Flux(i,j,1) = aimag(conjg(Phi(i,j))*(Phi(i-2,j)+8d0*Phi(i+1,j)-8d0*Phi(i-1,j)+Phi(i-2,j))/(12d0*dh))
+                end if
+                if (j == N-1) then
+                    Flux(i,j,2) = aimag(conjg(Phi(i,j))*(Phi(i,j-2)+8d0*Phi(i,j+1)-8d0*Phi(i,j-1)+Phi(i,j-2))/(12d0*dh))
+                end if
+                if (i == N) then
+                    Flux(i,j,1) = aimag(conjg(Phi(i,j))*(Phi(i-2,j)-8d0*Phi(i-1,j)-8d0*Phi(i-1,j)+Phi(i-2,j))/(12d0*dh))
+                end if
+                if (j == N) then
+                    Flux(i,j,2) = aimag(conjg(Phi(i,j))*(Phi(i,j-2)-8d0*Phi(i,j-1)-8d0*Phi(i,j-1)+Phi(i,j-2))/(12d0*dh))
+                end if
 
-        do j = 1, N-1
-            Flux(0,j,1) = aimag(conjg(Phi(0,j))*(Phi(1,j)-Phi(0,j))/dh)
-            Flux(0,j,2) = aimag(conjg(Phi(0,j))*(Phi(0,j+1)-Phi(0,j-1))/(2d0*dh))
-            Flux(N,j,1) = aimag(conjg(Phi(N,j))*(Phi(N,j)-Phi(N-1,j))/dh)
-            Flux(N,j,2) = aimag(conjg(Phi(N,j))*(Phi(N,j+1)-Phi(N,j-1))/(2d0*dh))
-        end do
-
-        do i = 1, N-1
-            Flux(i,0,1) = aimag(conjg(Phi(i,0))*(Phi(i+1,0)-Phi(i-1,0))/(2d0*dh))
-            Flux(i,0,2) = aimag(conjg(Phi(i,0))*(Phi(i,1)-Phi(i,0))/dh)
-            Flux(i,N,1) = aimag(conjg(Phi(i,N))*(Phi(i+1,N)-Phi(i-1,N))/(2d0*dh))
-            Flux(i,N,2) = aimag(conjg(Phi(i,N))*(Phi(i,N)-Phi(i,N-1))/dh)
-        end do
-
-        do j = 1, N-1
-            do i = 1, N-1
-                Flux(i,j,1) = aimag(conjg(Phi(i,j))*(Phi(i+1,j)-Phi(i-1,j))/(2d0*dh))
-                Flux(i,j,2) = aimag(conjg(Phi(i,j))*(Phi(i,j+1)-Phi(i,j-1))/(2d0*dh))
+                if ( (1 < i .and. i < N-1) .and. (1 < j .and. j < N-1) ) then
+                    Flux(i,j,1) = aimag(conjg(Phi(i,j))*(-Phi(i+2,j)+8d0*Phi(i+1,j)-8d0*Phi(i-1,j)+Phi(i-2,j))/(12d0*dh))
+                    Flux(i,j,2) = aimag(conjg(Phi(i,j))*(-Phi(i,j+2)+8d0*Phi(i,j+1)-8d0*Phi(i,j-1)+Phi(i,j-2))/(12d0*dh))
+                end if
             end do
         end do
 
@@ -370,29 +379,47 @@ contains
     subroutine calc_rotation(Flux, Rot)
         double precision,intent(in)  :: Flux(0:N,0:N,1:2)
         double precision,intent(out) :: Rot(0:N,0:N)
+        double precision             :: dFlux_dX(0:N,0:N), dFlux_dY(0:N,0:N)
         integer                      :: i, j
         double precision             :: x, y
 
-        Rot(0,0) = (Flux(1,0,2)-Flux(0,0,2))/dh - (Flux(0,1,1)-Flux(0,0,1))/dh
-        Rot(0,N) = (Flux(1,N,2)-Flux(0,N,2))/dh - (Flux(0,N,1)-Flux(0,N-1,1))/dh
-        Rot(N,0) = (Flux(N,0,2)-Flux(N-1,0,2))/dh - (Flux(N,1,1)-Flux(N,0,1))/dh
-        Rot(N,N) = (Flux(N,N,2)-Flux(N-1,N,2))/dh - (Flux(N,N,1)-Flux(N,N-1,1))/dh
-
-        do j = 1, N-1
-            Rot(0,j) = (Flux(1,j,2)-Flux(0,j,2))/dh - (Flux(0,j+1,1)-Flux(0,j-1,1))/(2d0*dh)
-            Rot(N,j) = (Flux(N,j,2)-Flux(N-1,j,2))/dh - (Flux(N,j+1,1)-Flux(N,j-1,1))/(2d0*dh)
-        end do
-
-        do i = 1, N-1
-            Rot(i,0) = (Flux(i+1,0,2)-Flux(i-1,0,2))/(2d0*dh) - (Flux(i,1,1)-Flux(i,0,1))/dh
-            Rot(i,N) = (Flux(i+1,N,2)-Flux(i-1,N,2))/(2d0*dh) - (Flux(i,N,1)-Flux(i,N-1,1))/dh
-        end do
-
-        do j = 1, N-1
+        do j = 0, N
             y = -xmax + dh*j
-            do i = 1, N-1
+            do i = 0, N
                 x = -xmax + dh*i
-                Rot(i,j) = (Flux(i+1,j,2)-Flux(i-1,j,2))/(2d0*dh) - (Flux(i,j+1,1)-Flux(i,j-1,1))/(2d0*dh)
+
+                if (i == 0) then
+                    dFlux_dX(i,j) = -Flux(i+2,j)+8d0*Flux(i+1,j)+8d0*Flux(i+1,j)-Flux(i+2,j)
+                end if
+                if (i == 1) then
+                    dFlux_dX(i,j) = -Flux(i+2,j)+8d0*Flux(i+1,j)-8d0*Flux(i-1,j)-Flux(i+2,j)
+                end if
+                if (i == N) then
+                    dFlux_dX(i,j) = Flux(i-2,j)-8d0*Flux(i-1,j)-8d0*Flux(i-1,j)+Flux(i-2,j)
+                end if
+                if (i == N-1) then
+                    dFlux_dX(i,j) = Flux(i-2,j)+8d0*Flux(i+1,j)-8d0*Flux(i-1,j)+Flux(i-2,j)
+                end if
+
+                if (j == 0) then
+                    dFlux_dY(i,j) = -Flux(i,j+2)+8d0*Flux(i,j+1)+8d0*Flux(i,j+1)-Flux(i,j+2)
+                end if
+                if (j == 1) then
+                    dFlux_dY(i,j) = -Flux(i,j+2)+8d0*Flux(i,j+1)-8d0*Flux(i,j-1)-Flux(i,j+2)
+                end if
+                if (j == N) then
+                    dFlux_dY(i,j) = Flux(i,j-2)-8d0*Flux(i,j-1)-8d0*Flux(i,j-1)+Flux(i,j-2)
+                end if
+                if (j == N-1) then
+                    dFlux_dY(i,j) = Flux(i,j-2)+8d0*Flux(i,j+1)-8d0*Flux(i,j-1)+Flux(i,j-2)
+                end if
+
+                if ( (1 < i .and. i < N-1) .and. (1 < j .and. j < N-1) ) then
+                    dFlux_dX(i,j) = -Flux(i+2,j)+8d0*Flux(i+1,j)-8d0*Flux(i-1,j)+Flux(i-2,j)
+                    dFlux_dY(i,j) = -Flux(i,j+2)+8d0*Flux(i,j+1)-8d0*Flux(i,j-1)+Flux(i,j-2)
+                end if
+
+                Rot(i,j) = ( y*dFlux_dX(i,j) - x*dFlux_dY(i,j) ) / ( 12d0*dh )
             end do
         end do
     end subroutine
