@@ -379,7 +379,7 @@ contains
     subroutine calc_rotation(Flux, Rot)
         double precision,intent(in)  :: Flux(0:N,0:N,1:2)
         double precision,intent(out) :: Rot(0:N,0:N)
-        double precision             :: dFlux_dX(0:N,0:N), dFlux_dY(0:N,0:N)
+        double precision             :: dFluxY_dX(0:N,0:N), dFluxX_dY(0:N,0:N)
         integer                      :: i, j
         double precision             :: x, y
 
@@ -389,37 +389,40 @@ contains
                 x = -xmax + dh*i
 
                 if (i == 0) then
-                    dFlux_dX(i,j) = -Flux(i+2,j)+8d0*Flux(i+1,j)+8d0*Flux(i+1,j)-Flux(i+2,j)
+                    dFluxY_dX(i,j) = -Flux(i+2,j,2)+8d0*Flux(i+1,j,2)+8d0*Flux(i+1,j,2)-Flux(i+2,j,2)
                 end if
                 if (i == 1) then
-                    dFlux_dX(i,j) = -Flux(i+2,j)+8d0*Flux(i+1,j)-8d0*Flux(i-1,j)-Flux(i+2,j)
+                    dFluxY_dX(i,j) = -Flux(i+2,j,2)+8d0*Flux(i+1,j,2)-8d0*Flux(i-1,j,2)-Flux(i+2,j,2)
                 end if
                 if (i == N) then
-                    dFlux_dX(i,j) = Flux(i-2,j)-8d0*Flux(i-1,j)-8d0*Flux(i-1,j)+Flux(i-2,j)
+                    dFluxY_dX(i,j) = Flux(i-2,j,2)-8d0*Flux(i-1,j,2)-8d0*Flux(i-1,j,2)+Flux(i-2,j,2)
                 end if
                 if (i == N-1) then
-                    dFlux_dX(i,j) = Flux(i-2,j)+8d0*Flux(i+1,j)-8d0*Flux(i-1,j)+Flux(i-2,j)
+                    dFluxY_dX(i,j) = Flux(i-2,j,2)+8d0*Flux(i+1,j,2)-8d0*Flux(i-1,j,2)+Flux(i-2,j,2)
                 end if
 
                 if (j == 0) then
-                    dFlux_dY(i,j) = -Flux(i,j+2)+8d0*Flux(i,j+1)+8d0*Flux(i,j+1)-Flux(i,j+2)
+                    dFluxX_dY(i,j) = -Flux(i,j+2,1)+8d0*Flux(i,j+1,1)+8d0*Flux(i,j+1,1)-Flux(i,j+2,1)
                 end if
                 if (j == 1) then
-                    dFlux_dY(i,j) = -Flux(i,j+2)+8d0*Flux(i,j+1)-8d0*Flux(i,j-1)-Flux(i,j+2)
+                    dFluxX_dY(i,j) = -Flux(i,j+2,1)+8d0*Flux(i,j+1,1)-8d0*Flux(i,j-1,1)-Flux(i,j+2,1)
                 end if
                 if (j == N) then
-                    dFlux_dY(i,j) = Flux(i,j-2)-8d0*Flux(i,j-1)-8d0*Flux(i,j-1)+Flux(i,j-2)
+                    dFluxX_dY(i,j) = Flux(i,j-2,1)-8d0*Flux(i,j-1,1)-8d0*Flux(i,j-1,1)+Flux(i,j-2,1)
                 end if
                 if (j == N-1) then
-                    dFlux_dY(i,j) = Flux(i,j-2)+8d0*Flux(i,j+1)-8d0*Flux(i,j-1)+Flux(i,j-2)
+                    dFluxX_dY(i,j) = Flux(i,j-2,1)+8d0*Flux(i,j+1,1)-8d0*Flux(i,j-1,1)+Flux(i,j-2,1)
                 end if
 
                 if ( (1 < i .and. i < N-1) .and. (1 < j .and. j < N-1) ) then
-                    dFlux_dX(i,j) = -Flux(i+2,j)+8d0*Flux(i+1,j)-8d0*Flux(i-1,j)+Flux(i-2,j)
-                    dFlux_dY(i,j) = -Flux(i,j+2)+8d0*Flux(i,j+1)-8d0*Flux(i,j-1)+Flux(i,j-2)
+                    dFluxY_dX(i,j) = -Flux(i+2,j,2)+8d0*Flux(i+1,j,2)-8d0*Flux(i-1,j,2)+Flux(i-2,j,2)
+                    dFluxX_dY(i,j) = -Flux(i,j+2,1)+8d0*Flux(i,j+1,1)-8d0*Flux(i,j-1,1)+Flux(i,j-2,1)
                 end if
 
-                Rot(i,j) = ( y*dFlux_dX(i,j) - x*dFlux_dY(i,j) ) / ( 12d0*dh )
+                dFluxY_dX = dFluxY_dX / ( 12d0*dh )
+                dFluxX_dY = dFluxX_dY / ( 12d0*dh )
+
+                Rot(i,j) = dFluxY_dX(i,j) - dFluxX_dY(i,j)
             end do
         end do
     end subroutine
@@ -441,7 +444,7 @@ contains
         end do
         ! C2
         do i = lb, ub
-            sum = sum + v_dr_(Phi, Flux, ub, lb, 0, +1)
+            sum = sum + v_dr_(Phi, Flux, ub, i, 0, +1)
         end do
         ! C3
         do i = ub, lb, -1
@@ -452,6 +455,15 @@ contains
             sum = sum + v_dr_(Phi, Flux, lb, i, 0, -1)
         end do
         circulation_flux = sum
+    end function
+    
+    double precision function v_dr_(Phi, Flux, i, j, coe_dx, coe_dy)
+        complex(kind(0d0)), intent(in) :: Phi(0:N, 0:N)
+        double precision,   intent(in) :: Flux(0:N,0:N,1:2)
+        integer,            intent(in) :: i, j, coe_dx, coe_dy
+
+        v_dr_ = coe_dx*Flux(i,j,1)/abs(Phi(i,j))**2d0 + coe_dy*Flux(i,j,2)/abs(Phi(i,j))**2d0
+        v_dr_ = v_dr_ * dh
     end function
 
     double precision function circulation_phase(Phi)
@@ -506,14 +518,5 @@ contains
         v_dr = coe_dx*(phase(Phi(i+1, j))-phase(Phi(i-1,j)))
         v_dr = v_dr + coe_dy*(phase(Phi(i, j+1))-phase(Phi(i, j-1)))
         v_dr = 0.5d0 * v_dr
-    end function
-
-    double precision function v_dr_(Phi, Flux, i, j, coe_dx, coe_dy)
-        complex(kind(0d0)), intent(in) :: Phi(0:N, 0:N)
-        double precision,   intent(in) :: Flux(0:N,0:N,1:2)
-        integer,            intent(in) :: i, j, coe_dx, coe_dy
-
-        v_dr_ = coe_dx*Flux(i,j,1)/abs(Phi(i,j))**2d0+coe_dy*Flux(i,j,2)/abs(Phi(i,j))**2d0
-        v_dr_ = v_dr_ * dh
     end function
 end module mathf
