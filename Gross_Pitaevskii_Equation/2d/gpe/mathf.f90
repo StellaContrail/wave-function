@@ -14,6 +14,10 @@ module mathf
     interface phase
         module procedure phase_coordinates, phase_complex
     end interface
+    ! Get circulation of the system
+    interface circulation
+        module procedure circulation_flux, circulation_phase
+    end interface
 contains
     ! Integration of real function
     function integrate_real(f) result(sum)
@@ -393,7 +397,37 @@ contains
         end do
     end subroutine
 
-    double precision function circulation(Phi)
+    double precision function circulation_flux(Phi, Flux)
+        complex(kind(0d0)),intent(in) :: Phi(0:N, 0:N)
+        double precision,  intent(in) :: Flux(0:N,0:N,1:2)
+        integer                       :: i
+        double precision              :: sum
+        integer                       :: lb, ub
+        integer,parameter             :: width = 5
+        lb = floor(N/2d0) - width
+        ub = ceiling(N/2d0) + width
+
+        sum = 0d0
+        ! C1
+        do i = lb, ub
+            sum = sum + v_dr_(Phi, Flux, i, lb, +1, 0)
+        end do
+        ! C2
+        do i = lb, ub
+            sum = sum + v_dr_(Phi, Flux, ub, lb, 0, +1)
+        end do
+        ! C3
+        do i = ub, lb, -1
+            sum = sum + v_dr_(Phi, Flux, i, ub, -1, 0)
+        end do
+        ! C4
+        do i = ub, lb, -1
+            sum = sum + v_dr_(Phi, Flux, lb, i, 0, -1)
+        end do
+        circulation_flux = sum
+    end function
+
+    double precision function circulation_phase(Phi)
         complex(kind(0d0)),intent(in) :: Phi(0:N,0:N)
         integer                       :: i
         double precision              :: sum
@@ -405,33 +439,37 @@ contains
         sum = 0d0
         ! C1
         do i = lb, ub
-            sum = sum + v_dr(Phi, i, lb, +1, 0)
+            if(phase(Phi(i+1,lb)) - phase(Phi(i-1,lb)) < 0) then
+                sum = sum + 0.5d0*( (phase(Phi(i+1,lb))+2d0*pi) - phase(Phi(i-1,lb)) )
+            else
+                sum = sum + v_dr(Phi, i, lb, +1, 0)
+            end if
         end do
         ! C2
         do i = lb, ub
-            sum = sum + v_dr(Phi, ub, i, 0, +1)
+            if(phase(Phi(ub,i+1)) - phase(Phi(ub,i-1)) < 0) then
+                sum = sum + 0.5d0*( (phase(Phi(ub,i+1))+2d0*pi) - phase(Phi(ub,i-1)) )
+            else
+                sum = sum + v_dr(Phi, ub, i, 0, +1)
+            end if
         end do
         ! C3
         do i = ub, lb, -1
-            sum = sum + v_dr(Phi, i, ub, -1, 0)
+            if(phase(Phi(i-1,ub)) - phase(Phi(i+1,ub)) < 0) then
+                sum = sum - 0.5d0*( (phase(Phi(i+1,ub))+2d0*pi) - phase(Phi(i-1,ub)) )
+            else
+                sum = sum + v_dr(Phi, i, ub, -1, 0)
+            end if
         end do
         ! C4
-        do i = ub, ceiling(N/2d0), -1
-            if (i == ceiling(N/2d0)) then
-                sum = sum - 0.5d0*phase(Phi(lb, i+1))
+        do i = ub, lb, -1
+            if (phase(Phi(lb,i-1)) - phase(Phi(lb,i+1)) < 0) then
+                sum = sum - 0.5d0*( (phase(Phi(lb, i+1))+2d0*pi) - phase(Phi(lb, i-1)) )
             else
                 sum = sum + v_dr(Phi, lb, i, 0, -1)
             end if
         end do
-        ! C5
-        do i = floor(N/2d0), lb, -1
-            if (i == floor(N/2d0)) then
-                sum = sum + 0.5d0*phase(Phi(lb, i-1))
-            else
-                sum = sum + v_dr(Phi, lb, i, 0, -1)
-            end if
-        end do
-        circulation = sum
+        circulation_phase = sum
     end function
 
     double precision function v_dr(Phi, i, j, coe_dx, coe_dy)
@@ -441,6 +479,14 @@ contains
         v_dr = coe_dx*(phase(Phi(i+1, j))-phase(Phi(i-1,j)))
         v_dr = v_dr + coe_dy*(phase(Phi(i, j+1))-phase(Phi(i, j-1)))
         v_dr = 0.5d0 * v_dr
-        ! v_dr = v_dr * (hbar/mass)
+    end function
+
+    double precision function v_dr_(Phi, Flux, i, j, coe_dx, coe_dy)
+        complex(kind(0d0)), intent(in) :: Phi(0:N, 0:N)
+        double precision,   intent(in) :: Flux(0:N,0:N,1:2)
+        integer,            intent(in) :: i, j, coe_dx, coe_dy
+
+        v_dr_ = coe_dx*Flux(i,j,1)/abs(Phi(i,j))**2d0+coe_dy*Flux(i,j,2)/abs(Phi(i,j))**2d0
+        v_dr_ = v_dr_ * dh
     end function
 end module mathf

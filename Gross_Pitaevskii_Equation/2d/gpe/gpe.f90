@@ -76,24 +76,22 @@ program main
     read (*, *)
 
     call initialize(Pot, 6, Phi)
-    call make_vortex(Phi, 1)
+    call make_vortex(Phi, 2)
     write (*, '(X, A, F0.3, A, F0.3, A)') "- Phase Shifted at (",x0_vortex, ", ", y0_vortex, ")"
     write (*, '(X, A, F0.10)') "- OMEGA = ", OMEGA_imag
     call output(fn_wavefunction_imaginary_initial, Phi)
     call output_potential(fn_potential_imaginary, Pot)
     open(11, file=fn_energy_iteration_dependance_imaginary)
     LzPhi = calc_LzPhi(Phi)
+    Flux = calc_flux(Phi)
     mu = solve_energy(Phi, Pot, LzPhi, OMEGA_imag)
     write (11, *) 0, mu, mu*ENERGY_UNIT_IN_DIMENSIONLESS_GPE
     Lz    = calc_Lz(Phi, LzPhi, .true.)
     write (*, '(X, A, F0.10, X, A)') "- <Lz> = ", Lz, "hbar"
     write (*, '(X, A, F0.15, A)') "- mu   = ", mu*ENERGY_UNIT_IN_DIMENSIONLESS_GPE/(1.602d-19), " [eV]" 
     write (*, '(X, A)') "* Calculating 2D GPE Imaginary-time development for ground state"
-<<<<<<< HEAD
-    write (*, '(X, A, F0.10)') "- OMEGA = ", OMEGA_imag
+    write (*, '(X, A, F0.10, X, A)') "- n    = ", circulation(Phi, Flux) / (2d0*pi)
     write (*, '(X, A, F0.10, X, A)') "- n    = ", circulation(Phi) / (2d0*pi)
-=======
->>>>>>> 2639870c36b383b5333874f29d45eec084f1c3bc
     call cpu_time(t1)
     limit_iterations = 500000
     do i = 1, limit_iterations
@@ -123,7 +121,9 @@ program main
     call output(fn_phase_distribution_imag_result, phase(Phi))
     LzPhi = calc_LzPhi(Phi)
     Lz = calc_Lz(Phi, LzPhi, .true.)
+    Flux = calc_flux(Phi)
     write (*, '(X, A, F0.10, X, A)') "- <Lz> = ", Lz, "hbar"
+    write (*, '(X, A, F0.10, X, A)') "- n    = ", circulation(Phi, Flux) / (2d0*pi)
     write (*, '(X, A, F0.10, X, A)') "- n    = ", circulation(Phi) / (2d0*pi)
     write (*, '(X, A, F0.15, A)') "- mu   = ", mu*ENERGY_UNIT_IN_DIMENSIONLESS_GPE/(1.602d-19), " [eV]" 
     write (*, *)
@@ -178,6 +178,7 @@ program main
     Lz = calc_Lz(Phi, LzPhi, .false.)
     write (*, '(X, A, F0.10, A)') "- <Lz> = ", Lz, " hbar"
     write (*, '(X, A, F0.15, A)') "- mu   = ", mu*ENERGY_UNIT_IN_DIMENSIONLESS_GPE/(1.602d-19), " [eV]"
+    write (*, '(X, A, F0.10, X, A)') "- n    = ", circulation(Phi, Flux) / (2d0*pi)
     write (*, '(X, A, F0.10, X, A)') "- n    = ", circulation(Phi) / (2d0*pi)
 
     ! Output variables data
