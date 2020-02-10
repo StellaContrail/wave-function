@@ -433,7 +433,7 @@ contains
         integer                       :: i
         double precision              :: sum
         integer                       :: lb, ub
-        integer,parameter             :: width = 35
+        integer,parameter             :: width = 10
         lb = floor(N/2d0) - width
         ub = ceiling(N/2d0) + width
 
@@ -471,7 +471,7 @@ contains
         integer                       :: i
         double precision              :: sum
         integer                       :: lb, ub
-        integer,parameter             :: width = 35
+        integer,parameter             :: width = 10
         lb = floor(N/2d0) - width
         ub = ceiling(N/2d0) + width
 

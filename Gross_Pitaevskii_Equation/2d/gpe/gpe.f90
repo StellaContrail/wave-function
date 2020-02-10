@@ -1,7 +1,6 @@
 ! Imaginary time-development of Gross-Pitaevskii Equation in 2 dimensional space
 ! The Equations and constants are to be referenced to DOI:10.1016/S0021-9991(03)00102-5
-! TODO: Store initial values from setting file into variables
-! TODO: Load them and if they matches the present settings, skip the imaginary-time calculation part
+
 program main
     use io
     use setting
@@ -74,74 +73,113 @@ program main
     print *, "epsilon*(OMEGA_real/omega_x)       = ", epsilon*(OMEGA_real/omega_x)
     print *, "------------------------------------------------------------------"
 
-    open  (12, file="quantities.txt", position="append", status="old", action="write")
-    write (*, *) "Press Enter to initiate calculation"
-    read (*, *)
-    do j = 0, 60
+    ! .TRUE.  => Solve Quantities
+    ! .FALSE. => Solve time development
+    if (.true.) then
+        write (*, *) "Calculation initiated."
+        open  (12, file="quantities.txt", status="old", action="write")
+        n_vortex = 1
+        do j = 0, 60
+            call initialize(Pot, 6, Phi)
+            call make_vortex(Phi, n_vortex, R0)
+            LzPhi = calc_LzPhi(Phi)
+            Lz    = calc_Lz(Phi, LzPhi, .true.)
+            mu = solve_energy(Phi, Pot, LzPhi, dble(j))
+            limit_iterations = 500000
+            do i = 1, limit_iterations
+                LzPhi = calc_LzPhi(Phi)
+                call evolve(Phi, LzPhi, Pot, dble(j), .true., 0.7d0)
+                mu_old = mu
+                mu = solve_energy(Phi, Pot, LzPhi, dble(j))
+                if (abs(mu_old - mu) < 1d-10) then
+                    write (*, *)
+                    write (*, '(X, A, I0, A)') "- Calculation successfully completed with ", i, " iterations"
+                    exit
+                else
+                    if (mod(i,100) == 0) then
+                        write (*, '(A)', advance='no') char(13)
+                        write (*, '(I3, X, F0.10)', advance='no') j, abs(mu_old - mu)
+                    end if
+                end if
+            end do
+            if (i >= limit_iterations) then
+                write (*, *)
+                write (*, *) "* Calculation has been exceeded its iteration limit. Incorrect result is expected."
+                close (12)
+            end if
+            LzPhi = calc_LzPhi(Phi)
+            Lz = calc_Lz(Phi, LzPhi, .true.)
+            Flux = calc_flux(Phi)
+            n_flux  = circulation(Phi, Flux) / (2d0*pi)
+            n_phase = circulation(Phi) / (2d0*pi)
+            write (*, *) "Iteration:", j, " / 60"
+
+            write (12, *) j, Lz, mu, mu*ENERGY_UNIT_IN_DIMENSIONLESS_GPE/(1.602d-19), n_phase, n_flux
+        end do
+        close (12)
+
+        stop
+    else
+        write (*, *) "Press Enter to initiate calculation"
+        read (*, *)
         n_vortex = 1
         call initialize(Pot, 6, Phi)
-        call make_vortex(Phi, n_vortex)
-        !write (*, '(X, A, F0.3, A, F0.3, A)') "- Phase Shifted at (",x0_vortex, ", ", y0_vortex, ")"
-        !write (*, '(X, A, F0.10)') "- OMEGA = ", OMEGA_imag
-        !call output(fn_wavefunction_imaginary_initial, Phi)
-        !call output_potential(fn_potential_imaginary, Pot)
-        !open(11, file=fn_energy_iteration_dependance_imaginary)
-        !LzPhi = calc_LzPhi(Phi)
-        !Flux = calc_flux(Phi)
-        !mu = solve_energy(Phi, Pot, LzPhi, OMEGA_imag)
-        !write (11, *) 0, mu, mu*ENERGY_UNIT_IN_DIMENSIONLESS_GPE
-        !Lz    = calc_Lz(Phi, LzPhi, .true.)
-        !write (*, '(X, A, F0.10, X, A)') "- <Lz> = ", Lz, "hbar"
-        !write (*, '(X, A, F0.15, A)') "- mu   = ", mu*ENERGY_UNIT_IN_DIMENSIONLESS_GPE/(1.602d-19), " [eV]" 
-        !write (*, '(X, A)') "* Calculating 2D GPE Imaginary-time development for ground state"
-        !n_flux = circulation(Phi, Flux) / (2d0*pi)
-        !n_phase = circulation(Phi) / (2d0*pi)
-        !write (*, '(X, A, F0.10, A, F0.10)') "- n    = ",  n_flux, " ERROR =>", abs(n_vortex-n_flux)
-        !write (*, '(X, A, F0.10, A, F0.10)') "- n    = ", n_phase, " ERROR =>", abs(n_vortex-n_phase)
-        !call cpu_time(t1)
+        call make_vortex(Phi, n_vortex, R0)
+        write (*, '(X, A, F0.3, A, F0.3, A)') "- Phase Shifted at (",x0_vortex, ", ", y0_vortex, ")"
+        write (*, '(X, A, F0.10)') "- OMEGA = ", OMEGA_imag
+        call output(fn_wavefunction_imaginary_initial, Phi)
+        call output_potential(fn_potential_imaginary, Pot)
+        open(11, file=fn_energy_iteration_dependance_imaginary)
+        LzPhi = calc_LzPhi(Phi)
+        Flux = calc_flux(Phi)
+        mu = solve_energy(Phi, Pot, LzPhi, OMEGA_imag)
+        write (11, *) 0, mu, mu*ENERGY_UNIT_IN_DIMENSIONLESS_GPE
+        Lz    = calc_Lz(Phi, LzPhi, .true.)
+        write (*, '(X, A, F0.10, X, A)') "- <Lz> = ", Lz, "hbar"
+        write (*, '(X, A, F0.15, A)') "- mu   = ", mu*ENERGY_UNIT_IN_DIMENSIONLESS_GPE/(1.602d-19), " [eV]" 
+        write (*, '(X, A)') "* Calculating 2D GPE Imaginary-time development for ground state"
+        n_flux = circulation(Phi, Flux) / (2d0*pi)
+        n_phase = circulation(Phi) / (2d0*pi)
+        write (*, '(X, A, F0.10, A, F0.10)') "- n    = ",  n_flux, " ERROR =>", abs(n_vortex-n_flux)
+        write (*, '(X, A, F0.10, A, F0.10)') "- n    = ", n_phase, " ERROR =>", abs(n_vortex-n_phase)
+        call cpu_time(t1)
         limit_iterations = 500000
         do i = 1, limit_iterations
             LzPhi = calc_LzPhi(Phi)
-            call evolve(Phi, LzPhi, Pot, dble(j), .true., 0.7d0)
+            call evolve(Phi, LzPhi, Pot, OMEGA_imag, .true., 0.7d0)
             mu_old = mu
-            mu = solve_energy(Phi, Pot, LzPhi, dble(j))
-            !write (11, *) i, mu, mu*ENERGY_UNIT_IN_DIMENSIONLESS_GPE
-            !if (mod(i, 500) == 0) then
-            !    if (i > 500) then
-            !        write (*, '(A)', advance='no') char(13)
-            !    end if
-            !    write (*, '(X, A, I7, A, F0.9)', advance='no') "- ", i, " calculations have been done ", abs(mu_old-mu)
-            !end if
+            mu = solve_energy(Phi, Pot, LzPhi, OMEGA_imag)
+            write (11, *) i, mu, mu*ENERGY_UNIT_IN_DIMENSIONLESS_GPE
+            if (mod(i, 500) == 0) then
+                if (i > 500) then
+                    write (*, '(A)', advance='no') char(13)
+                end if
+                write (*, '(X, A, I7, A, F0.9)', advance='no') "- ", i, " calculations have been done ", abs(mu_old-mu)
+            end if
             if (abs(mu_old - mu) < 1d-10) then
-            !    write (*, *)
-            !    write (*, '(X, A, I0, A)') "- Calculation successfully completed with ", i, " iterations"
+                write (*, *)
+                write (*, '(X, A, I0, A)') "- Calculation successfully completed with ", i, " iterations"
                 exit
             end if
         end do
-        !close(11)
+        close(11)
         if (i >= limit_iterations) then
             write (*, *)
             stop "* Calculation has been exceeded its iteration limit. Incorrect result is expected."
         end if
-        !call output(fn_wavefunction_imaginary_result, Phi)
-        !call output(fn_phase_distribution_imag_result, phase(Phi))
+        call output(fn_wavefunction_imaginary_result, Phi)
+        call output(fn_phase_distribution_imag_result, phase(Phi))
         LzPhi = calc_LzPhi(Phi)
         Lz = calc_Lz(Phi, LzPhi, .true.)
         Flux = calc_flux(Phi)
         n_flux  = circulation(Phi, Flux) / (2d0*pi)
         n_phase = circulation(Phi) / (2d0*pi)
-        !write (*, '(X, A, F0.10, X, A)') "- <Lz> = ", Lz, "hbar"
-        !write (*, '(X, A, F0.10, X, A)') "- n    = ", n_flux
-        !write (*, '(X, A, F0.10, X, A)') "- n    = ", n_phase
-        !write (*, '(X, A, F0.15, A)') "- mu   = ", mu*ENERGY_UNIT_IN_DIMENSIONLESS_GPE/(1.602d-19), " [eV]" 
-        !write (*, *)
-        write (*, *) "Iteration:", j, " / 60"
-
-        write (12, *) j, Lz, mu, mu*ENERGY_UNIT_IN_DIMENSIONLESS_GPE/(1.602d-19), n_phase, n_flux
-    end do
-
-    close (12)
-    stop
+        write (*, '(X, A, F0.10, X, A)') "- <Lz> = ", Lz, "hbar"
+        write (*, '(X, A, F0.10, X, A)') "- n    = ", n_flux
+        write (*, '(X, A, F0.10, X, A)') "- n    = ", n_phase
+        write (*, '(X, A, F0.15, A)') "- mu   = ", mu*ENERGY_UNIT_IN_DIMENSIONLESS_GPE/(1.602d-19), " [eV]" 
+        write (*, *)
+    end if
 
     !----------------------- REAL TIME CALCULATION FROM HERE -------------------------------------------
     call initialize(Pot, 6)
