@@ -4,3 +4,4 @@
 *.o
 .vscode
 !gnuplot_vars.txt
+!quantities.txt
