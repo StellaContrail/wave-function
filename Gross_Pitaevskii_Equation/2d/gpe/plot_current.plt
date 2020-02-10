@@ -19,7 +19,7 @@ stats fn_wavefunction_real_result using 3 nooutput
 set zrange [STATS_min:STATS_max]
 set cbrange [STATS_min:STATS_max]
 stats fn_current_real_result using 3:4 nooutput
-SCALE = STATS_max_x > STATS_max_y ? 1.0/STATS_max_x : 1.0/STATS_max_y
+SCALE = 1.0 / sqrt(STATS_max_x**2 + STATS_max_y**2)
 do for [i=0: data_num-1] {
     if (i%skip_output == 0) {
         time_new = time(0.0)
