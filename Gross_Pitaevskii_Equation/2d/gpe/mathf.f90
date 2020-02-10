@@ -433,7 +433,7 @@ contains
         integer                       :: i
         double precision              :: sum
         integer                       :: lb, ub
-        integer,parameter             :: width = 5
+        integer,parameter             :: width = 35
         lb = floor(N/2d0) - width
         ub = ceiling(N/2d0) + width
 
@@ -471,7 +471,7 @@ contains
         integer                       :: i
         double precision              :: sum
         integer                       :: lb, ub
-        integer,parameter             :: width = 10
+        integer,parameter             :: width = 35
         lb = floor(N/2d0) - width
         ub = ceiling(N/2d0) + width
 
@@ -495,7 +495,7 @@ contains
         ! C3
         do i = ub, lb, -1
             if(phase(Phi(i-1,ub)) - phase(Phi(i+1,ub)) < 0) then
-                sum = sum - 0.5d0*( (phase(Phi(i+1,ub))+2d0*pi) - phase(Phi(i-1,ub)) )
+                sum = sum - 0.5d0*( (phase(Phi(i+1,ub))) - (phase(Phi(i-1,ub))+2d0*pi) )
             else
                 sum = sum + v_dr(Phi, i, ub, -1, 0)
             end if
@@ -503,7 +503,7 @@ contains
         ! C4
         do i = ub, lb, -1
             if (phase(Phi(lb,i-1)) - phase(Phi(lb,i+1)) < 0) then
-                sum = sum - 0.5d0*( (phase(Phi(lb, i+1))+2d0*pi) - phase(Phi(lb, i-1)) )
+                sum = sum - 0.5d0*( (phase(Phi(lb, i+1))) - (phase(Phi(lb, i-1))+2d0*pi) )
             else
                 sum = sum + v_dr(Phi, lb, i, 0, -1)
             end if
