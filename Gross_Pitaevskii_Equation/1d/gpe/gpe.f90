@@ -66,7 +66,7 @@ program main
     write (*, *) "Press Enter to initiate calculation"
     read (*, *)
 
-    call initialize(Pot, 3, Phi)
+    call initialize(Pot, 0, Phi)
     !call shift_phase(Phi, 1)
     write (*, '(X, A, F0.3, A, F0.3)') "- Phase Shifted at x = ", x0_vortex
     call output(fn_wavefunction_imaginary_initial, Phi)
@@ -102,7 +102,15 @@ program main
     end if
     call output(fn_wavefunction_imaginary_result, Phi)
     write (*, '(X, A, F0.15, A)') "- mu   = ", mu*ENERGY_UNIT_IN_DIMENSIONLESS_GPE/(1.602d-19), " [eV]" 
+    write (*, *) mu
     write (*, *)
+    open(11, file="gnuplot_vars.txt")
+    write (11, '(A, X, F0.10)') "xmax =", xmax
+    write (11, '(3A)')          "fn_potential_imaginary = '", fn_potential_imaginary, "'"
+    write (11, '(3A)')          "fn_wavefunction_imaginary_initial = '", fn_wavefunction_imaginary_initial, "'"
+    write (11, '(3A)')          "fn_wavefunction_imaginary_result = '", fn_wavefunction_imaginary_result, "'"
+    close (11)
+    stop
 
     !----------------------- REAL TIME CALCULATION FROM HERE -------------------------------------------
     call initialize(Pot, 3)

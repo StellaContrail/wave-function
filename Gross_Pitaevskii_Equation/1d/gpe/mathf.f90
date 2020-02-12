@@ -131,32 +131,20 @@ contains
         HPhi(:) = 0d0
         ! Laplacian part (Five Point Stencil)
         do i = 0, N
-            if (1 < i .and. i < N .and. .true.) then
-                HPhi(i) = -30d0*Phi(i)
-                if (0 < i) then
-                    HPhi(i) = HPhi(i) + 16d0*Phi(i-1)
-                end if
-                if (1 < i) then
-                    HPhi(i) = HPhi(i) - Phi(i-2)
-                end if
-                if (i < N-1) then
-                    HPhi(i) = HPhi(i) - Phi(i+2)
-                end if
-                if (i < N) then
-                    HPhi(i) = HPhi(i) + 16d0*Phi(i+1)
-                end if
+            if (1 < i .and. i < N-1) then
+                HPhi(i) = -Phi(i+2)+16d0*Phi(i+1)-30d0*Phi(i)+16d0*Phi(i-1)-Phi(i-2)
             else
                 if (i == 0) then
-                    HPhi(0) = 0d0!-2d0*Phi(2)+32d0*Phi(1)-30d0*Phi(0)
+                    HPhi(i) = -Phi(i+2)+16d0*Phi(i+1)-30d0*Phi(i)+16d0*Phi(i+1)-Phi(i+2)
                 end if
                 if (i == 1) then
-                    HPhi(1) = -Phi(3)+16d0*Phi(2)-30d0*Phi(1)+16d0*Phi(0)-Phi(1)
+                    HPhi(i) = -Phi(i+2)+16d0*Phi(i+1)-30d0*Phi(i)+16d0*Phi(i-1)-Phi(i+2)
                 end if
                 if (i == N) then
-                    HPhi(N) = 0d0!-Phi(N-2)+16d0*Phi(N-1)-30d0*Phi(N)+16d0*Phi(N-1)-Phi(N-2)
+                    HPhi(i) = -Phi(i-2)+16d0*Phi(i-1)-30d0*Phi(i)+16d0*Phi(i-1)-Phi(i-2)
                 end if
                 if (i == N-1) then
-                    HPhi(i) = -Phi(N-1)+16d0*Phi(N)-30d0*Phi(N-1)+16d0*Phi(N-2)-Phi(N-3)
+                    HPhi(i) = -Phi(i-2)+16d0*Phi(i+1)-30d0*Phi(i)+16d0*Phi(i-1)-Phi(i-2)
                 end if
             end if
 
