@@ -84,33 +84,28 @@ contains
         double precision                     :: density(0:N,0:N)
         integer                              :: i, j
         complex(kind(0d0))                   :: lambda
+        double precision                     :: dt
         if (isImag .and. (.not.present(m))) then
             stop "parameter m is missing when calling evolve()"
         end if
         if (isImag) then
-            lambda = dcmplx(1d0, 0d0)
+            lambda = 1d0
+            dt = dt_imag
         else
             lambda = iu
+            dt = dt_real
         end if
-
         Phi_old(:,:) = Phi(:,:)
+
         ! First term of Taylor expansion
         temp(:,:)    = Phi_old(:,:)
         Phi_new(:,:) = temp(:,:)
         ! Other terms of Taylor expansion
-        if (isImag) then
-            do i = 1, 15
-                Atemp        = apply_hamiltonian(temp, abs(Phi_old)**2d0, LzPhi, Pot, OMEGA)
-                temp(:,:)    = -lambda*Atemp(:,:)*dt_imag/(epsilon*i)
-                Phi_new(:,:) = Phi_new(:,:) + temp(:,:)
-            end do
-        else
-            do i = 1, 15
-                Atemp        = apply_hamiltonian(temp, abs(Phi_old)**2d0, LzPhi, Pot, OMEGA)
-                temp(:,:)    = -lambda*Atemp(:,:)*dt_real/(epsilon*i)
-                Phi_new(:,:) = Phi_new(:,:) + temp(:,:)
-            end do
-        end if
+        do i = 1, 15
+            Atemp        = apply_hamiltonian(temp, abs(Phi_old)**2d0, LzPhi, Pot, OMEGA)
+            temp(:,:)    = -lambda*Atemp(:,:)*dt/(epsilon*i)
+            Phi_new(:,:) = Phi_new(:,:) + temp(:,:)
+        end do
 
         ! Mix the previous density and calculated wave function's density
         if (isImag) then
@@ -123,19 +118,11 @@ contains
         temp(:,:)    = Phi_old(:,:)
         Phi_new(:,:) = temp(:,:)
         ! Other terms of Taylor expansion
-        if (isImag) then
-            do i = 1, 15
-                Atemp        = apply_hamiltonian(temp, density, LzPhi, Pot, OMEGA)
-                temp(:,:)    = -lambda*Atemp(:,:)*dt_imag/(epsilon*i)
-                Phi_new(:,:) = Phi_new(:,:) + temp(:,:)
-            end do
-        else
-            do i = 1, 15
-                Atemp        = apply_hamiltonian(temp, density, LzPhi, Pot, OMEGA)
-                temp(:,:)    = -lambda*Atemp(:,:)*dt_real/(epsilon*i)
-                Phi_new(:,:) = Phi_new(:,:) + temp(:,:)
-            end do
-        end if
+        do i = 1, 15
+            Atemp        = apply_hamiltonian(temp, density, LzPhi, Pot, OMEGA)
+            temp(:,:)    = -lambda*Atemp(:,:)*dt/(epsilon*i)
+            Phi_new(:,:) = Phi_new(:,:) + temp(:,:)
+        end do
 
         Phi(:,:) = Phi_new(:,:)
         if (isImag) then

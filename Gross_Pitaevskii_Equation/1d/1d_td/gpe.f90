@@ -45,17 +45,17 @@ program main
     omega            = 20d0 * pi
     ParticleCount    = 100
     ScatteringLength = 5.1d-9
-    N                = 2**8 - 1
+    N                = 300 - 1
     allocate (Phi_next(0:N), Phi_prev(0:N), Pot(0:N), mus(0:N), j(0:N), Pot_TD(0:N))
     allocate (Phi_temp(0:N), H(0:N,0:N))
     ! Calculation of coefficients and variables using defined physical values
-    xmax    = 10d0
     Azero   = sqrt(hbar/(omega*mass))
     Xs      = Azero   ! Usually chosen to be Azero for a weak/moderate interaction
     epsilon = (Azero/Xs)**2d0
-    kappa   = (4d0*pi*ScatteringLength*ParticleCount/Azero)*(Azero/Xs)**5d0
-    dh      = xmax / (n/2 + 0.5d0)
-    dt      = 0.4d0*dh*dh
+    kappa   = 0d0 !(4d0*pi*ScatteringLength*ParticleCount/Azero)*(Azero/Xs)**5d0
+    dh      = 0.05d0
+    dt      = 0.3d0*dh*dh
+    xmax    = (n/2 + 0.5d0) * dh
 
     ! Show configuration of fundamental physical constants
     print *, "Physical constants of the system----------------------------------"
@@ -100,7 +100,7 @@ program main
     open(11, file="data_current.txt")
     open(30, file="data_potential.txt")
     allocate(character(len=80) :: string)
-    enable = .true.
+    enable = .false.
     iter_interval = 50
     output_count = 0
     ! Solve the inconsistent equation until the wave function converges
@@ -117,11 +117,8 @@ program main
         write (string, '(X, A)') "- NLSE has been successfully calculated with first assumed density  |"
         call print_ex(string, enable, 'E', iter_interval, i)
 
-        ! Calculate the average wave function which are located at two different time points
-        Phi_temp(:) = sqrt(0.5d0*(abs(Phi_next(:))**2d0 + abs(Phi_prev(:))**2d0))
-
         ! Construct the hamiltonian using present wave function data
-        call hamiltonian(H, Pot_TD, abs(Phi_temp)**2d0, N, dh, epsilon, kappa)
+        call hamiltonian(H, Pot_TD, 0.5d0*(abs(Phi_next(:))**2d0 + abs(Phi_prev(:))**2d0), N, dh, epsilon, kappa)
         write (string, '(X, A)') "- New hamiltonian has been reconstructed with averaged density      |"
         call print_ex(string, enable, 'E', iter_interval, i)
 
@@ -160,7 +157,7 @@ program main
         write (string, '(X, A)') "- Finished                                                          |"
         call print_ex(string, enable, 'E', iter_interval, i)
 
-        call change_potential(Pot, Pot_TD, N, i)
+        !call change_potential(Pot, Pot_TD, N, i)
     end do
     print *, "---------------------------------------------------------------------"
     print *, ""

@@ -134,54 +134,6 @@ contains
         end do
     end subroutine
 
-    ! Solve Ax = lambda*x for lambda and x
-    subroutine solve_eigen(A, Z, lambda, N)
-        character,parameter              :: JOBZ  = 'V'             ! Eigenvalues and eigenvectors are computed
-        character,parameter              :: UPLO  = 'U'             ! The upper triangular part of A is stored
-        integer,intent(in)               :: N                       ! Number of division in space
-        double precision,intent(in)      :: A(1:N, 1:N)             ! Input Matrix
-        integer                          :: LDA                     ! The first dimension of the array A
-        double precision                 :: W(1:N)                  ! Eigenvalues in ascending order
-        complex(kind(0d0)),allocatable   :: WORK(:)                 ! Workspace
-        integer                          :: LWORK                   ! The dimension of the array work
-        double precision                 :: RWORK(1:3*N-2)          ! Workspace
-        integer                          :: INFO                    ! Success/Error indicator
-        complex(kind(0d0))               :: A_(1:N, 1:N)            ! Workspace
-        complex(kind(0d0))               :: Z(1:N)                  ! Eigenvector
-        double precision,intent(out)     :: lambda                  ! Eigenvalue
-
-        ! As the input matrix A_ would be partly overwritten, we don't want A to be changed.
-        A_(:, :) = dcmplx(A(:, :), 0d0)
-        ! LDZ is the first dimension of the array Z
-        LDA = N
-
-        ! Set parameters so the routine only calculates the optimal size of the WORK array.
-        allocate (WORK(1))
-        LWORK = -1
-        ! Call CHEEV subroutine to calculate the optimal size of the WORK array.
-        call zheev(JOBZ, UPLO, N, A_, LDA, W, WORK, LWORK, RWORK, INFO)
-        LWORK  = int(WORK(1))
-        ! Re-allocate the size of the array WORK
-        deallocate(WORK)
-        allocate(WORK(LWORK))
-        ! Actual calculation of eigenvalue equation
-        call zheev(JOBZ, UPLO, N, A_, LDA, W, WORK, LWORK, RWORK, INFO)
-        deallocate(WORK)
-
-        if (INFO < 0) then
-            write (*, *) "ERROR : Argument ", -INFO, " has illegal value"
-        else if (INFO == 1) then
-            write (*, *) "ERROR : The dqds algorithm failed to converge"
-            stop
-        else if (INFO == 2) then
-            write (*, *) "ERROR : Inverse iteration failed to converge"
-            stop
-        end if
-
-        lambda = W(1)
-        Z(:)   = A_(:, 1)
-    end subroutine solve_eigen
-
     ! Shift the phase of input complex vector f by Phase
     ! f        : COMPLEX array having dimension of N
     ! N        : Integer dimension of F

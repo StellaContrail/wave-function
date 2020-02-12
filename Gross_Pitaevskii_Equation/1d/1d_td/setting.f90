@@ -17,18 +17,24 @@ contains
       double precision x, dummy, real_part, imag_part
       Phi_next(:) = dcmplx(0d0, 0d0)
 
-      open(11, file="data_shifted.txt")
+      !open(11, file="data_shifted.txt")
       do i = 0, N
          x = -xmax + dh*i
-         Pot(i) = 0.5d0*x*x
-         
+         !Pot(i) = 0.5d0*x*x
+         Pot(i) = 0d0
+         if (0d0 < x) then
+            Pot(i) = 0.8d0
+         end if
+
          ! Read wave function data from a file
-         read (11, *) dummy, real_part, imag_part, dummy
-         Phi_prev(i) = dcmplx(real_part, imag_part)
+         !read (11, *) dummy, real_part, imag_part, dummy
+         !Phi_prev(i) = dcmplx(real_part, imag_part)
          ! Assume the form of the initial wave function
          !Phi_prev(i) = exp(-0.5d0*x*x/(Azero*Azero))+x*exp(-0.5d0*x*x/(Azero*Azero))
+         !Phi_prev(i) = exp(-0.5d0*(x+0.5d0)**2d0)
+         Phi_prev(i) = exp(-0.5d0*((x+2d0)/(0.5d0))**2d0)*exp(dcmplx(0d0,1d0)*1d0*x)
       end do
-      close(11)
+      !close(11)
    end subroutine initialize
 
    ! Construct the hamiltonian

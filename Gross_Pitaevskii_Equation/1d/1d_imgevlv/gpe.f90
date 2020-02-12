@@ -48,19 +48,19 @@ program main
     ! by Weizhu Bao et al. (2003)
     mass             = 1.4d-25
     omega            = 20d0 * pi
-    ParticleCount    = 100
-    ScatteringLength = 5.1d-9
-    N                = 2**8 - 1
+    ParticleCount    = 10000
+    ScatteringLength = -5.1d-11
+    N                = 500 - 1
     allocate (Phi_next(0:N), Phi_prev(0:N), Pot(0:N), mus(0:N), j(0:N))
     allocate (Phi_temp(0:N), H(0:N,0:N))
     ! Calculation of coefficients and variables using defined physical values
-    xmax    = 10d0
     Azero   = sqrt(hbar/(omega*mass))
     Xs      = Azero   ! Usually chosen to be Azero for a weak/moderate interaction
     epsilon = (Azero/Xs)**2d0
     kappa   = (4d0*pi*ScatteringLength*ParticleCount/Azero)*(Azero/Xs)**5d0
-    dh      = xmax / (n/2 + 0.5d0)
-    dt      = 0.1d0*dh*dh
+    dh      = 0.1d0
+    dt      = 0.3d0*dh*dh
+    xmax    = (n/2 + 0.5d0) * dh
     loop_end_flag = .false.
 
     ! Show configuration of fundamental physical constants
@@ -108,7 +108,7 @@ program main
     open(10, file="data.txt")
     open(11, file="data_current.txt")
     allocate(character(len=80) :: string)
-    enable = .true.
+    enable = .false.
     iter_interval = 1
     ! Solve the inconsistent equation until the wave function converges
     do i = 1, 50000

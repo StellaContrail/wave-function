@@ -52,7 +52,7 @@ contains
         ans(:) = temp(:)
 
         ! Other terms of Taylor expansion
-        do i = 1, 4
+        do i = 1, 20
             call multiply_symmetry(A, temp, N, Atemp)
             temp(:)   = -iu*Atemp*dt/(epsilon*i)
             ans(:) = ans(:) + temp(:)

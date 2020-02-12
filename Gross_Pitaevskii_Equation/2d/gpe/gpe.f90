@@ -77,21 +77,26 @@ program main
     ! .FALSE. => Solve time development
     if (.true.) then
         write (*, *) "Calculation initiated."
-        open  (12, file="quantities.txt", status="old", action="write")
+        open (12, file="quantities.txt", action="write")
+        open (11, file=fn_energy_iteration_dependance_imaginary)
         n_vortex = 1
-        do j = 0, 60
+        do j = 31, 60
             call initialize(Pot, 6, Phi)
             call make_vortex(Phi, n_vortex, R0)
             LzPhi = calc_LzPhi(Phi)
             Lz    = calc_Lz(Phi, LzPhi, .true.)
             mu = solve_energy(Phi, Pot, LzPhi, dble(j))
+            write (11, *) 0, mu
             limit_iterations = 500000
             do i = 1, limit_iterations
                 LzPhi = calc_LzPhi(Phi)
                 call evolve(Phi, LzPhi, Pot, dble(j), .true., 0.7d0)
                 mu_old = mu
                 mu = solve_energy(Phi, Pot, LzPhi, dble(j))
+                write (11, *) i, mu
                 if (abs(mu_old - mu) < 1d-10) then
+                    write (*, '(A)', advance='no') char(13)
+                    write (*, '(I3, X, F0.10)', advance='no') j, abs(mu_old - mu)
                     write (*, *)
                     write (*, '(X, A, I0, A)') "- Calculation successfully completed with ", i, " iterations"
                     exit
@@ -105,6 +110,7 @@ program main
             if (i >= limit_iterations) then
                 write (*, *)
                 write (*, *) "* Calculation has been exceeded its iteration limit. Incorrect result is expected."
+                close (11)
                 close (12)
             end if
             LzPhi = calc_LzPhi(Phi)
@@ -116,6 +122,7 @@ program main
 
             write (12, *) j, Lz, mu, mu*ENERGY_UNIT_IN_DIMENSIONLESS_GPE/(1.602d-19), n_phase, n_flux
         end do
+        close (11)
         close (12)
 
         stop

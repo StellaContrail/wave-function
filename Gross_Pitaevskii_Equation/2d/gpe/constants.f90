@@ -23,7 +23,7 @@ module constants
     integer         ,  parameter :: N                = 100 - 1
     ! Space and time step
     double precision,  parameter :: dh               = 0.1d0
-    double precision,  parameter :: dt_imag          = 0.001d0
+    double precision,  parameter :: dt_imag          = 0.0005d0
     double precision,  parameter :: dt_real          = 0.001d0
     ! Cranking model's angular velocity (Dimension is the same with omega_x or omega_y)
     double precision,  parameter :: OMEGA_imag       = 0d0
