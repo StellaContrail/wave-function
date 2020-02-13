@@ -1,4 +1,4 @@
-set terminal gif animate delay 10 optimize size 800,800
+set terminal gif animate delay 10 optimize size 800,600
 set output "data.gif"
 load "gnuplot_vars.txt"
 # SETTINGS
@@ -9,11 +9,29 @@ time_new    = 0.0
 time_old    = 0.0
 stats fn_wavefunction_real_result u 3 nooutput
 set xrange [-xmax:xmax]
-set yrange [0:1]
-set xlabel "X"
-set ylabel "Probability"
+set xrange [-10:10]
+set yrange [0:0.2]
+set xlabel "X/a0"
+set ylabel "Density"
+set grid
 isdebug     = 1
-set xtics 1
+set xtics 5
+set ytics 0.05
+
+set terminal png size 800, 600
+set output "data_0.png"
+set title sprintf("Density\n( T = %.3f )", dt*0*iter_output)
+plot fn_wavefunction_real_result using 1:2 every :::0::0 title "" with lines
+
+set output "data_1.png"
+set title sprintf("Density\n( T = %.3f )", dt*((data_num-1)/2)*iter_output)
+plot fn_wavefunction_real_result using 1:2 every :::(data_num-1)/2::(data_num-1)/2 title "" with lines
+
+set output "data_2.png"
+set title sprintf("Density\n( T = %.3f )", dt*(data_num-1)*iter_output)
+plot fn_wavefunction_real_result using 1:2 every :::data_num-1::data_num-1 title "" with lines
+pause -1 'test'
+
 do for [i=0: data_num-1] {
     if (i%skip_output == 0) {
         time_new = time(0.0)
@@ -50,8 +68,8 @@ do for [i=0: data_num-1] {
             splot fn_potential_imaginary using 1:2:4 every :::M*i::M*(i+1)-1 title "" with pm3d
         unset multiplot
     } else {
-        set title sprintf("Time development of Non-Linear Schroedinger Equation\n( T = %.3f )", dt*i*iter_output)
-        plot fn_wavefunction_real_result using 1:2 every :::i::i title "" with lines, fn_potential_imaginary using 1:2 title "" with lines
+        set title sprintf("Density\n( T = %.3f )", dt*i*iter_output)
+        plot fn_wavefunction_real_result using 1:2 every :::i::i title "" with lines#, fn_potential_imaginary using 1:2 title "" with lines
     }
 }
 unset output

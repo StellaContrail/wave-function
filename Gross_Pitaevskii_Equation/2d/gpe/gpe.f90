@@ -33,6 +33,7 @@ program main
     character(*),parameter       :: fn_wavefunction_imaginary_initial        = "wavefunction_imaginary_initial.txt"
     character(*),parameter       :: fn_wavefunction_imaginary_result         = "wavefunction_imaginary_final.txt"
     character(*),parameter       :: fn_wavefunction_real_result              = "wavefunction_real_time_development.txt"
+    character(*),parameter       :: fn_current_imag_result                   = "probability_current_imag_result.txt"
     character(*),parameter       :: fn_current_real_result                   = "probability_current_real_time_development.txt"
     character(*),parameter       :: fn_rotation_real_result                  = "rotation_real_time_development.txt"
     character(*),parameter       :: fn_phase_distribution_imag_result        = "phase_distribution_imaginary.txt"
@@ -75,7 +76,7 @@ program main
 
     ! .TRUE.  => Solve Quantities
     ! .FALSE. => Solve time development
-    if (.true.) then
+    if (.false.) then
         write (*, *) "Calculation initiated."
         open (12, file="quantities.txt", action="write")
         open (11, file=fn_energy_iteration_dependance_imaginary)
@@ -129,9 +130,9 @@ program main
     else
         write (*, *) "Press Enter to initiate calculation"
         read (*, *)
-        n_vortex = 1
+        n_vortex = 2
         call initialize(Pot, 6, Phi)
-        call make_vortex(Phi, n_vortex, R0)
+        call make_vortex(Phi, n_vortex)
         write (*, '(X, A, F0.3, A, F0.3, A)') "- Phase Shifted at (",x0_vortex, ", ", y0_vortex, ")"
         write (*, '(X, A, F0.10)') "- OMEGA = ", OMEGA_imag
         call output(fn_wavefunction_imaginary_initial, Phi)
@@ -186,10 +187,12 @@ program main
         write (*, '(X, A, F0.10, X, A)') "- n    = ", n_phase
         write (*, '(X, A, F0.15, A)') "- mu   = ", mu*ENERGY_UNIT_IN_DIMENSIONLESS_GPE/(1.602d-19), " [eV]" 
         write (*, *)
+        call output(fn_current_imag_result, Flux)
+        !call make_vortex(Phi, n_vortex)
     end if
 
     !----------------------- REAL TIME CALCULATION FROM HERE -------------------------------------------
-    call initialize(Pot, 6)
+    call initialize(Pot, 5)
     call output_potential(fn_potential_real, Pot)
     write (*, '(X, A)') "* Calculating 2D GPE real-time evoluton of calculated wave function"
     write (*, '(X, A, F0.10)') "- OMEGA = ", OMEGA_real
@@ -270,6 +273,7 @@ program main
     write (10, '(A)') "# Distance of how far the system is defined"
     write (10, '(A, X, F0.10)') "xmax =", xmax
     write (10, '(A)') "# File names of saved results"
+    write (10, '(3A)')          "fn_potential_real ='", fn_potential_real, "'" 
     write (10, '(3A)')          "fn_potential_imaginary = '", fn_potential_imaginary, "'"
     write (10, '(3A)')          "fn_wavefunction_imaginary_initial = '", fn_wavefunction_imaginary_initial, "'"
     write (10, '(3A)')          "fn_wavefunction_imaginary_result = '", fn_wavefunction_imaginary_result, "'"
@@ -298,8 +302,8 @@ program main
     close(10)
 
     ! Plot wave function time-lapse (Gnuplot command must be enabled in terminal)
-    write (*, *) "Current animation"
-    call execute_command_line('gnuplot "plot_current.plt"')
-    write (*, *) "Phase animation"
-    call execute_command_line('gnuplot "plot_phase.plt"')
+    !write (*, *) "Current animation"
+    !call execute_command_line('gnuplot "plot_current.plt"')
+    !write (*, *) "Phase animation"
+    !call execute_command_line('gnuplot "plot_phase.plt"')
 end program 

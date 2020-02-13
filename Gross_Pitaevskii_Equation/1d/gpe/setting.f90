@@ -17,9 +17,6 @@ contains
             if (present(Phi)) then
                 ! Initial trial wave function
                 Phi(i) = exp(-0.5d0*x*x)
-                if (0 < x) then
-                    Phi(i) = Phi(i) * exp(iu*pi)
-                end if
             end if
 
             ! External potential

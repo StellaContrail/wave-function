@@ -1,4 +1,33 @@
-xmax = 6.2375000000
+# A particle's mass
+mass = .0000000000
+# Angular velocity of Harmonic Oscillator Potential
+omega_x = 674.2000122070
+# Number of particles in superfluid
+ParticleCount = 1000
+# S-wave scattering length
+ScatteringLength = .0000000058
+# Characteristic length
+CharacteristicLength = .0000010364
+# Space step
+dh = .0500000000
+# Time step
+dt = .0001000000
+# Dimension subtracted by one
+N = 499
+# Pinning Location
+x0 = .0000000000
+# Number of iterations to calculate real-time development
+iter = 5000
+# Number of iterations to skip in real-time development
+iter_output = 50
+# Distance of how far the system is defined
+xmax = 12.4750000000
+# File names of saved results
 fn_potential_imaginary = 'potential_imaginary.txt'
 fn_wavefunction_imaginary_initial = 'wavefunction_imaginary_initial.txt'
 fn_wavefunction_imaginary_result = 'wavefunction_imaginary_final.txt'
+fn_wavefunction_real_result = 'wavefunction_real_time_development.txt'
+fn_current_real_result = 'probability_current_real_time_development.txt'
+fn_phase_distribution_real_result = 'phase_distribution_real_time_development.txt'
+# Vortex location
+x0_vortex = .0000000000

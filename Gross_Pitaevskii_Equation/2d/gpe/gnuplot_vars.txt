@@ -1,0 +1,53 @@
+# A particle's mass
+mass = .0000000000
+# Angular velocity of Harmonic Oscillator Potential
+omega_x = 62.8318530718
+omega_y = 62.8318530718
+# Number of particles in superfluid
+ParticleCount = 1000.0000000000
+# S-wave scattering length
+ScatteringLength = .0000000051
+# Characteristic length
+CharacteristicLength = .0000034066
+# Space step
+dh = .1000000000
+# Time step
+dt = .0040000000
+# Dimension subtracted by one
+N = 99
+# Pinning Location
+x0 = 1.0000000000
+y0 = 1.0000000000
+# Number of iterations to calculate real-time development
+iter = 5000
+# Number of iterations to skip in real-time development
+iter_output = 50
+# Distance of how far the system is defined
+xmax = 4.9500000000
+# File names of saved results
+fn_potential_real ='potential_real.txt'
+fn_potential_imaginary = 'potential_imaginary.txt'
+fn_wavefunction_imaginary_initial = 'wavefunction_imaginary_initial.txt'
+fn_wavefunction_imaginary_result = 'wavefunction_imaginary_final.txt'
+fn_wavefunction_real_result = 'wavefunction_real_time_development.txt'
+fn_current_real_result = 'probability_current_real_time_development.txt'
+fn_rotation_real_result = 'rotation_real_time_development.txt'
+fn_phase_distribution_real_result = 'phase_distribution_real_time_development.txt'
+# Angular velocity of Cranking model in each (imaginary/real)-time development
+OMEGA_imag = .0000000000
+OMEGA_real = .0000000000
+# Circularly-Symmetric Trap Potential Settings
+# - Height
+Vmax = 200.0000000000
+# - Radius
+R0 = 4.0000000000
+# Pinning Potential Setings
+# - Depth
+V0 = 90.0000000000
+# - How steep the pinning's slope is
+delta = 4.0000000000
+# - How wide the pinning is
+alpha = .0000000000
+# Vortex location
+x0_vortex = .0000000000
+y0_vortex = .0000000000

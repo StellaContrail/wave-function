@@ -13,10 +13,8 @@ set xtics 1
 set ytics 1
 set xrange [-xmax:xmax]
 set yrange [-xmax:xmax]
-set xlabel "X (Unit:Xs)"
-set ylabel "Y (Unit:Xs)"
-set view 0, 0, 1, 1
-set palette gray
+set xlabel "X/a0"
+set ylabel "Y/a0"
 stats fn_phase_distribution_real_result using 4 nooutput
 set zrange  [STATS_min:STATS_max]
 set cbrange [STATS_min:STATS_max]

@@ -30,7 +30,8 @@ contains
                 case (1)
                     ! Harmonic Oscillator Trap and Very Narrow Gaussian-shaped Wall at the center
                     Pot(i, j) = 0.5d0*(x**2d0+(gamma*y)**2d0)
-                    Pot(i, j) = Pot(i, j) + 100d0*exp(-0.5d0*(x*x+y*y)/(0.5d0)**2d0)
+                    ! Pinning trap located at (x0, y0)
+                    Pot(i, j) = Pot(i, j) - V0*(tanh(4*(sqrt((x-x0)**2d0+(y-y0)**2d0)))-1d0)
                 case (2)
                     ! Box Trap
                     if (abs(x) < 3d0 .and. abs(y) < 3d0) then

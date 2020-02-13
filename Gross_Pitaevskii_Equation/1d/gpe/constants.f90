@@ -20,14 +20,14 @@ module constants
     !integer,           parameter :: ParticleCount    = 1000
     !double precision,  parameter :: ScatteringLength = -23.3*0.529d-10 !5.1d-9
     ! 87Rb
-    double precision,  parameter :: mass             = 1.45d-25 !1.16d-26 !1.44d-25
-    double precision,  parameter :: omega_x          = 674.20 !908.41 !20d0*pi
+    double precision,  parameter :: mass             = 1.45d-25 !1.44d-25
+    double precision,  parameter :: omega_x          = 674.20 !20d0*pi
     integer,           parameter :: ParticleCount    = 1000
-    double precision,  parameter :: ScatteringLength = 109d0*0.529d-10 !-23.3*0.529d-10 !5.1d-9
+    double precision,  parameter :: ScatteringLength = 109d0*0.529d-10 !5.1d-9
     ! Dimension
     integer         ,  parameter :: N                = 500 - 1
     ! Space and time step
-    double precision,  parameter :: dh               = 0.025d0
+    double precision,  parameter :: dh               = 0.05d0
     double precision,  parameter :: dt_imag          = 0.0001d0
     double precision,  parameter :: dt_real          = 0.0001d0
     ! Height of trap potential

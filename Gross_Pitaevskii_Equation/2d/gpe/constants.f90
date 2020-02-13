@@ -23,8 +23,8 @@ module constants
     integer         ,  parameter :: N                = 100 - 1
     ! Space and time step
     double precision,  parameter :: dh               = 0.1d0
-    double precision,  parameter :: dt_imag          = 0.0005d0
-    double precision,  parameter :: dt_real          = 0.001d0
+    double precision,  parameter :: dt_imag          = 0.004d0
+    double precision,  parameter :: dt_real          = 0.004d0
     ! Cranking model's angular velocity (Dimension is the same with omega_x or omega_y)
     double precision,  parameter :: OMEGA_imag       = 0d0
     double precision,  parameter :: OMEGA_real       = 0d0
@@ -41,8 +41,8 @@ module constants
     double precision,  parameter :: x0_vortex        = 0d0
     double precision,  parameter :: y0_vortex        = 0d0
     ! Pinning site is located at this location
-    double precision,  parameter :: x0               = 0d0
-    double precision,  parameter :: y0               = 0d0
+    double precision,  parameter :: x0               = 1d0
+    double precision,  parameter :: y0               = 1d0
     ! whether to be in co-rotating frame with changing phase in phase animation
     logical,           parameter :: onRotating       = .true.
 
