@@ -14,32 +14,32 @@ module constants
 
     ! Calculation settings
     double precision,  parameter :: hbar             = AU_SI_hbar
-    double precision,  parameter :: mass             = 1.44d-25
-    double precision,  parameter :: omega_x          = 20d0*pi
-    double precision,  parameter :: omega_y          = 20d0*pi
+    double precision,  parameter :: mass             = 1.45d-25
+    double precision,  parameter :: omega_x          = 674.20
+    double precision,  parameter :: omega_y          = 674.20
     double precision,  parameter :: ParticleCount    = 1000
-    double precision,  parameter :: ScatteringLength = 5.1d-9
+    double precision,  parameter :: ScatteringLength = 109d0*0.529d-10
     ! Dimension
     integer         ,  parameter :: N                = 100 - 1
     ! Space and time step
-    double precision,  parameter :: dh               = 0.1d0
-    double precision,  parameter :: dt_imag          = 0.004d0
-    double precision,  parameter :: dt_real          = 0.004d0
+    double precision,  parameter :: dh               = 0.2d0
+    double precision,  parameter :: dt_imag          = 0.01d0
+    double precision,  parameter :: dt_real          = 0.001d0
     ! Cranking model's angular velocity (Dimension is the same with omega_x or omega_y)
     double precision,  parameter :: OMEGA_imag       = 0d0
-    double precision,  parameter :: OMEGA_real       = 0d0
+    double precision,  parameter :: OMEGA_real       = -0.010
     ! Height of trap potential
     double precision,  parameter :: Vmax             = 200d0
     ! Depth/Height of pinning potential (Dimensionless)
     double precision,  parameter :: V0               = 90d0
     ! Radius of circulary trap potential
-    double precision,  parameter :: R0               = 4d0
+    double precision,  parameter :: R0               = 9d0
     ! Other settings about pinning potential
     double precision,  parameter :: delta            = 4d0
     double precision,  parameter :: alpha            = 0d0
     ! Phase is shifted around this location
-    double precision,  parameter :: x0_vortex        = 0d0
-    double precision,  parameter :: y0_vortex        = 0d0
+    double precision,  parameter :: x0_vortex        = 1d0
+    double precision,  parameter :: y0_vortex        = 1d0
     ! Pinning site is located at this location
     double precision,  parameter :: x0               = 1d0
     double precision,  parameter :: y0               = 1d0

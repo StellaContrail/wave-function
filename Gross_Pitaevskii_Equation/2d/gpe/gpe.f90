@@ -21,7 +21,7 @@ program main
     integer                        :: time_iterations
     integer                        :: time_iterations_interval
     double precision               :: n_flux, n_phase
-    integer                        :: n_vortex
+    integer                        :: n_vortex, imag_pot_mode, real_pot_mode
 
     ! Coefficients and variables (not user defined)
     integer                        :: i,j              ! Loop variable
@@ -76,14 +76,16 @@ program main
 
     ! .TRUE.  => Solve Quantities
     ! .FALSE. => Solve time development
+    n_vortex = 1
+    imag_pot_mode = 5
+    real_pot_mode = 6
     if (.false.) then
         write (*, *) "Calculation initiated."
         open (12, file="quantities.txt", action="write")
         open (11, file=fn_energy_iteration_dependance_imaginary)
-        n_vortex = 1
-        do j = 31, 60
-            call initialize(Pot, 6, Phi)
-            call make_vortex(Phi, n_vortex, R0)
+        do j = 0, 19
+            call initialize(Pot, imag_pot_mode, Phi)
+            call make_vortex(Phi, n_vortex)
             LzPhi = calc_LzPhi(Phi)
             Lz    = calc_Lz(Phi, LzPhi, .true.)
             mu = solve_energy(Phi, Pot, LzPhi, dble(j))
@@ -119,19 +121,17 @@ program main
             Flux = calc_flux(Phi)
             n_flux  = circulation(Phi, Flux) / (2d0*pi)
             n_phase = circulation(Phi) / (2d0*pi)
-            write (*, *) "Iteration:", j, " / 60"
+            write (*, '(I0, X, 5(F0.5, X))') j, Lz, mu, mu*ENERGY_UNIT_IN_DIMENSIONLESS_GPE/(1.602d-19), n_phase, n_flux
 
             write (12, *) j, Lz, mu, mu*ENERGY_UNIT_IN_DIMENSIONLESS_GPE/(1.602d-19), n_phase, n_flux
         end do
         close (11)
         close (12)
 
-        stop
     else
         write (*, *) "Press Enter to initiate calculation"
         read (*, *)
-        n_vortex = 2
-        call initialize(Pot, 6, Phi)
+        call initialize(Pot, imag_pot_mode, Phi)
         call make_vortex(Phi, n_vortex)
         write (*, '(X, A, F0.3, A, F0.3, A)') "- Phase Shifted at (",x0_vortex, ", ", y0_vortex, ")"
         write (*, '(X, A, F0.10)') "- OMEGA = ", OMEGA_imag
@@ -180,19 +180,21 @@ program main
         LzPhi = calc_LzPhi(Phi)
         Lz = calc_Lz(Phi, LzPhi, .true.)
         Flux = calc_flux(Phi)
+        call output(fn_current_imag_result, Flux)
         n_flux  = circulation(Phi, Flux) / (2d0*pi)
         n_phase = circulation(Phi) / (2d0*pi)
-        write (*, '(X, A, F0.10, X, A)') "- <Lz> = ", Lz, "hbar"
-        write (*, '(X, A, F0.10, X, A)') "- n    = ", n_flux
-        write (*, '(X, A, F0.10, X, A)') "- n    = ", n_phase
-        write (*, '(X, A, F0.15, A)') "- mu   = ", mu*ENERGY_UNIT_IN_DIMENSIONLESS_GPE/(1.602d-19), " [eV]" 
+        write (*, '(X, A, F0.10, A)')    "- <Lz>    = ", Lz, " hbar"
+        write (*, '(X, A, F0.15, A)')    "- mu      = ", mu*ENERGY_UNIT_IN_DIMENSIONLESS_GPE/(1.602d-19), " [eV]"
+        write (*, '(X, A, F0.10, X, A)') "- n_flux  = ", circulation(Phi, Flux) / (2d0*pi)
+        write (*, '(X, A, F0.10, X, A)') "- n_phase = ", circulation(Phi) / (2d0*pi)
         write (*, *)
-        call output(fn_current_imag_result, Flux)
+        
         !call make_vortex(Phi, n_vortex)
     end if
 
     !----------------------- REAL TIME CALCULATION FROM HERE -------------------------------------------
-    call initialize(Pot, 5)
+    if (.true.) then
+    call initialize(Pot, real_pot_mode)
     call output_potential(fn_potential_real, Pot)
     write (*, '(X, A)') "* Calculating 2D GPE real-time evoluton of calculated wave function"
     write (*, '(X, A, F0.10)') "- OMEGA = ", OMEGA_real
@@ -239,11 +241,11 @@ program main
     write (*, '(X, A, F5.1, A)') "- Calculation took ", t2 - t1, " sec"
     LzPhi = calc_LzPhi(Phi)
     Lz = calc_Lz(Phi, LzPhi, .false.)
-    write (*, '(X, A, F0.10, A)') "- <Lz> = ", Lz, " hbar"
-    write (*, '(X, A, F0.15, A)') "- mu   = ", mu*ENERGY_UNIT_IN_DIMENSIONLESS_GPE/(1.602d-19), " [eV]"
-    write (*, '(X, A, F0.10, X, A)') "- n    = ", circulation(Phi, Flux) / (2d0*pi)
-    write (*, '(X, A, F0.10, X, A)') "- n    = ", circulation(Phi) / (2d0*pi)
-
+    write (*, '(X, A, F0.10, A)')    "- <Lz>    = ", Lz, " hbar"
+    write (*, '(X, A, F0.15, A)')    "- mu      = ", mu*ENERGY_UNIT_IN_DIMENSIONLESS_GPE/(1.602d-19), " [eV]"
+    write (*, '(X, A, F0.10, X, A)') "- n_flux  = ", circulation(Phi, Flux) / (2d0*pi)
+    write (*, '(X, A, F0.10, X, A)') "- n_phase = ", circulation(Phi) / (2d0*pi)
+    end if
     ! Output variables data
     open(10, file="gnuplot_vars.txt")
     write (10, '(A)') "# A particle's mass"
@@ -278,8 +280,10 @@ program main
     write (10, '(3A)')          "fn_wavefunction_imaginary_initial = '", fn_wavefunction_imaginary_initial, "'"
     write (10, '(3A)')          "fn_wavefunction_imaginary_result = '", fn_wavefunction_imaginary_result, "'"
     write (10, '(3A)')          "fn_wavefunction_real_result = '", fn_wavefunction_real_result, "'"
+    write (10, '(3A)')          "fn_current_imag_result = '", fn_current_imag_result, "'"
     write (10, '(3A)')          "fn_current_real_result = '", fn_current_real_result, "'"
     write (10, '(3A)')          "fn_rotation_real_result = '", fn_rotation_real_result, "'"
+    write (10, '(3A)')          "fn_phase_distribution_imag_result = '", fn_phase_distribution_imag_result, "'"
     write (10, '(3A)')          "fn_phase_distribution_real_result = '", fn_phase_distribution_real_result, "'"
     write (10, '(A)') "# Angular velocity of Cranking model in each (imaginary/real)-time development"
     write (10, '(A, X, F0.10)') "OMEGA_imag =", OMEGA_imag
@@ -302,8 +306,8 @@ program main
     close(10)
 
     ! Plot wave function time-lapse (Gnuplot command must be enabled in terminal)
-    !write (*, *) "Current animation"
-    !call execute_command_line('gnuplot "plot_current.plt"')
+    write (*, *) "Current animation"
+    call execute_command_line('gnuplot "plot_current.plt"')
     !write (*, *) "Phase animation"
-    !call execute_command_line('gnuplot "plot_phase.plt"')
+    call execute_command_line('gnuplot "plot_phase.plt"')
 end program 
