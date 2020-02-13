@@ -77,36 +77,36 @@ program main
     ! .TRUE.  => Solve Quantities
     ! .FALSE. => Solve time development
     n_vortex = 1
-    imag_pot_mode = 5
-    real_pot_mode = 6
-    if (.false.) then
+    imag_pot_mode = 6
+    real_pot_mode = 5
+    if (.true.) then
         write (*, *) "Calculation initiated."
         open (12, file="quantities.txt", action="write")
         open (11, file=fn_energy_iteration_dependance_imaginary)
-        do j = 0, 19
+        do j = 0, 40
             call initialize(Pot, imag_pot_mode, Phi)
             call make_vortex(Phi, n_vortex)
             LzPhi = calc_LzPhi(Phi)
             Lz    = calc_Lz(Phi, LzPhi, .true.)
-            mu = solve_energy(Phi, Pot, LzPhi, dble(j))
+            mu = solve_energy(Phi, Pot, LzPhi, 0.25d0*j)
             write (11, *) 0, mu
             limit_iterations = 500000
             do i = 1, limit_iterations
                 LzPhi = calc_LzPhi(Phi)
-                call evolve(Phi, LzPhi, Pot, dble(j), .true., 0.7d0)
+                call evolve(Phi, LzPhi, Pot, 0.25d0*j, .true., 0.7d0)
                 mu_old = mu
-                mu = solve_energy(Phi, Pot, LzPhi, dble(j))
+                mu = solve_energy(Phi, Pot, LzPhi, 0.25d0*j)
                 write (11, *) i, mu
                 if (abs(mu_old - mu) < 1d-10) then
                     write (*, '(A)', advance='no') char(13)
-                    write (*, '(I3, X, F0.10)', advance='no') j, abs(mu_old - mu)
+                    write (*, '(F0.10, X, F0.11)', advance='no') 0.25d0*j, abs(mu_old - mu)
                     write (*, *)
                     write (*, '(X, A, I0, A)') "- Calculation successfully completed with ", i, " iterations"
                     exit
                 else
                     if (mod(i,100) == 0) then
                         write (*, '(A)', advance='no') char(13)
-                        write (*, '(I3, X, F0.10)', advance='no') j, abs(mu_old - mu)
+                        write (*, '(F0.10, X, F0.10)', advance='no') 0.25d0*j, abs(mu_old - mu)
                     end if
                 end if
             end do
@@ -121,9 +121,9 @@ program main
             Flux = calc_flux(Phi)
             n_flux  = circulation(Phi, Flux) / (2d0*pi)
             n_phase = circulation(Phi) / (2d0*pi)
-            write (*, '(I0, X, 5(F0.5, X))') j, Lz, mu, mu*ENERGY_UNIT_IN_DIMENSIONLESS_GPE/(1.602d-19), n_phase, n_flux
+            write (*, '(F0.10, X, 5(F0.5, X))') 0.25d0*j, Lz, mu, mu*ENERGY_UNIT_IN_DIMENSIONLESS_GPE/(1.602d-19), n_phase, n_flux
 
-            write (12, *) j, Lz, mu, mu*ENERGY_UNIT_IN_DIMENSIONLESS_GPE/(1.602d-19), n_phase, n_flux
+            write (12, *) 0.25d0*j, Lz, mu, mu*ENERGY_UNIT_IN_DIMENSIONLESS_GPE/(1.602d-19), n_phase, n_flux
         end do
         close (11)
         close (12)
@@ -193,7 +193,7 @@ program main
     end if
 
     !----------------------- REAL TIME CALCULATION FROM HERE -------------------------------------------
-    if (.true.) then
+    if (.false.) then
     call initialize(Pot, real_pot_mode)
     call output_potential(fn_potential_real, Pot)
     write (*, '(X, A)') "* Calculating 2D GPE real-time evoluton of calculated wave function"

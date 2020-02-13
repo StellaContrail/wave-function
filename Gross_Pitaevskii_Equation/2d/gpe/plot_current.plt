@@ -16,8 +16,8 @@ set ylabel "Y (Unit:Xs)"
 set view 0, 0, 1, 1
 set palette rgbformulae 22,13,10
 stats fn_wavefunction_real_result using 3 nooutput
-set zrange [STATS_min:STATS_max]
-set cbrange [STATS_min:STATS_max]
+set zrange [0:1]
+set cbrange [0:STATS_max]
 stats fn_current_real_result using 3:4 nooutput
 SCALE = 1.0 / sqrt(STATS_max_x**2 + STATS_max_y**2)
 do for [i=0: data_num-1] {

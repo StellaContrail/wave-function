@@ -15,19 +15,19 @@ module constants
     ! Calculation settings
     double precision,  parameter :: hbar             = AU_SI_hbar
     double precision,  parameter :: mass             = 1.45d-25
-    double precision,  parameter :: omega_x          = 674.20
-    double precision,  parameter :: omega_y          = 674.20
+    double precision,  parameter :: omega_x          = 20d0*pi ! 20d0*pi ! 674.20d0
+    double precision,  parameter :: omega_y          = 20d0*pi ! 20d0*pi ! 674.20d0
     double precision,  parameter :: ParticleCount    = 1000
-    double precision,  parameter :: ScatteringLength = 109d0*0.529d-10
+    double precision,  parameter :: ScatteringLength = 109d0*0.529d-10 !109d0*0.529d-10
     ! Dimension
     integer         ,  parameter :: N                = 100 - 1
     ! Space and time step
     double precision,  parameter :: dh               = 0.2d0
     double precision,  parameter :: dt_imag          = 0.01d0
-    double precision,  parameter :: dt_real          = 0.001d0
+    double precision,  parameter :: dt_real          = 0.01d0
     ! Cranking model's angular velocity (Dimension is the same with omega_x or omega_y)
-    double precision,  parameter :: OMEGA_imag       = 0d0
-    double precision,  parameter :: OMEGA_real       = -0.010
+    double precision,  parameter :: OMEGA_imag       = 10d0
+    double precision,  parameter :: OMEGA_real       = 0d0
     ! Height of trap potential
     double precision,  parameter :: Vmax             = 200d0
     ! Depth/Height of pinning potential (Dimensionless)
@@ -38,11 +38,11 @@ module constants
     double precision,  parameter :: delta            = 4d0
     double precision,  parameter :: alpha            = 0d0
     ! Phase is shifted around this location
-    double precision,  parameter :: x0_vortex        = 1d0
-    double precision,  parameter :: y0_vortex        = 1d0
+    double precision,  parameter :: x0_vortex        = 0d0
+    double precision,  parameter :: y0_vortex        = 0d0
     ! Pinning site is located at this location
-    double precision,  parameter :: x0               = 1d0
-    double precision,  parameter :: y0               = 1d0
+    double precision,  parameter :: x0               = 0d0
+    double precision,  parameter :: y0               = 0d0
     ! whether to be in co-rotating frame with changing phase in phase animation
     logical,           parameter :: onRotating       = .true.
 
