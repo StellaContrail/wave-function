@@ -26,7 +26,7 @@ module constants
     double precision,  parameter :: dt_imag          = 0.01d0
     double precision,  parameter :: dt_real          = 0.01d0
     ! Cranking model's angular velocity (Dimension is the same with omega_x or omega_y)
-    double precision,  parameter :: OMEGA_imag       = 10d0
+    double precision,  parameter :: OMEGA_imag       = 2.5d0
     double precision,  parameter :: OMEGA_real       = 0d0
     ! Height of trap potential
     double precision,  parameter :: Vmax             = 200d0
@@ -41,8 +41,8 @@ module constants
     double precision,  parameter :: x0_vortex        = 0d0
     double precision,  parameter :: y0_vortex        = 0d0
     ! Pinning site is located at this location
-    double precision,  parameter :: x0               = 0d0
-    double precision,  parameter :: y0               = 0d0
+    double precision,  parameter :: x0               = 1.5d0
+    double precision,  parameter :: y0               = 1.5d0
     ! whether to be in co-rotating frame with changing phase in phase animation
     logical,           parameter :: onRotating       = .true.
 

@@ -79,7 +79,7 @@ program main
     n_vortex = 1
     imag_pot_mode = 6
     real_pot_mode = 5
-    if (.true.) then
+    if (.false.) then
         write (*, *) "Calculation initiated."
         open (12, file="quantities.txt", action="write")
         open (11, file=fn_energy_iteration_dependance_imaginary)
@@ -193,7 +193,7 @@ program main
     end if
 
     !----------------------- REAL TIME CALCULATION FROM HERE -------------------------------------------
-    if (.false.) then
+    if (.true.) then
     call initialize(Pot, real_pot_mode)
     call output_potential(fn_potential_real, Pot)
     write (*, '(X, A)') "* Calculating 2D GPE real-time evoluton of calculated wave function"
