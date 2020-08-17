@@ -149,13 +149,13 @@ Woods-Saxon potential which well satisfies the experimental data phenomenologica
 <b>Wave functions of Nucleons in 208 Pb(Lead) Nucleus</b>
 <img src="Nuclei_Density_Energies_ShellModel/wave_function.png" width="500px">
 <br>
-<b>Nucleons' Density In 16 Oxygen Nucleus</b>  
+<b>Nucleons' Density In 16 Oxygen Nucleus</b><br>
 <img src="Nuclei_Density_Energies_ShellModel/16O_density.svg" width="500px">
 <br>
-<b>Nucleons' Density In 40 Calcium Nucleus</b>  
+<b>Nucleons' Density In 40 Calcium Nucleus</b><br>
 <img src="Nuclei_Density_Energies_ShellModel/40Ca_density.svg" width="500px">
 <br>
-<b>Nucleons' Density In 208 Pb(Lead) Nucleus</b>  
+<b>Nucleons' Density In 208 Pb(Lead) Nucleus</b><br>
 <img src="Nuclei_Density_Energies_ShellModel/208Pb_density.svg" width="500px"> 
 </div>
 <h4>魔法数 (Magic Number)</h4>
