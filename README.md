@@ -17,8 +17,8 @@
 そのような世界の物性・挙動は主に量子力学を用いて記述されるが、用いられる数学は非常に高度なものであり初学者にとっては難解なものである。
 本リポジトリでは微視的世界の摩訶不思議な現象をイメージ化することによって理解を助けるのが目的である。
 <br>
-Quantum physics is now well established, which led to great successful in multiple fields including Physics, Engineering, and the others.
-On the other hand, first learners are still struggling to understand how Quantum World actually behaves mainly because its strangeness and mathematical difficulties.
+Quantum physics is now well established, which led to great success in multiple fields including Physics, Engineering, and the others.
+On the other hand, first learners are still struggling to understand how Quantum World behaves mainly because of its strangeness and mathematical difficulties.
 This repository aims for visualizing the quantum phenomena, helping them to get the feeling of the microscopic world.
 
 ## Programs
@@ -30,7 +30,7 @@ This repository aims for visualizing the quantum phenomena, helping them to get 
 </h3>
 <p>
 Electrons are orbiting around the nucleus.
-Each state of them has the energy level due to the Pauli's principle.  
+Each state has an energy level due to Pauli's principle.  
 This program calculates the energy levels by solving the proper Schroedinger Equation.  
 There are several ways to solve differential equation with some boundary conditions such as FDM(Finite-Difference Method), and Rungekutta + Bisection Method.  
 The picture below shows the wave functions of an electron orbiting around a hydrogen nucleus with orbital quantum number l=1.
@@ -49,8 +49,8 @@ The picture below shows the wave functions of an electron orbiting around a hydr
 <p>
 The harmonic oscillator is a system that has many practical uses in quantum and classical mechanics.  
 Its force is proportional to its displacement from its equilibrium position, F=-kx, where k is a constant chosen to satisfy this formulation.  
-This formula in general, is called Hooke's law.  
-In quantum mechanics, Schroedinger equation under this kind of potential gives specified wave function corresponding to its energy levels.  
+This formula, in general, is called Hooke's law.  
+In quantum mechanics, the Schroedinger equation under this kind of potential gives specified wave function corresponding to its energy levels.  
 The sample image shows the case of the 3rd excited state.
 </p>
 <div>
@@ -68,7 +68,7 @@ The sample image shows the case of the 3rd excited state.
 The other program which solves harmonic oscillator schroedinger is not dependent on time.  
 Therefore, we couldn't see how the system evolves and behaves.  
 This program, however, calculates and predicts how the system evolves under the static harmonic oscillator potential.  
-The picture below is how Gaussian wave packet evolves with time.  
+The picture below is how the Gaussian wave packet evolves with time.  
 You can see that the form of Gaussian wave packet (which resembles to a classical particle) changes according to time, but after one period of time, the shape actually recovers and repeats its periodic movement.
 </p>
 <div>
@@ -84,7 +84,7 @@ You can see that the form of Gaussian wave packet (which resembles to a classica
 </h3>
 <p>
 Simulate how a wave packet behaves in any potential including harmonic oscillator in three dimensions.  
-In order to study how a microscopic particle behaves in real world, thinking in a three dimensional world is important.  
+To study how a microscopic particle behaves in the real world, thinking in a three-dimensional world is important.  
 The animation below is the projection of the wave packet trapped inside a harmonic oscillator potential, mapped onto the x-y plane.  
 </p>
 <div>
@@ -118,8 +118,8 @@ The ball (wave of a particle) bounces the finite wall, partially bounces back an
 <p>
 A particle which is acted on a finite wall potential, partially goes through the wall in quantum mechanics.  
 People may wonder why this happens and doubt if it makes sense.  
-However, please remind that in quantum mechanics, there's fundamental law called "Uncertainty principle of energy" which indicates that energy can be infinitesimal or infinite.  
-According to this law, if the potential wall has finite height, the wave function can go through the wall and finite existence probability of the particle can be found in the other side of the finite wall.  
+However, please remind that in quantum mechanics, there's fundamental law called the "Uncertainty principle of energy" which indicates that energy can be infinitesimal or infinite.  
+According to this law, if the potential wall has finite height, the wave function can go through the wall and the finite existence probability of the particle can be found on the other side of the finite wall.  
 This phenomenon ("Quantum Tunneling Effect") was discovered by a Japanese Physicist, Leo Esaki.  
 </p>
 <div>
@@ -135,14 +135,14 @@ This phenomenon ("Quantum Tunneling Effect") was discovered by a Japanese Physic
 </h3>
 <p>
 The students who seriously have studied Physics or Chemistry must have heard about nucleus.  
-It is the structure inside atoms, which consists of molecules like H2O, CO2, and etc.  
-Electrons are orbiting around this core of nucleus, and inside the nucleus, there're protons and neutrons.  
-Interestingly, the number of protons only is the key for deciding what particle is this.   
-If you add one proton into a nucleus, or remove one, the atom can be entirely different kind of atom, for instance, if you add one proton into a hydrogen nucleus, the hydrogen atom changes its form into a helium atom.  
+It is the structure inside atoms, which consists of molecules like H2O, CO2, etc.  
+Electrons are orbiting around this core of the nucleus, and inside the nucleus, there're protons and neutrons.  
+Interestingly, the number of protons only is the key to deciding what particle is this.   
+If you add one proton into a nucleus or remove one, the atom can be an entirely different kind of atom, for instance, if you add one proton into a hydrogen nucleus, the hydrogen atom changes its form into a helium atom.  
 From what I've said above, the important components of our world can be said to be "Nucleons(Protons/Neutrons)".  
-These nucleons form nucleus, then nuclei form molecules, and molecules form the basics of our world.  
-The key to solve this interesting, but mysterious structure of nucleus, is to solve Schroedinger equation with appropriate potential.  
-Woods-Saxon potential which well satisfies the experimental data phenomenologically is a good example to implement by early learners of Nuclear Physics.  
+These nucleons make a nucleus, then nuclei form molecules, and molecules form the basics of our world.  
+The key to solving this interesting, but the mysterious structure of the nucleus, is to solve the Schroedinger equation with appropriate potential.  
+The Woods-Saxon potential which well satisfies the experimental data phenomenologically is a good example to implement by early learners of Nuclear Physics.  
 </p>
 
 <div>
@@ -160,7 +160,7 @@ Woods-Saxon potential which well satisfies the experimental data phenomenologica
 </div>
 <h4>魔法数 (Magic Number)</h4>
 There is a fancy word in Nuclear Physics called "Magic Numbers" which indicates the number of nucleons, 2, 8, 20, 28, 50, 82, 126.  
-Nucleons whose number matches one of these are mostly stable because there's huge energy gap between an energy level which corresponds to each of these nucleon numbers and the next energy level.  
+Nucleons whose number matches one of these are mostly stable because there's a huge energy gap between an energy level which corresponds to each of these nucleon numbers and the next energy level.  
 By applying Woods-Saxon potential into the Schroedinger equation and calculation gives expected, but interesting result.  
 <br>
 <img src="Nuclei_Density_Energies_ShellModel/magic_numbers.png" width="500px"> 
