@@ -54,7 +54,7 @@ The sample image shows the case of the 3rd excited state.
     Time development of One dimensional Harmonic Oscillator's Wave function
 </h3>
 <p>
-The other program which solves harmonic oscillator schroedinger is not dependent on time.  
+It solves harmonic oscillator schroedinger is not dependent on time.  
 Therefore, we couldn't see how the system evolves and behaves.  
 This program, however, calculates and predicts how the system evolves under the static harmonic oscillator potential.  
 The picture below is how the Gaussian wave packet evolves with time.  
@@ -115,8 +115,7 @@ This phenomenon ("Quantum Tunneling Effect") was discovered by a Japanese Physic
     Reproduction of Nucleons' density inside a nucleus
 </h3>
 <p>
-The students who seriously have studied Physics or Chemistry must have heard about nucleus.  
-It is the structure inside atoms, which consists of molecules like H2O, CO2, etc.  
+Nucleus is the structure inside atoms, which consists of molecules like H2O, CO2, etc.  
 Electrons are orbiting around this core of the nucleus, and inside the nucleus, there're protons and neutrons.  
 Interestingly, the number of protons only is the key to deciding what particle is this.   
 If you add one proton into a nucleus or remove one, the atom can be an entirely different kind of atom, for instance, if you add one proton into a hydrogen nucleus, the hydrogen atom changes its form into a helium atom.  
