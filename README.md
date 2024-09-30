@@ -5,18 +5,13 @@
     <img src="images/schroedinger_equation.png">
 </div>
 <p align="center">
-    <b>微視的物質のダイナミクスについての第一原理計算</b>
     <br>
-    <b>Visualization of every microscopic phenomena based on Schrödinger eq.</b>
+    <b>Visualization of every microscopic phenomena based on Schrödinger equation.</b>
 </p>
 
 ---
 
 ## About
-人間が肉眼で観察することが出来ない微視的な世界では様々な奇異な現象が発生する。
-そのような世界の物性・挙動は主に量子力学を用いて記述されるが、用いられる数学は非常に高度なものであり初学者にとっては難解なものである。
-本リポジトリでは微視的世界の摩訶不思議な現象をイメージ化することによって理解を助けるのが目的である。
-<br>
 Quantum physics is now well established, which led to great success in multiple fields including Physics, Engineering, and the others.
 On the other hand, first learners are still struggling to understand how Quantum World behaves mainly because of its strangeness and mathematical difficulties.
 This repository aims for visualizing the quantum phenomena, helping them to get the feeling of the microscopic world.
@@ -24,8 +19,6 @@ This repository aims for visualizing the quantum phenomena, helping them to get 
 ## Programs
 <table>
 <h3>
-    水素原子内における電子の波動関数
-    <br>
     Electrons' wave functions inside a Hydrogen Atom
 </h3>
 <p>
@@ -42,8 +35,6 @@ The picture below shows the wave functions of an electron orbiting around a hydr
 <hr>
 
 <h3>
-    一次元調和振動子の波動関数
-    <br>
     One dimensional Harmonic Oscillator's Wave function
 </h3>
 <p>
@@ -60,8 +51,6 @@ The sample image shows the case of the 3rd excited state.
 <hr>
 
 <h3>
-    一次元調和振動子の波動関数の時間発展
-    <br>
     Time development of One dimensional Harmonic Oscillator's Wave function
 </h3>
 <p>
@@ -78,8 +67,6 @@ You can see that the form of Gaussian wave packet (which resembles to a classica
 <hr>
 
 <h3>
-    三次元調和振動子の波動関数の時間発展
-    <br>
     Time development of Three dimensional Harmonic Oscillator's Wave function
 </h3>
 <p>
@@ -94,8 +81,6 @@ The animation below is the projection of the wave packet trapped inside a harmon
 <hr>
 
 <h3>
-    無限井戸型ポテンシャル内の波動関数
-    <br>
     Wave function with Infinite Wall
 </h3>
 <p>
@@ -111,8 +96,6 @@ The ball (wave of a particle) bounces the finite wall, partially bounces back an
 <hr>
 
 <h3>
-    トンネル効果
-    <br>
     Tunnelling effect
 </h3>
 <p>
@@ -129,8 +112,6 @@ This phenomenon ("Quantum Tunneling Effect") was discovered by a Japanese Physic
 <hr>
 
 <h3>
-    原子核内の核子(中性子/陽子)密度の再現
-    <br>
     Reproduction of Nucleons' density inside a nucleus
 </h3>
 <p>
@@ -146,7 +127,7 @@ The Woods-Saxon potential which well satisfies the experimental data phenomenolo
 </p>
 
 <div>
-<b>Wave functions of Nucleons in 208 Pb(Lead) Nucleus</b>
+<b>Wave functions of Nucleons in 208 Pb(Lead) Nucleus</b><br>
 <img src="Nuclei_Density_Energies_ShellModel/wave_function.png" width="500px">
 <br>
 <b>Nucleons' Density In 16 Oxygen Nucleus</b><br>
@@ -158,7 +139,7 @@ The Woods-Saxon potential which well satisfies the experimental data phenomenolo
 <b>Nucleons' Density In 208 Pb(Lead) Nucleus</b><br>
 <img src="Nuclei_Density_Energies_ShellModel/208Pb_density.svg" width="500px"> 
 </div>
-<h4>魔法数 (Magic Number)</h4>
+<h4>Magic Number</h4>
 There is a fancy word in Nuclear Physics called "Magic Numbers" which indicates the number of nucleons, 2, 8, 20, 28, 50, 82, 126.  
 Nucleons whose number matches one of these are mostly stable because there's a huge energy gap between an energy level which corresponds to each of these nucleon numbers and the next energy level.  
 By applying Woods-Saxon potential into the Schroedinger equation and calculation gives expected, but interesting result.  
